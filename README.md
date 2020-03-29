@@ -13,5 +13,5 @@ Run generation command:
 
 You can see examples of analysis code in the Delphes code above. 
 
-Visualize as:
+Run visualization command:
  root -l examples/EventDisplay.C'("cards/delphes_card_EIC.tcl","out.root")'
