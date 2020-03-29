@@ -13,13 +13,14 @@ Next:numberShowEvent = 0           ! print event record n times
 ! 3) Beam parameter settings. Values below agree with default ones.
 Beams:idA = 2212                     ! electron
 Beams:idB = 11                       ! proton
-Beams:eA  = 100                      ! 275 GeV proton
+Beams:eA  = 100                      ! 100 GeV proton
 Beams:eB  = 10                       ! 10 GeV electron
 Beams:frameType = 2 
 
 ! 4) Settings for the hard-process generation.
 
-WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
+#WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
+WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
 PhaseSpace:Q2Min = 100
 PDF:lepton = off
 TimeShower:QEDshowerByL=off 
