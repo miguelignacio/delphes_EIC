@@ -3,7 +3,7 @@
 # Author: Miguel Arratia                                 
 # email:miguel.arratia@ucr.edu
 # based on parameters from EIC detector handbook v1.2 http://www.eicug.org/web/sites/default/files/EIC_HANDBOOK_v1.2.pdf
-# as well as on assumptions on calorimeter granularity and tracking efficiency (not discussed in handbook). 
+# as well as on assumptions on calorimeter granularity and tracking efficiency (not specified in handbook). 
 #######################################################################################################################
 
 #######################################
