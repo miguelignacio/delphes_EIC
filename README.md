@@ -15,3 +15,6 @@ You can see examples of analysis code in the Delphes code above.
 
 Run visualization command:
  root -l examples/EventDisplay.C'("cards/delphes_card_EIC.tcl","out.root")'
+ 
+The two examples shown here are for neutral-current and charged-current event 
+for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass energy)
