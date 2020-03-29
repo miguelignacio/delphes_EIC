@@ -8,7 +8,7 @@ http://www.eicug.org/web/sites/default/files/EIC_HANDBOOK_v1.2.pdf
 
 So far it incorporates tracking, EMCAL and HCAL but lacks implementation of PID (it can be done though, following the LHCb card example)
 
-Magnetic field: 1.5 T,Solenoid length: 2.0 m, Tracker radius: 80 cm. 
+Magnetic field: 1.5 T, Solenoid length: 2.0 m, Tracker radius: 80 cm. 
 
 You can run Pythia8 within Delphes. The command file shown here is suitable for DIS at EIC. 
 
