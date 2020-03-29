@@ -9,7 +9,7 @@ http://www.eicug.org/web/sites/default/files/EIC_HANDBOOK_v1.2.pdf
 So far it incorporates tracking, emcal and hcal but lacks implementation of PID (it can be done though, following the LHCb card example)
 
 Run generation command:
-./DelphesPythia8 cards/delphes_card_EIC.tcl examples/Pythia8/DIS.cmnd out.root
+`./DelphesPythia8 cards/delphes_card_EIC.tcl examples/Pythia8/DIS.cmnd out.root`
 
 You can see examples of analysis code in the Delphes code above. 
 
