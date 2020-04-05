@@ -49,9 +49,6 @@ set ExecutionPath {
 
   JetFlavorAssociation
 
-  BTagging
-  TauTagging
-
   UniqueObjectFinder
 
   ScalarHT
@@ -94,12 +91,12 @@ module Efficiency ChargedHadronTrackingEfficiency {
   # tracking efficiency formula for charged hadrons
   #Made up numbers for the moment (need input from full sim)
   set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
-                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.70) +
-                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.95) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.60) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.85) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.50) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.75) +
+                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
+                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.92) +
+                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.85) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
                          (abs(eta) > 3.5)                                                  *(0.00) }
 }
 
@@ -118,12 +115,12 @@ module Efficiency ElectronTrackingEfficiency {
    ##Made up numbers for the moment (need input from full sim)
 
   set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
-                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.70) +
-                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.95) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.60) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.85) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.50) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.75) +
+                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
+                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.92) +
+                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.85) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
                          (abs(eta) > 3.5)                                                  *(0.00) }
 
 }
@@ -299,40 +296,35 @@ module SimpleCalorimeter HCal {
   # each list starts with the lower edge of the first tower
   # the list ends with the higher edged of the last tower
 
-  # Granularity is not discussed in EIC detector handbook. Numbers made up, but based on other detectors.
+  # Granularity is not discussed in EIC detector handbook. 
+ ## Barrel = 0.1x0.1 , following sPHENIX HCAL
 
-  ## BARREL: 0.087 x 0.100 
-  # 5 degrees towers at mid rapidity
-  set PhiBins {}
-  for {set i -36} {$i <= 36} {incr i} {
-    add PhiBins [expr {$i * $pi/36.0}]
-  }
-  #deta=0.1 units for |eta| <=1.0
-  for {set i -10} {$i < 10} {incr i} {
-        set eta [expr {$i * 0.1}]
-        add EtaPhiBins $eta $PhiBins
-  }
-  
-  ## ENDCAP 0.174 x 0.2 
-  # 10 degrees towers at forward rapidity
-  set PhiBins {}
-  for {set i -18} {$i <= 18} {incr i} {
-    add PhiBins [expr {$i * $pi/18.0}]
-  }
+    set PhiBins {}
+    for {set i -30} {$i <=30} {incr i} {
+	add PhiBins [expr {$i * $pi/30.0}]
+    }
+    for {set i -10} {$i <=10} {incr i} {
+	set eta [expr {$i * 0.1}]
+	add EtaPhiBins $eta $PhiBins
+    }
 
-  #deta=0.2 units for 1.0 < |eta| <= 3.4
-  #first, from -3.4 to -1.0
-  for {set i 1} {$i <=12} {incr i} {
-        set eta [expr {-3.4 + $i * 0.2}]
-        add EtaPhiBins $eta $PhiBins
+   ## Endcap granularity: 0.025 x 0.025, which follows from 10x10 cm2 towers at 3.6 m.
+    set PhiBins {}
+    for {set i -120} {$i <=120} {incr i} {
+	add PhiBins [expr {$i * $pi/120.0}]
     }
-  #same for 1.0 to 3.4
-    for  {set i 1} {$i <=12} {incr i} {
-        set eta [expr {1.0 + $i * 0.2}]
-        add EtaPhiBins $eta $PhiBins
+        
+    for {set i 1} {$i <=121} {incr i} {
+	set eta [expr {-4.025 + $i * 0.025}]
+	add EtaPhiBins $eta $PhiBins
     }
-  
-  # default energy fractions {abs(PDG code)} {Fecal Fhcal}
+    
+    for {set i 1} {$i <=121} {incr i} {
+	set eta [expr {0.975 + $i * 0.025 }]
+	add EtaPhiBins $eta $PhiBins
+    }
+
+
   add EnergyFraction {0} {1.0}
   # energy fractions for e, gamma and pi0
   add EnergyFraction {11} {0.0}
@@ -356,9 +348,9 @@ module SimpleCalorimeter HCal {
   ## Resolution midrapidity, as per sPHENIX HCAL
 
   # set HCalResolutionFormula {resolution formula as a function of eta and energy}
-  set ResolutionFormula {    (eta <= -1.0 && eta>-3.4)                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
+  set ResolutionFormula {    (eta <= -1.0 && eta>-4.0)                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
                              (eta <= 1.0 && eta>-1.0 )                       * sqrt(energy^2*0.10^2 + energy*1.0^2)+
-                             (eta <= 3.4  && eta>1.0 )                       * sqrt(energy^2*0.10^2 + energy*0.50^2)}  
+                             (eta <= 4.0  && eta>1.0 )                       * sqrt(energy^2*0.10^2 + energy*0.50^2)}  
 
 }
 
@@ -653,53 +645,6 @@ module JetFlavorAssociation JetFlavorAssociation {
 
 }
 
-###########
-# b-tagging
-###########
-
-module BTagging BTagging {
-  set JetInputArray JetEnergyScale/jets
-
-  set BitNumber 0
-
-  # add EfficiencyFormula {abs(PDG code)} {efficiency formula as a function of eta and pt}
-  # PDG code = the highest PDG code of a quark or gluon inside DeltaR cone around jet axis
-  # gluon's PDG code has the lowest priority
-
-  # based on arXiv:1211.4462 [leave this for here for future reference]
-  
-  # default efficiency formula (misidentification rate)
-  add EfficiencyFormula {0} {0.01+0.000038*pt}
-
-  # efficiency formula for c-jets (misidentification rate)
-  add EfficiencyFormula {4} {0.25*tanh(0.018*pt)*(1/(1+ 0.0013*pt))}
-
-  # efficiency formula for b-jets
-  add EfficiencyFormula {5} {0.85*tanh(0.0025*pt)*(25.0/(1+0.063*pt))}
-}
-
-#############
-# tau-tagging
-#############
-
-module TauTagging TauTagging {
-  set ParticleInputArray Delphes/allParticles
-  set PartonInputArray Delphes/partons
-  set JetInputArray JetEnergyScale/jets
-
-  set DeltaR 0.5
-
-  set TauPTMin 1.0
-
-  set TauEtaMax 2.5
-  #leave this here for future reference
-  # add EfficiencyFormula {abs(PDG code)} {efficiency formula as a function of eta and pt}
-
-  # default efficiency formula (misidentification rate)
-  add EfficiencyFormula {0} {0.01}
-  # efficiency formula for tau-jets
-  add EfficiencyFormula {15} {0.6}
-}
 
 #####################################################
 # Find uniquely identified photons/electrons/tau/jets
@@ -744,3 +689,5 @@ module TreeWriter TreeWriter {
   add Branch MissingET/momentum MissingET MissingET
   add Branch ScalarHT/energy ScalarHT ScalarHT
 }
+
+
