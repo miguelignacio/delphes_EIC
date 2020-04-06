@@ -39,14 +39,24 @@ branchElectron = treeReader.UseBranch("Electron")
 branchMet = treeReader.UseBranch("MissingET")
 branchGenMet = treeReader.UseBranch("GenMissingET")
 
+##Tracks/Towers
+branchTrack = treeReader.UseBranch("Track")
+branchTower = treeReader.UseBranch("Tower")
+##Particle flow objects
+branchEFlowTrack =  treeReader.UseBranch("EFlowTrack")
+branchEFlowPhoton = treeReader.UseBranch("EFlowPhoton")
+branchEFlowNeutralHadron = treeReader.UseBranch("EFlowNeutralHadron")
+
+
 # Book histograms
 histJetPT = ROOT.TH1F("jet_pt", "jet P_{T}", 100, 0.0, 100.0)
 METMatrix = ROOT.TH2F("METMatrix", "Met Matrix", 100, 10.0, 40.0, 100, 10.0, 40.0)
 JetMatrix = ROOT.TH2F("JetMatrix", "Jet Matrix", 100, 10.0, 40.0, 100, 10.0, 40.0)
 ElectronMatrix = ROOT.TH2F("ElectronMatrix", "Electron Matrix", 100,10.0,40.0,100,10.0,40.0)
 
-
-
+y_Matrix = ROOT.TH2F("y_Matrix", "inelasticity response matrix, JB method", 100, 0.0,1.0, 100,0.0,1.0)
+x_Matrix = ROOT.TH2F("x_Matrix", "Bjorken x response matrix, JB method", 100, 0.0,1.0, 100,0.0,1.0)
+Q2_Matrix = ROOT.TH2F("Q2_Matrix", "Q2 response matrix, JB method", 100, 100,10000, 100,100,10000) 
 
 JetMatrix_profile = ROOT.TH2F("JetMatrix_profile", "Jet Matrix profile", 100, 10.0, 40.0, 100, -1.0, 1.0)
 profile_Jet = ROOT.TProfile("profile_Jet", "profile_Jet", 30, 10, 40, -1.0,1.0,"s") 
@@ -78,6 +88,51 @@ for entry in range(0, numberOfEntries):
   # Load selected branches with data from specified event
   treeReader.ReadEntry(entry)
 
+  # four-momenta of proton, electron, virtual photon/Z^0/W^+-.
+  pProton      = branchParticle.At(0).P4(); #these numbers 0 , 3, 5 are hardcoded in Pythia8
+  pleptonIn    = branchParticle.At(3).P4();
+  pleptonOut   = branchParticle.At(5).P4();
+  pPhoton      = pleptonIn - pleptonOut;
+  
+   #Q2, W2, Bjorken x, y, nu.
+  Q2 = -pPhoton.M2()
+  W2 = (pProton + pPhoton).M2()
+  x = Q2 / (2. * pProton.Dot(pPhoton))
+  y = (pProton.Dot(pPhoton)) / (pProton.Dot(pleptonIn))
+  
+  #Jacquet Blondet method:
+  temp = 0
+  temp_p = ROOT.TVector3()
+  for i in range(branchEFlowTrack.GetEntries()):
+      track_mom = branchEFlowTrack.At(i).P4()
+      temp = temp + (track_mom.E() - track_mom.Pz())
+      temp_p = temp_p + track_mom.Vect()
+      
+  for i in range(branchEFlowPhoton.GetEntries()):
+      pf_mom = branchEFlowPhoton.At(i).P4()        
+      temp = temp + (pf_mom.E() - pf_mom.Pz())
+      temp_p = temp_p + pf_mom.Vect()
+
+  for i in range(branchEFlowNeutralHadron.GetEntries()):
+      pf_mom = branchEFlowNeutralHadron.At(i).P4()
+      temp = temp + (pf_mom.E() - pf_mom.Pz())
+      temp_p = temp_p + pf_mom.Vect()
+      
+
+  y_JB   = temp/(2.0*10.0)
+  ptmiss = temp_p.Perp()
+  Q2_JB  = ptmiss/(1-y_JB)
+  s     = 4*10.0*275.0
+  x_JB  = Q2_JB/(s*y_JB)
+
+ # print 'Kinematic variables ', x_JB, ' x, ', Q2_JB, ' , Q2 , ', y_JB,' , y'
+ # print 'Kinematic variables ', x, ' x, ', Q2, ' , Q2 , ', y,' , y'
+ # print 'Missing momentum ' , ptmiss
+
+  x_Matrix.Fill(x, x_JB)
+  Q2_Matrix.Fill(Q2, Q2_JB)
+  y_Matrix.Fill(y, y_JB)
+ 
   ## Electron response matrix:
   if branchElectron.GetEntries()>0:
       electron = branchElectron.At(0)
@@ -114,6 +169,8 @@ for entry in range(0, numberOfEntries):
       met = branchMet.At(0)
       genmet = branchGenMet.At(0)
 
+      #print 'MET', met.MET
+      #print 'GenMET', genmet.MET
       if branchGenMet.GetEntries()>0:
           METMatrix.Fill(genmet.MET, met.MET)
           res = (met.MET-genmet.MET)/genmet.MET
@@ -128,40 +185,51 @@ profile_MET.SetLineWidth(2)
 profile_Electron.SetLineColor(2)
 profile_Electron.SetLineWidth(2)
 
+y_Matrix.Draw("colz")
+c.SaveAs("y_response.png")
+c.Clear()
+x_Matrix.Draw("colz")
+c.SaveAs("x_response.png")
+c.Clear()
+Q2_Matrix.Draw("colz")
+c.SaveAs("Q2_response.png")
+
+
+
 # Show resulting histograms
 histJetPT.Draw()
-input("Press Enter to continue...")
+#input("Press Enter to continue...")
 c.Clear()
 JetMatrix.Draw("colz")
-c.SaveAs("JetResponse.png")
+c.SaveAs("JetResponse_%s.png"%inputFile)    
 
-input("Press Enter to continue...")
+#input("Press Enter to continue...")
 c.Clear()
 ElectronMatrix.Draw("colz")
-c.SaveAs("ElectronResponse.png")
+c.SaveAs("ElectronResponse_%s.png"%inputFile)    
 
 
-input("Press enter to continue...")
+#input("Press enter to continue...")
 c.Clear()
 JetMatrix_profile.Draw("colz")
 profile_Jet.Draw("same")
-c.SaveAs("profile_jet.png")
+c.SaveAs("profile_jet_%s.png"%inputFile)    
 
-input("Press enter to continue...")
+#input("Press enter to continue...")
 c.Clear()
 METMatrix_profile.Draw("colz")
 profile_MET.Draw("same")
-c.SaveAs("profile_MET%s.png"%inputFile)
+c.SaveAs("profile_MET_%s.png"%inputFile)
 
-input("Press enter to continue...")
+#input("Press enter to continue...")
 c.Clear()
 ElectronMatrix_profile.Draw("colz")
 profile_Electron.Draw("same")
-c.SaveAs("profile_Electron%.png"%inputFile)
+c.SaveAs("profile_Electron_%s.png"%inputFile)
 
 
-input("Press enter to continue")
+
 c.Clear()
 METMatrix.Draw("colz")
-c.SaveAs("METResponse.png")
+c.SaveAs("METResponse_%s.png"%inputFile)    
 
