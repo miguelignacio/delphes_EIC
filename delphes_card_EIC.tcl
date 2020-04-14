@@ -191,8 +191,8 @@ module SimpleCalorimeter ECal {
   set EFlowTowerOutputArray eflowPhotons
 
   set IsEcal true
-
-  set EnergyMin 0.5
+  #assume 30 MeV noise per tower, so 200 MeV should be possible. 
+  set EnergyMin 0.2 
   set EnergySignificanceMin 1.0
 
   set SmearTowerCenter true
@@ -285,7 +285,8 @@ module SimpleCalorimeter HCal {
 
   set IsEcal false
 
-  set EnergyMin 1.0
+  ##Assumes noise 100 MeV per tower. 
+  set EnergyMin 0.5
   set EnergySignificanceMin 1.0
 
   set SmearTowerCenter true
@@ -308,7 +309,8 @@ module SimpleCalorimeter HCal {
 	add EtaPhiBins $eta $PhiBins
     }
 
-   ## Endcap granularity: 0.025 x 0.025, which follows from 10x10 cm2 towers at 3.6 m.
+    ## Endcap granularity: 0.025 x 0.025, which follows from 10x10 cm2 towers at 3.6 m.
+    ## Coverage is -4.0, -1.0 , and +1.0 to 4.0. 
     set PhiBins {}
     for {set i -120} {$i <=120} {incr i} {
 	add PhiBins [expr {$i * $pi/120.0}]
