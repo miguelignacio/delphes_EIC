@@ -191,7 +191,7 @@ module SimpleCalorimeter ECal {
   set EFlowTowerOutputArray eflowPhotons
 
   set IsEcal true
-  #assume 30 MeV noise per tower, so 200 MeV should be possible. 
+  #200 MeV should be possible. 
   set EnergyMin 0.2 
   set EnergySignificanceMin 1.0
 
@@ -203,7 +203,7 @@ module SimpleCalorimeter ECal {
   # each list starts with the lower edge of the first tower
   # the list ends with the higher edged of the last tower
 
-  # Granularity is not discussed in EIC detector handbook. Numbers made up, but based on other detectors. 
+  # Granularity is not discussed in EIC detector handbook. 
 
 
   ##BARREL
@@ -220,21 +220,21 @@ module SimpleCalorimeter ECal {
   }
 
   ##ENDCAP
-  # assume 0.0174 x 0.020 resolution in phi,eta in the barrel 1.0<|eta| < 3.5
+  # assume 0.020 x 0.020 resolution in phi,eta in the endcap 1.0<|eta| < 4.0
   set PhiBins {}
   for {set i -180} {$i <= 180} {incr i} {
     add PhiBins [expr {$i * $pi/180.0}]
   }
 
-  #deta=0.02 units for 1.0 < |eta| <= 3.5
-  #first, from -3.5 to -1.0
-  for {set i 1} {$i <=125} {incr i} {
-        set eta [expr {-3.00 + $i * 0.02}]
+  #deta=0.02 units for 1.0 < |eta| <= 4.0
+  #first, from -4.0 to -1.0
+  for {set i 1} {$i <=151} {incr i} {
+        set eta [expr {-4.02 + $i * 0.02}]
         add EtaPhiBins $eta $PhiBins
     }
-  #same for 1.0 to 3.5
-    for  {set i 1} {$i <=125} {incr i} {
-        set eta [expr {1.0 + $i * 0.02}]
+  #same for 1.0 to 4.0
+    for  {set i 1} {$i <=151} {incr i} {
+        set eta [expr {0.98 + $i * 0.02}]
         add EtaPhiBins $eta $PhiBins
     }
 
@@ -260,12 +260,13 @@ module SimpleCalorimeter ECal {
   add EnergyFraction {3122} {0.3}
 
   # set ResolutionFormula {resolution formula as a function of eta and energy}
-  # From EIC detector handbook v1.2
+  # EM - W/ScFi, granularity 2.5 cm x 2.5 cm, 12% stochastic, 2% constant terms, as suggested by Oleg Tsai.
+   
 
-   set ResolutionFormula {    (eta <= -2.0 && eta>-3.5)                          * sqrt(energy^2*0.01^2 + energy*0.02^2)+ \
+   set ResolutionFormula {    (eta <= -2.0 && eta>-4.0)                          * sqrt(energy^2*0.01^2 + energy*0.02^2)+ \
                               (eta <= -1.0 && eta>-2.0 )                         * sqrt(energy^2*0.01^2 + energy*0.07^2)+ \ 
-                              (eta <= 1.0 && eta> -1.0 )                         * sqrt(energy^2*0.01^2 + energy*0.07^2)+ \
-                              (eta <= 3.5  &&  eta>1.0 )                          * sqrt(energy^2*0.01^2 + energy*0.10^2)} 
+                              (eta <= 1.0  && eta> -1.0 )                        * sqrt(energy^2*0.01^2 + energy*0.10^2)+ \
+                              (eta <= 4.0  &&  eta>1.0 )                         * sqrt(energy^2*0.02^2 + energy*0.12^2)} 
 
 
 }
@@ -351,7 +352,7 @@ module SimpleCalorimeter HCal {
 
   # set HCalResolutionFormula {resolution formula as a function of eta and energy}
   set ResolutionFormula {    (eta <= -1.0 && eta>-4.0)                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
-                             (eta <= 1.0 && eta>-1.0 )                       * sqrt(energy^2*0.10^2 + energy*1.0^2)+
+                             (eta <= 1.0 && eta>-1.0 )                       * sqrt(energy^2*0.10^2 + energy*1.00^2)+
                              (eta <= 4.0  && eta>1.0 )                       * sqrt(energy^2*0.10^2 + energy*0.50^2)}  
 
 }
