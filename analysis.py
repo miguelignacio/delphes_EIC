@@ -124,6 +124,8 @@ nbinspt = 6
 
 profile = {}
 ResMatrix = {}
+histo = {} 
+
 distribution = {}
 
 ##JET, phi, phi
@@ -160,6 +162,10 @@ profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 6, 10.0, 40.0, -
 distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "",  6, 10.0, 40.0, 20, 0,1.0)
 distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  6, 10.0, 40.0, 20, 0,1.0)
 
+histo['delta_reco'] = ROOT.TH1F("delta_reco","", 100,0.0,30.0)
+histo['delta_gen'] = ROOT.TH1F("delta_gen","", 100,0.0,30.0)
+
+
 h_qt_reco = {}
 h_qt_truth = {}
 
@@ -188,10 +194,10 @@ y_Matrix.SetTitle(" y response matrix, JB method; generated y; reconstructed y")
 
 # Loop over all events
 for entry in range(0, numberOfEntries):
-    if entry%10000==0:
-        print 'event ' , entry
-    #if entry>3000:
-    #   break
+    #if entry%10000==0:
+    #    print 'event ' , entry
+    if entry>3000:
+       break
     # Load selected branches with data from specified event
     treeReader.ReadEntry(entry)
 
@@ -209,62 +215,54 @@ for entry in range(0, numberOfEntries):
   
     #Jacquet Blondet method:
     temp = 0
+    delta = 0
     temp_p = ROOT.TVector3()
     for i in range(branchEFlowTrack.GetEntries()):
        track_mom = branchEFlowTrack.At(i).P4()
        temp = temp + (track_mom.E() - track_mom.Pz())
        temp_p = temp_p + track_mom.Vect()
-      
-
-       if abs(track_mom.Eta())<1.0:
-           etabin = 1
-       elif track_mom.Eta()>1.0 and track_mom.Eta()<2.0:
-           etabin = 2
-       elif track_mom.Eta()>2.0 and track_mom.Eta()<3.0:
-         
-           etabin = 3
-       else:                                                                                                                                                                                                      
-           etabin=4
-       track_E['etabin%i'%etabin].Fill(track_mom.E())
+     
     for i in range(branchEFlowPhoton.GetEntries()):
        pf_mom = branchEFlowPhoton.At(i).P4()        
        temp = temp + (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p + pf_mom.Vect() 
 
-       if abs(pf_mom.Eta())<1.0:
-           etabin = 1
-       elif pf_mom.Eta()>1.0 and pf_mom.Eta()<2.0:
-         etabin = 2
-       elif pf_mom.Eta()>2.0 and pf_mom.Eta()<3.0:
-         etabin = 3
-       else:
-         etabin=4
-
-       photon_E['etabin%i'%etabin].Fill(pf_mom.E())
-
-    
     for i in range(branchEFlowNeutralHadron.GetEntries()):
-       
        pf_mom = branchEFlowNeutralHadron.At(i).P4()
        temp = temp + (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p + pf_mom.Vect()
 
-       if abs(pf_mom.Eta())<1.0:
-           etabin = 1
-       elif pf_mom.Eta()>1.0 and pf_mom.Eta()<2.0:
-           etabin = 2
-       elif pf_mom.Eta()>2.0 and pf_mom.Eta()<3.0:
-           etabin = 3
-       else:
-           etabin=4
-       neutral_E['etabin%i'%etabin].Fill(pf_mom.E())
-
+    delta =  temp
     y_JB   = temp/(2.0*10.0)
     ptmiss = temp_p.Perp()
     Q2_JB  = (ptmiss*ptmiss)/(1-y_JB)
     s     = 4*10.0*275.0
     x_JB  = Q2_JB/(s*y_JB)
 
+
+#delta at generator level
+    gendelta = 0
+    for i in range(branchParticle.GetEntries()):
+        particle = branchParticle.At(i)
+        gen_mom = particle.P4()
+        status = particle.Status                       
+        if(status!=1): continue            
+        gendelta = gendelta + (gen_mom.E() - gen_mom.Pz())                      
+
+    #print 'Gen delta ' , gendelta , ' reco delta ', delta 
+    histo['delta_reco'].Fill(delta)
+    histo['delta_gen'].Fill(gendelta)
+
+
+
+
+
+
+
+
+
+
+    
     ##Fill purity histograms y-x and Q2-x
     genbin  = Ngen_y_x.FindBin(y, x)
     recobin = Ngen_y_x.FindBin(y_JB,x_JB)
@@ -675,12 +673,14 @@ c.SaveAs("plots/profile_jetE_eta_%s.pdf"%(inputFile))
 
 
 
+c.Clear()
 
-
-
-
-
-
+histo['delta_reco'].Draw()
+histo['delta_reco'].SetTitle("; #delta ; entries")
+histo['delta_gen'].Draw("same")
+histo['delta_gen'].SetLineColor(2)
+c.SaveAs("plots/delta_%s.png"%(inputFile))
+c.SaveAs("plots/delta_%s.pdf"%(inputFile))
 
 
 
