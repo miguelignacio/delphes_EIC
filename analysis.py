@@ -71,10 +71,6 @@ for i in range(1,5):
     track_E['etabin%i'%i]   = ROOT.TH1F("track_E_eta%i"%i, "", 100, 0.0,100.0)
 
 
-METMatrix = ROOT.TH2F("METMatrix", "Met Matrix", 15, 10.0, 40.0, 15, 10.0, 40.0)
-JetMatrix = ROOT.TH2F("JetMatrix", "Jet Matrix", 30, 10.0, 40.0, 30, 10.0, 40.0)
-ElectronMatrix = ROOT.TH2F("ElectronMatrix", "Electron Matrix", 100,10.0,40.0,100,10.0,40.0)
-
 #Kinematic
 y_Matrix = ROOT.TH2F("y_Matrix", "inelasticity response matrix, JB method", 10, 0.0,1.0, 10,0.0,1.0)
 x_Matrix = ROOT.TH2F("x_Matrix", "Bjorken x response matrix, JB method", 10, 0.0,1.0, 10,0.0,1.0)
@@ -106,6 +102,21 @@ Nin_Q2_x  = ROOT.TH2F("Nin_Q2_x", "" , 10, array('d',binsx), 6, array('d',binsQ2
 
 
 
+
+##Diagonal
+
+METMatrix = ROOT.TH2F("METMatrix", "Met Matrix", 30, 10.0, 280.0, 30, 10.0, 280.0)
+JetMatrix = ROOT.TH2F("JetMatrix", "Jet Matrix", 100, 10.0, 280.0, 100, 10.0, 280.0)
+ElectronMatrix = ROOT.TH2F("ElectronMatrix", "Electron Matrix", 100,10.0,40.0,100,10.0,40.0)
+
+
+##E vs Eta
+Jet_eta_e = ROOT.TH2F("Jet_eta_e", "" , 100,-4.0,4.0, 100, 0, 150.0)
+
+
+
+
+
 ### Jet PT and Phi
 minpt = 10
 maxpt = 40
@@ -113,30 +124,41 @@ nbinspt = 6
 
 profile = {}
 ResMatrix = {}
+distribution = {}
 
 ##JET, phi, phi
 ResMatrix['jetpt'] =    ROOT.TH2F("ResMatrix_jetpt",             "",  nbinspt, minpt, maxpt, 50, -1.0, 1.0)
 profile['jetpt'] =      ROOT.TProfile("profile_jetpt",           "",  nbinspt, minpt, maxpt, -1.0,1.0,"s")
-ResMatrix['jetphi']  =  ROOT.TH2F("ResMatrix_jetphi" ,           "",  nbinspt, minpt, maxpt, 50, -0.5,0.5)  
+ResMatrix['jetphi']  =  ROOT.TH2F("ResMatrix_jetphi" ,           "",  nbinspt, minpt, maxpt, 100, -0.5,0.5)  
 profile['jetphi'] =     ROOT.TProfile("profile_jetphi",          "",  nbinspt, minpt, maxpt, -0.5,0.5,"s")
 
 for i in range(1,5):
     ResMatrix['jete_eta%i'%i] = ROOT.TH2F("ResMatrix_jete_eta%i"%i,        "",  20, 10, 200, 50, -1.0,1.0)
     profile['jete_eta%i'%i]   = ROOT.TProfile("profile_jete_eta%i"%i,        "",  20, 10, 200, -1.0, 1.0,"s")
 
+ResMatrix['jete'] = ROOT.TH2F("ResMatrix_jete",        "",  10, 10, 100, 50, -1.0,1.0)
+profile['jete']    = ROOT.TProfile("profile_jete", "", 10, 10, 100, -1.0,1.0,"s")
+    
 ### MET PT and Phi
 ResMatrix['met']       = ROOT.TH2F("ResMatrix_met",              "", nbinspt, minpt, maxpt, 50, -1.0, 1.0)
 profile['met']         = ROOT.TProfile("profile_met",            "", nbinspt, minpt, maxpt, -1.0,1.0,"s")     
-ResMatrix['metphi']    = ROOT.TH2F("ResMatrix_metphi",           "", nbinspt, minpt, maxpt, 50, -0.5, 0.5)
+ResMatrix['metphi']    = ROOT.TH2F("ResMatrix_metphi",           "", nbinspt, minpt, maxpt, 100, -0.5, 0.5)
 profile['metphi']      = ROOT.TProfile("profile_metphi",         "", nbinspt, minpt, maxpt, -0.5, 0.5, "s")
 
 ##Electron
 ResMatrix['ept'] = ROOT.TH2F("ResMatrix_ept", "", 100, 10.0, 40.0, 100, -.20, .20)
 profile['ept']       = ROOT.TProfile("profile_ept", "", 30, 10, 40, -.20,0.20,"s")
 
-ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dph", "", 6, 10.0, 40.0, 50, -0.5, 0.5)
+ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dph", "", 6, 10.0, 40.0, 100, -0.5, 0.5)
 profile['dphi']  = ROOT.TProfile("profile_dphi", "", 6, 10.0,40.0, -0.5,0.5,"s")
+distribution['dphi_reco'] = ROOT.TH2F("distribution_dphi_reco", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())
+distribution['dphi_gen'] = ROOT.TH2F("distribution_dphi_gen", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())     
 
+
+ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 6, 10.0, 40.0, 100, -0.1, 0.1)
+profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 6, 10.0, 40.0, -0.1, 0.1,"s")
+distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "",  6, 10.0, 40.0, 20, 0,1.0)
+distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  6, 10.0, 40.0, 20, 0,1.0)
 
 h_qt_reco = {}
 h_qt_truth = {}
@@ -168,7 +190,7 @@ y_Matrix.SetTitle(" y response matrix, JB method; generated y; reconstructed y")
 for entry in range(0, numberOfEntries):
     if entry%10000==0:
         print 'event ' , entry
-    #if entry>1000:
+    #if entry>3000:
     #   break
     # Load selected branches with data from specified event
     treeReader.ReadEntry(entry)
@@ -243,7 +265,6 @@ for entry in range(0, numberOfEntries):
     s     = 4*10.0*275.0
     x_JB  = Q2_JB/(s*y_JB)
 
-
     ##Fill purity histograms y-x and Q2-x
     genbin  = Ngen_y_x.FindBin(y, x)
     recobin = Ngen_y_x.FindBin(y_JB,x_JB)
@@ -259,9 +280,6 @@ for entry in range(0, numberOfEntries):
     if(genbin!=recobin):
         Nout_Q2_x.Fill(x,Q2) ### In a given generator bin, how many left out.
         Nin_Q2_x.Fill(x_JB, Q2_JB)
-
-
-        
 
     x_Matrix.Fill(x, x_JB)
     Q2_Matrix.Fill(ROOT.TMath.Sqrt(Q2), ROOT.TMath.Sqrt(Q2_JB))
@@ -288,34 +306,58 @@ for entry in range(0, numberOfEntries):
     if branchJet.GetEntries() > 0:
         # Take first jet
         jet = branchJet.At(0)
-        genjet = branchGenJet.At(0)
+
+        deltaR = 999
+        ipar_best = 999
+        for ipar in range(branchGenJet.GetEntries()):
+             particle = branchGenJet.At(ipar) #branchParticle.At(ipar)
+             genJetMomentum = particle.P4()
+             if(genJetMomentum.Px() == 0 and genJetMomentum.Py() == 0): continue
+
+             if(genJetMomentum.DeltaR(jet.P4()) < deltaR):
+                 deltaR = genJetMomentum.DeltaR(jet.P4());
+                 bestGenJetMomentum = genJetMomentum;
+                 ipar_best = ipar
+        #print ipar
+        #print deltaR
+        if (deltaR>0.3): continue
+            
+        genjet = bestGenJetMomentum #branchGenJet.At(0)
      
         # Print jet transverse momentum
-        if branchGenJet.GetEntries()>0:
-            JetMatrix.Fill(genjet.PT, jet.PT)
-            res = (jet.PT-genjet.PT)/genjet.PT
-            profile['jetpt'].Fill(genjet.PT, res)
-            ResMatrix['jetpt'].Fill(genjet.PT,res)
-            profile['jetphi'].Fill(genjet.PT,   jet.Phi-genjet.Phi)
-            ResMatrix['jetphi'].Fill(genjet.PT, jet.Phi-genjet.Phi)
-
-            if abs(genjet.P4().Eta())<1.0:
-                etabin = 1
-            elif genjet.P4().Eta()>1.0 and genjet.P4().Eta()<2.0:
-                etabin = 2
-            elif genjet.P4().Eta()>2.0 and genjet.P4().Eta()<3.0:
-                etabin = 3
-            else:
-                etabin=4
+        JetMatrix.Fill(genjet.Pt()*ROOT.TMath.CosH(genjet.Eta()), jet.PT*ROOT.TMath.CosH(jet.Eta))
             
-            ResMatrix['jete_eta%i'%etabin].Fill(genjet.P4().E(), (jet.P4().E()-genjet.P4().E())/genjet.P4().E())
-            profile['jete_eta%i'%etabin].Fill(genjet.P4().E(), (jet.P4().E()-genjet.P4().E())/genjet.P4().E())  
-  
-  ##Met response matrix
+        res = (jet.PT-genjet.Pt())/genjet.Pt()
+        profile['jetpt'].Fill(genjet.Pt(), res)
+        ResMatrix['jetpt'].Fill(genjet.Pt(),res)
+        profile['jetphi'].Fill(genjet.Pt(),   jet.Phi-genjet.Phi())
+        ResMatrix['jetphi'].Fill(genjet.Pt(), jet.Phi-genjet.Phi())
+
+
+        
+#       print genjet.PT*ROOT.TMath.CosH(genjet.Eta), ' ',  genjet.P4().E()
+        Jet_eta_e.Fill(genjet.Eta(), genjet.Pt()*ROOT.TMath.CosH(genjet.Eta()))
+            
+        if(genjet.Pt()<10.0):
+           continue
+        if abs(genjet.Eta())<1.0:
+            etabin = 1
+        elif genjet.Eta()>1.0 and genjet.Eta()<2.0:
+            etabin = 2
+        elif genjet.Eta()>2.0 and genjet.Eta()<3.0:
+            etabin = 3
+        else:
+            etabin=4
+        ResMatrix['jete_eta%i'%etabin].Fill(genjet.E(), (jet.P4().E()-genjet.E())/genjet.E())
+        profile['jete_eta%i'%etabin].Fill(genjet.E(), (jet.P4().E()-genjet.E())/genjet.E())  
+
+        ResMatrix['jete'].Fill(genjet.E(), (jet.P4().E()-genjet.E())/genjet.E())
+        profile['jete'].Fill(genjet.E(), (jet.P4().E()-genjet.E())/genjet.E())
+
+    ##Met response matrix
     if branchMet.GetEntries() > 0:
         met = branchMet.At(0)
         genmet = branchGenMet.At(0)
-
         #print 'MET', met.MET
         #print 'GenMET', genmet.MET
         if branchGenMet.GetEntries()>0:
@@ -334,11 +376,7 @@ for entry in range(0, numberOfEntries):
             if(genbin!=recobin):
                 Nout_met_x.Fill(genmet.MET,x) ### In a given generator bin, how many left out.
                 Nin_met_x.Fill(met.MET, x_JB)
-
-        
-
-
-                
+            
     leptonOK = False
     if(isCC and branchMet.GetEntries()>0 and branchGenMet.GetEntries()>0):
         lepton = branchMet.At(0).P4()
@@ -352,28 +390,34 @@ for entry in range(0, numberOfEntries):
         lepton_pt = lepton.Pt()
         genlepton_pt = lepton.Pt() 
         leptonOK = True
-      
+    ## dphi  
     if leptonOK and branchJet.GetEntries() > 0 and branchGenJet.GetEntries()>0:
-        jet = branchJet.At(0)
-        genjet = branchGenJet.At(0)
+        #jet = branchJet.At(0)
+        #genjet = branchGenJet.At(0)
         genlepton_phi = genlepton.Phi()
         lepton_phi =    lepton.Phi()
       
         jet_phi =    jet.P4().Phi()
-        genjet_phi=  genjet.P4().Phi()
+        genjet_phi=  genjet.Phi()
       
         dphi_gen = ROOT.TVector2.Phi_mpi_pi(genlepton_phi-genjet_phi)
         dphi_reco = ROOT.TVector2.Phi_mpi_pi(lepton_phi-jet_phi)
 
-        qT_reco = ROOT.TVector2(jet.P4().Px() + lepton.Px(), jet.P4().Py() + lepton.Py() )
-        qT_reco = qT_reco.Mod()/ROOT.TMath.Sqrt(Q2)
+        qT_reco = ROOT.TVector2(jet.P4().Px() + lepton.Px(), jet.P4().Py() + lepton.Py() ).Mod()
+        #qT_reco = qT_reco.Mod()/ROOT.TMath.Sqrt(Q2)
       
-        qT_truth = ROOT.TVector2(genjet.P4().Px() + genlepton.Px(), genjet.P4().Py() + genlepton.Py() )
-        qT_truth = qT_truth.Mod()/ROOT.TMath.Sqrt(Q2)   
+        qT_truth = ROOT.TVector2(genjet.Px() + genlepton.Px(), genjet.Py() + genlepton.Py() ).Mod()
+        #qT_truth = qT_truth.Mod()/ROOT.TMath.Sqrt(Q2)   
 
         ResMatrix['dphi'].Fill(lepton.Pt(), dphi_reco-dphi_gen)
         profile['dphi'].Fill(lepton.Pt(), dphi_reco-dphi_gen)
+        distribution['dphi_gen'].Fill(lepton.Pt(), dphi_gen)
+        distribution['dphi_reco'].Fill(lepton.Pt(), dphi_reco)
         
+        ResMatrix['qtnormjet'].Fill(lepton.Pt(), qT_reco/jet.PT -qT_truth/genjet.Pt())
+        profile['qtnormjet'].Fill(lepton.Pt(), qT_reco/jet.PT -qT_truth/genjet.Pt()) 
+        distribution['qtnormjet_reco'].Fill(lepton.Pt(), qT_reco/jet.PT)
+        distribution['qtnormjet_gen'].Fill(lepton.Pt(), qT_truth/genjet.Pt())
 ###Colors
 for key in profile:
     profile[key].SetLineColor(2)
@@ -397,6 +441,16 @@ for i in range(1,5):
 
 ROOT.gPad.SetLogy(0)
 
+
+c.Clear()
+METMatrix.Draw("colz")
+c.SaveAs("plots/Diagonal_MET_%s.png"%inputFile)
+c.SaveAs("plots/Diagonal_MET_%s.pdf"%inputFile)
+
+c.Clear()
+JetMatrix.Draw("colz")
+c.SaveAs("plots/Diagonal_Jet_%s.png"%inputFile) 
+c.SaveAs("plots/Diagonal_Jet_%s.pdf"%inputFile)
 
 
 c.Clear()
@@ -455,48 +509,66 @@ c.SaveAs("plots/profile_METphi_%s.pdf"%inputFile)
 
 
 c.Clear()
-ResMatrix['jetphi'].SetTitle("; generated MET; jet #phi^{reco} - jet #phi^{gen} [rad]")
+ResMatrix['jetphi'].SetTitle("; jet p_{T}^{gen} [GeV]; jet #phi^{reco} - jet #phi^{gen} [rad]")  
 ResMatrix['jetphi'].Draw("colz")
 profile['jetphi'].Draw("same")
 c.SaveAs("plots/profile_jetphi_%s.png"%inputFile) 
 c.SaveAs("plots/profile_jetphi_%s.pdf"%inputFile)  
 
 c.Clear()
-ResMatrix['dphi'].SetTitle("; generated MET; #Delta #phi_{reco} - #Delta #phi_{gen}")
+if(isCC):
+    ResMatrix['dphi'].SetTitle("; generated MET; #Delta #phi_{reco} - #Delta #phi_{gen}")
+elif(isNC):
+    ResMatrix['dphi'].SetTitle("; jet p_{T}^{gen} [GeV]; #Delta #phi_{reco} - #Delta #phi_{gen}")
+    
 ResMatrix['dphi'].Draw("colz")
-profile['dphi'].SetLineColor(2)
-profile['dphi'].SetMarkerColor(2)
 profile['dphi'].Draw("same")
 c.SaveAs("plots/profile_dphi_%s.png"%inputFile)
 c.SaveAs("plots/profile_dphi_%s.pdf"%inputFile) 
 
 
-for i in range(1,7):
-    print 'bin ' , i , ' ' , profile['metphi'].GetBinError(i)
-    print profile['metphi'].GetNbinsX()
+c.Clear()
+ResMatrix['qtnormjet'].Draw("colz")
+profile['qtnormjet'].Draw("same")
+c.SaveAs("plots/profile_qtnormjet_%s.png"%inputFile)
+c.SaveAs("plots/profile_qtnormjet_%s.pdf"%inputFile)
+
+if isCC:
+    for i in range(1,7):
+        print 'bin ' , i , ' ' , profile['metphi'].GetBinError(i)
+        print profile['metphi'].GetNbinsX()
 
 ##projections
-for i in range(1,7):
-    c.Clear()
-    h = ResMatrix['metphi'].ProjectionY("h",i,i)
-    h.Draw()
-    h.Fit("gaus")
-    f = h.GetFunction("gaus")
-    f.SetLineColor(2)
-    f.Draw("same")
-    h.Draw("same")
-    c.SaveAs("plots/projection_metphi_%s_%i.png"%(inputFile,i))
+    for i in range(1,7):
+        c.Clear()
+        h = ResMatrix['metphi'].ProjectionY("h",i,i)
+        h.Draw()
+        h.Fit("gaus")
+        f = h.GetFunction("gaus")
+        if(f):
+            f.SetLineColor(2)
+            f.Draw("same")
+            h.Draw("same")
+        c.SaveAs("plots/projection_metphi_%s_%i.png"%(inputFile,i))
+        c.SaveAs("plots/projection_metphi_%s_%i.pdf"%(inputFile,i))
+    
 
+
+
+
+        
 for i in range(1,7):
     c.Clear()
     h = ResMatrix['jetphi'].ProjectionY("h",i,i)
     h.Draw()
     h.Fit("gaus")
     f = h.GetFunction("gaus")
-    f.SetLineColor(2)
-    f.Draw("same")
-    h.Draw("same")
+    if(f):
+        f.SetLineColor(2)
+        f.Draw("same")
+        h.Draw("same")
     c.SaveAs("plots/projection_jetphi_%s_%i.png"%(inputFile,i))
+    c.SaveAs("plots/projection_jetphi_%s_%i.pdf"%(inputFile,i))
 
 for i in range(1,7):
     c.Clear()
@@ -504,12 +576,50 @@ for i in range(1,7):
     h.Draw()
     h.Fit("gaus")
     f = h.GetFunction("gaus")
-    f.SetLineColor(2)
-    f.Draw("same")
-    h.Draw("same")
+    if(f):
+        f.SetLineColor(2)
+        f.Draw("same")
+        h.Draw("same")
     c.SaveAs("plots/projection_dphi_%s_%i.png"%(inputFile,i))            
 
 
+for i in range(1,7):
+    c.Clear()
+    h =ResMatrix['met'].ProjectionY("h",i,i)
+    h.Draw()
+    h.Fit("gaus")
+    f = h.GetFunction("gaus")
+    if(f):
+        f.SetLineColor(2)
+        f.Draw("same")
+        h.Draw("same")
+    c.SaveAs("plots/projection_met_%s_%i.png"%(inputFile,i))
+
+
+##Reco vs truth distributions
+    
+for i in range(distribution['dphi_reco'].GetNbinsX()):
+    c.Clear()
+    hgen = distribution['dphi_gen'].ProjectionY("h",i,i).Clone('hgen')
+    hreco  = distribution['dphi_reco'].ProjectionY("h",i,i).Clone('hreco')
+    hgen.SetLineColor(4)    
+    hgen.DrawNormalized()
+    hgen.SetTitle("; | #phi_{lepton} -#phi_{jet} | [rad] ; 1/#sigma d\sigma/d#Delta#phi")
+    hreco.DrawNormalized("same")
+    hreco.SetLineColor(2)
+    c.SaveAs("plots/projection_dphirecogen_%s_%i.png"%(inputFile,i))
+
+for i in range(distribution['qtnormjet_reco'].GetNbinsX()):
+    c.Clear()
+    hgen = distribution['qtnormjet_gen'].ProjectionY("h",i,i).Clone('hgen')
+    hreco  = distribution['qtnormjet_reco'].ProjectionY("h",i,i).Clone('hreco')
+    hgen.SetLineColor(4)
+    hgen.DrawNormalized()
+    hreco.DrawNormalized("same")
+    hreco.SetLineColor(2)
+    c.SaveAs("plots/projection_qtnormjetrecogen_%s_%i.png"%(inputFile,i))
+
+    
 c.Clear()
 Ngen_met_x.Draw("colz")
 c.SaveAs("plots/Ngen_met_x_%s.png"%(inputFile))
@@ -537,39 +647,82 @@ c.Clear()
 purity.Draw("colz")
 purity.SetTitle("Purity; reco MET; reco x_{JB}")    
 c.SaveAs("plots/purity_met_x%s.png"%(inputFile))
+c.SaveAs("plots/purity_met_x%s.pdf"%(inputFile))
+
+
+
+
+ROOT.gStyle.SetPalette(112)
 
 c.Clear()
+ROOT.gPad.SetLogy(0)
+ROOT.gPad.SetLogx(0)
+ResMatrix['jete'].Draw("colz")
+ResMatrix['jete'].SetTitle("; jet E^{gen}; (jet E^{reco} - jet E^{gen})/jet E^{gen}")
+profile['jete'].Draw("same")
+c.SaveAs("plots/profile_jetE_%s.png"%(inputFile))
+c.SaveAs("plots/profile_jetE_%s.pdf"%(inputFile))
+
+c.Clear()
+Jet_eta_e.Draw("colz")
+Jet_eta_e.SetTitle("; jet #eta^{gen}; jet E^{gen}")
+c.SaveAs("plots/profile_jetE_eta_%s.png"%(inputFile))
+c.SaveAs("plots/profile_jetE_eta_%s.pdf"%(inputFile))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if(isCC):
+    c.Clear()
+
 ##Purity y vs x 
-purity_num = Ngen_y_x.Clone("purity_num")
-purity_den = Ngen_y_x.Clone("purity_den")
-purity_num.Add(Nout_y_x,-1)
-purity_den.Add(Nout_y_x,-1)
-purity_den.Add(Nin_y_x)
-purity = purity_num.Clone("purity")
-purity.Divide(purity_den)
+    purity_num = Ngen_y_x.Clone("purity_num")
+    purity_den = Ngen_y_x.Clone("purity_den")
+    purity_num.Add(Nout_y_x,-1)
+    purity_den.Add(Nout_y_x,-1)
+    purity_den.Add(Nin_y_x)
+    purity = purity_num.Clone("purity")
+    purity.Divide(purity_den)
 
-purity.SetMaximum(1.0)
-purity.SetMinimum(0.0)
-purity.Draw("colz")
-purity.SetTitle("Purity; reco x_{JB}; reco y_{JB}")
-c.SaveAs("plots/purity_y_x_%s.png"%(inputFile))
+    purity.SetMaximum(1.0)
+    purity.SetMinimum(0.0)
+    purity.Draw("colz")
+    purity.SetTitle("Purity; reco x_{JB}; reco y_{JB}")
+    c.SaveAs("plots/purity_y_x_%s.png"%(inputFile))
+    c.SaveAs("plots/purity_y_x_%s.pdf"%(inputFile))
 
-
-c.Clear()
+    c.Clear()
 ##Purity Q2 vs x
-purity_num = Ngen_Q2_x.Clone("purity_num")
-purity_den = Ngen_Q2_x.Clone("purity_den")
-purity_num.Add(Nout_Q2_x,-1)
-purity_den.Add(Nout_Q2_x,-1)
-purity_den.Add(Nin_Q2_x)
-purity = purity_num.Clone("purity")
+    purity_num = Ngen_Q2_x.Clone("purity_num")
+    purity_den = Ngen_Q2_x.Clone("purity_den")
+    purity_num.Add(Nout_Q2_x,-1)
+    purity_den.Add(Nout_Q2_x,-1)
+    purity_den.Add(Nin_Q2_x)
+    purity = purity_num.Clone("purity")
 
-purity.Divide(purity_den)
-purity.SetMaximum(1.0)
-purity.SetMinimum(0.0)
-ROOT.gPad.SetLogy(1)
-ROOT.gPad.SetLogx(1)
-purity.Draw("colz")
-purity.SetTitle("Purity; reco x_{JB}; reco Q^{2}_{JB} [GeV^{2}]")
-c.SaveAs("plots/purity_Q2_x_%s.png"%(inputFile))
+    purity.Divide(purity_den)
+    purity.SetMaximum(1.0)
+    purity.SetMinimum(0.0)
+    ROOT.gPad.SetLogy(1)
+    ROOT.gPad.SetLogx(1)
+    purity.Draw("colz")
+    purity.SetTitle("Purity; reco x_{JB}; reco Q^{2}_{JB} [GeV^{2}]")
+    c.SaveAs("plots/purity_Q2_x_%s.png"%(inputFile))
+    c.SaveAs("plots/purity_Q2_x_%s.pdf"%(inputFile))
 
