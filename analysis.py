@@ -100,22 +100,13 @@ Ngen_Q2_x = ROOT.TH2F("Ngen_Q2_x", "", 10, array('d',binsx), 6, array('d',binsQ2
 Nout_Q2_x = ROOT.TH2F("Nout_Q2_x", "", 10, array('d',binsx), 6, array('d',binsQ2))
 Nin_Q2_x  = ROOT.TH2F("Nin_Q2_x", "" , 10, array('d',binsx), 6, array('d',binsQ2))
 
-
-
-
 ##Diagonal
-
-METMatrix = ROOT.TH2F("METMatrix", "Met Matrix", 30, 10.0, 280.0, 30, 10.0, 280.0)
-JetMatrix = ROOT.TH2F("JetMatrix", "Jet Matrix", 100, 10.0, 280.0, 100, 10.0, 280.0)
+METMatrix = ROOT.TH2F("METMatrix", "Met Matrix", 60, 10.0, 40.0, 60, 10.0, 40.0)
+JetMatrix = ROOT.TH2F("JetMatrix", "Jet Matrix", 60, 10.0, 40.0, 60, 10.0, 40.0)
 ElectronMatrix = ROOT.TH2F("ElectronMatrix", "Electron Matrix", 100,10.0,40.0,100,10.0,40.0)
-
 
 ##E vs Eta
 Jet_eta_e = ROOT.TH2F("Jet_eta_e", "" , 100,-4.0,4.0, 100, 0, 150.0)
-
-
-
-
 
 ### Jet PT and Phi
 minpt = 10
@@ -125,7 +116,6 @@ nbinspt = 6
 profile = {}
 ResMatrix = {}
 histo = {} 
-
 distribution = {}
 
 ##JET, phi, phi
@@ -151,8 +141,12 @@ profile['metphi']      = ROOT.TProfile("profile_metphi",         "", nbinspt, mi
 ResMatrix['ept'] = ROOT.TH2F("ResMatrix_ept", "", 100, 10.0, 40.0, 100, -.20, .20)
 profile['ept']       = ROOT.TProfile("profile_ept", "", 30, 10, 40, -.20,0.20,"s")
 
-ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dph", "", 6, 10.0, 40.0, 100, -0.5, 0.5)
-profile['dphi']  = ROOT.TProfile("profile_dphi", "", 6, 10.0,40.0, -0.5,0.5,"s")
+
+maxdphires = 0.5
+if(isNC):
+    maxdphires = 0.2
+ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dph", "", 6, 10.0, 40.0, 100, -maxdphires, maxdphires)
+profile['dphi']  = ROOT.TProfile("profile_dphi", "", 6, 10.0,40.0, -maxdphires,maxdphires,"s")
 distribution['dphi_reco'] = ROOT.TH2F("distribution_dphi_reco", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())
 distribution['dphi_gen'] = ROOT.TH2F("distribution_dphi_gen", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())     
 
@@ -163,8 +157,9 @@ distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "",  6
 distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  6, 10.0, 40.0, 20, 0,1.0)
 
 histo['delta_reco'] = ROOT.TH1F("delta_reco","", 100,0.0,30.0)
+histo['delta_reco_noel'] = ROOT.TH1F("delta_reco_noel","", 100,0.0,30.0)
+histo['delta_reco_noBarrelHCAL'] = ROOT.TH1F("delta_reco_noBarrelHCAL","", 100, 0.0,30.0)
 histo['delta_gen'] = ROOT.TH1F("delta_gen","", 100,0.0,30.0)
-
 
 h_qt_reco = {}
 h_qt_truth = {}
@@ -194,9 +189,9 @@ y_Matrix.SetTitle(" y response matrix, JB method; generated y; reconstructed y")
 
 # Loop over all events
 for entry in range(0, numberOfEntries):
-    #if entry%10000==0:
-    #    print 'event ' , entry
-    if entry>3000:
+    if entry%10000==0:
+        print 'event ' , entry
+    if entry>2000:
        break
     # Load selected branches with data from specified event
     treeReader.ReadEntry(entry)
@@ -214,26 +209,38 @@ for entry in range(0, numberOfEntries):
     y = (pProton.Dot(pPhoton)) / (pProton.Dot(pleptonIn))
   
     #Jacquet Blondet method:
-    temp = 0
-    delta = 0
+    delta_track = 0            
     temp_p = ROOT.TVector3()
     for i in range(branchEFlowTrack.GetEntries()):
        track_mom = branchEFlowTrack.At(i).P4()
-       temp = temp + (track_mom.E() - track_mom.Pz())
+       delta_track += (track_mom.E() - track_mom.Pz())
        temp_p = temp_p + track_mom.Vect()
-     
+       #print track_mom.E() , ' ' , track_mom.Pz()
+
+    if branchElectron.GetEntries()>0:
+        e = branchElectron.At(0).P4()
+        delta_track_noel = delta_track - (e.E() - e.Pz())   
+
+    delta_photon = 0
     for i in range(branchEFlowPhoton.GetEntries()):
        pf_mom = branchEFlowPhoton.At(i).P4()        
-       temp = temp + (pf_mom.E() - pf_mom.Pz())
-       temp_p = temp_p + pf_mom.Vect() 
-
-    for i in range(branchEFlowNeutralHadron.GetEntries()):
-       pf_mom = branchEFlowNeutralHadron.At(i).P4()
-       temp = temp + (pf_mom.E() - pf_mom.Pz())
+       delta_photon += (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p + pf_mom.Vect()
 
-    delta =  temp
-    y_JB   = temp/(2.0*10.0)
+    delta_neutral = 0
+    delta_neutral_noBarrel = 0 
+    for i in range(branchEFlowNeutralHadron.GetEntries()):
+       pf_mom = branchEFlowNeutralHadron.At(i).P4()
+       delta_neutral += (pf_mom.E() - pf_mom.Pz())
+       temp_p = temp_p + pf_mom.Vect()
+       if abs(pf_mom.Eta())>1.0:
+           delta_neutral_noBarrel += (pf_mom.E() - pf_mom.Pz())
+    
+    delta = delta_track + delta_photon + delta_neutral
+    delta_noel = delta_track_noel + delta_photon + delta_neutral
+    delta_noel_noBarrel = delta_track_noel + delta_photon + delta_neutral_noBarrel
+
+    y_JB   = delta/(2.0*10.0)
     ptmiss = temp_p.Perp()
     Q2_JB  = (ptmiss*ptmiss)/(1-y_JB)
     s     = 4*10.0*275.0
@@ -250,17 +257,11 @@ for entry in range(0, numberOfEntries):
         gendelta = gendelta + (gen_mom.E() - gen_mom.Pz())                      
 
     #print 'Gen delta ' , gendelta , ' reco delta ', delta 
-    histo['delta_reco'].Fill(delta)
+    
     histo['delta_gen'].Fill(gendelta)
-
-
-
-
-
-
-
-
-
+    histo['delta_reco'].Fill(delta)
+    histo['delta_reco_noel'].Fill(delta_noel)
+    histo['delta_reco_noBarrelHCAL'].Fill(delta_noel_noBarrel)
 
     
     ##Fill purity histograms y-x and Q2-x
@@ -319,12 +320,13 @@ for entry in range(0, numberOfEntries):
         #print ipar
         #print deltaR
         if (deltaR>0.3): continue
-            
+        #if(abs(genjet.Eta())>3.0): continue    
         genjet = bestGenJetMomentum #branchGenJet.At(0)
-     
+        if(abs(genjet.Eta())>3.0): continue 
         # Print jet transverse momentum
-        JetMatrix.Fill(genjet.Pt()*ROOT.TMath.CosH(genjet.Eta()), jet.PT*ROOT.TMath.CosH(jet.Eta))
-            
+        #JetMatrix.Fill(genjet.Pt()*ROOT.TMath.CosH(genjet.Eta()), jet.PT*ROOT.TMath.CosH(jet.Eta))
+        JetMatrix.Fill(genjet.Pt(), jet.PT)
+        
         res = (jet.PT-genjet.Pt())/genjet.Pt()
         profile['jetpt'].Fill(genjet.Pt(), res)
         ResMatrix['jetpt'].Fill(genjet.Pt(),res)
@@ -397,7 +399,10 @@ for entry in range(0, numberOfEntries):
       
         jet_phi =    jet.P4().Phi()
         genjet_phi=  genjet.Phi()
-      
+
+        deltaR = genjet.DeltaR(jet.P4());
+        if(deltaR>0.3):
+            print deltaR, '  delta R'       
         dphi_gen = ROOT.TVector2.Phi_mpi_pi(genlepton_phi-genjet_phi)
         dphi_reco = ROOT.TVector2.Phi_mpi_pi(lepton_phi-jet_phi)
 
@@ -623,6 +628,47 @@ Ngen_met_x.Draw("colz")
 c.SaveAs("plots/Ngen_met_x_%s.png"%(inputFile))
 
 
+
+c.Clear()
+
+histo['delta_gen'].Draw()
+histo['delta_gen'].SetTitle("; #delta ; entries")   
+histo['delta_gen'].SetLineColor(2)
+
+histo['delta_reco'].Draw("same")
+histo['delta_reco'].SetLineColor(1)
+
+histo['delta_reco_noel'].Draw("same")
+histo['delta_reco_noel'].SetLineColor(8)
+
+histo['delta_reco_noBarrelHCAL'].Draw("same")
+histo['delta_reco_noBarrelHCAL'].SetLineColor(4)
+c.SaveAs("plots/delta_%s.png"%(inputFile))
+c.SaveAs("plots/delta_%s.pdf"%(inputFile))
+
+ROOT.gPad.SetLogy(1)
+c.SaveAs("plots/delta_log%s.png"%(inputFile))
+c.SaveAs("plots/delta_log%s.pdf"%(inputFile))
+ROOT.gPad.SetLogy(1)
+
+
+
+histo['delta_gen'].Scale(1.0/histo['delta_gen'].Integral())
+histo['delta_reco'].Scale(1.0/histo['delta_reco'].Integral())
+histo['delta_reco_noel'].Scale(1.0/histo['delta_reco_noel'].Integral())
+histo['delta_reco_noBarrelHCAL'].Scale(1.0/histo['delta_reco_noBarrelHCAL'].Integral())      
+
+histo['delta_gen'].GetCumulative().Draw()
+histo['delta_reco'].GetCumulative().Draw("same")
+histo['delta_reco_noel'].GetCumulative().Draw("same")
+histo['delta_reco_noBarrelHCAL'].GetCumulative().Draw("same")
+
+c.SaveAs("plots/delta_cumulative_log%s.png"%(inputFile))
+c.SaveAs("plots/delta_cumulative_log%s.pdf"%(inputFile))
+ROOT.gPad.SetLogy(0) 
+
+
+
 ##Purity
 
 ROOT.gStyle.SetPalette(55)
@@ -669,18 +715,6 @@ c.SaveAs("plots/profile_jetE_eta_%s.pdf"%(inputFile))
 
 
 
-
-
-
-
-c.Clear()
-
-histo['delta_reco'].Draw()
-histo['delta_reco'].SetTitle("; #delta ; entries")
-histo['delta_gen'].Draw("same")
-histo['delta_gen'].SetLineColor(2)
-c.SaveAs("plots/delta_%s.png"%(inputFile))
-c.SaveAs("plots/delta_%s.pdf"%(inputFile))
 
 
 
