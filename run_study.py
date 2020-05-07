@@ -50,6 +50,8 @@ parser.add_argument("-n", "--name", type=str,
                     help="name for this study set (e.g. bfield)")
 parser.add_argument("-t", "--template", type=str,
                     help="template TCL file for study")
+parser.add_argument("-c", "--commands", type=str,
+                    help="template command file for study")
 parser.add_argument("-p", "--params", type=ast.literal_eval, default=[],
                     help="environment variables to set for study")
 parser.add_argument("-v", "--values", type=ast.literal_eval, default=[],
@@ -86,10 +88,11 @@ print "Task ID requested: %d" % (int(SLURM_ARRAY_TASK_ID))
 value_index = int(SLURM_ARRAY_TASK_ID)
 
 # Handle random number seed issues
+random_seed = 0
 if "RANDOM_SEED" not in args.params:
     args.params.append("RANDOM_SEED")
-    args.values.append(abs(hash(args.name)) % (10 ** 8) + value_index)
-
+    random_seed = abs(hash(args.name)) % (10 ** 8) + value_index
+    args.values.append(random_seed)
 
 
 # Execute the study
@@ -103,7 +106,7 @@ else:
         os.makedirs(taskdir)
 
     # Replace parameter placeholders with values for this study
-    template_files = [args.template, "DIS_template.cmnd"]
+    template_files = [args.template, args.commands]
 
     for template_file in template_files:
         with open(template_file, "rt") as input_template:
@@ -125,5 +128,10 @@ else:
     copy_files = ["delphes_card_EIC.tcl"]
     for a_file in copy_files:
         subprocess.call("cp %s %s" % (a_file, taskdir), shell=True)
+    # Write the random number seed to disk
+    rndm_file = open(taskdir+"/random_seed.dat", "w")
+    rndm_file.write(str(random_seed))
+    rndm_file.close()
+
     # Execute the study
-    subprocess.call("DelphesPythia8 %s/%s %s/DIS_template.cmnd %s/out.root" % (taskdir, args.template, taskdir, taskdir), shell=True)
+    subprocess.call("DelphesPythia8 {0[taskdir]}/{0[template]} {0[taskdir]}/{0[commands]} {0[taskdir]}/out.root".format({'taskdir': taskdir, 'template': args.template, 'commands': args.commands}), shell=True)
