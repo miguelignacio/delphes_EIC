@@ -59,10 +59,16 @@ parser.add_argument("-f", "--force", default=False, action='store_true',
 
 args = parser.parse_args()
 
+
+
 # Create the task superdirectory
 
 if not os.path.exists(args.name):
-    os.makedirs(args.name)
+    try:
+        os.makedirs(args.name)
+    except os.OSError:
+        print("%s already exists... continuing..." % (args.name))
+
 
 SLURM_ARRAY_TASK_ID="0"
 
@@ -79,6 +85,12 @@ print "Task ID requested: %d" % (int(SLURM_ARRAY_TASK_ID))
 
 value_index = int(SLURM_ARRAY_TASK_ID)
 
+# Handle random number seed issues
+if "RANDOM_SEED" not in args.params:
+    args.params.append("RANDOM_SEED")
+    args.values.append(abs(hash(args.name)) % (10 ** 8) + value_index)
+
+
 
 # Execute the study
 
@@ -91,20 +103,27 @@ else:
         os.makedirs(taskdir)
 
     # Replace parameter placeholders with values for this study
-    with open(args.template, "rt") as input_template:
-        with open("%s/%s" % (taskdir, args.template), "wt") as output_template:
-            for line in input_template:
-                for iparam in range(len(args.params)):
-                    param = args.params[iparam]
-                    values = args.values[iparam]
-                    value = values[value_index]
-                    line = line.replace(param, str(value))
+    template_files = [args.template, "DIS_template.cmnd"]
+
+    for template_file in template_files:
+        with open(template_file, "rt") as input_template:
+            with open("%s/%s" % (taskdir, template_file), "wt") as output_template:
+                for line in input_template:
+                    for iparam in range(len(args.params)):
+                        param = args.params[iparam]
+                        values = args.values[iparam]
+                        value = None
+                        if type(values) == list:
+                            value = values[value_index]
+                        else:
+                            value = values
+                        line = line.replace(param, str(value))
                 
-                output_template.write(line)
+                    output_template.write(line)
 
     # Copy files to the task directory before execution
-    copy_files = ["DIS.cmnd", "delphes_card_EIC.tcl"]
+    copy_files = ["delphes_card_EIC.tcl"]
     for a_file in copy_files:
         subprocess.call("cp %s %s" % (a_file, taskdir), shell=True)
     # Execute the study
-    subprocess.call("DelphesPythia8 %s/%s ./DIS.cmnd %s/out.root" % (taskdir, args.template, taskdir), shell=True)
+    subprocess.call("DelphesPythia8 %s/%s %s/DIS_template.cmnd %s/out.root" % (taskdir, args.template, taskdir, taskdir), shell=True)
