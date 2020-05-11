@@ -68,7 +68,7 @@ args = parser.parse_args()
 if not os.path.exists(args.name):
     try:
         os.makedirs(args.name)
-    except os.OSError:
+    except OSError:
         print("%s already exists... continuing..." % (args.name))
 
 
@@ -81,7 +81,7 @@ except:
     sys.exit()
     pass
 
-print "Task ID requested: %d" % (int(SLURM_ARRAY_TASK_ID))
+print("Task ID requested: %d" % (int(SLURM_ARRAY_TASK_ID)))
 
 
 
