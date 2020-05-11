@@ -2,9 +2,6 @@
 Main:numberOfEvents = NEVENTS      ! number of events to generate
 Main:timesAllowErrors = 3          ! how many aborts before run stops
 
-Random:setSeed = on
-Random:seed = 0
-
 ! 2) Settings related to output in init(), next() and stat().
 Init:showChangedSettings = on      ! list changed settings
 Init:showChangedParticleData = off ! list changed particle data
@@ -17,7 +14,7 @@ Next:numberShowEvent = 0           ! print event record n times
 Beams:idA = 2212                     ! electron
 Beams:idB = 11                       ! proton
 Beams:eA  = HADBEAM_ENERGY           ! proton energy
-Beams:eB  = 10                       ! electron energy
+Beams:eB  = EBEAM_ENERGY             ! electron energy
 Beams:frameType = 2 
 
 ! 4) Settings for the hard-process generation.
@@ -26,6 +23,10 @@ WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
 #WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
 PhaseSpace:Q2Min = 100
 PDF:lepton = off
+PDF:pSet                  = LHAPDF6:CT18NNLO
+#PDF:pSet                  = LHAPDF6:CT18ANNLO
+#PDF:pSet                  = LHAPDF6:CT18NLO
+#PDF:pSet                  = LHAPDF6:CT18ANLO
 TimeShower:QEDshowerByL=off 
 SpaceShower:pTmaxMatch=2
 

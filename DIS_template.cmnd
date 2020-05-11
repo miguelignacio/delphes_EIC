@@ -14,7 +14,7 @@ Next:numberShowEvent = 0           ! print event record n times
 Beams:idA = 2212                     ! electron
 Beams:idB = 11                       ! proton
 Beams:eA  = HADBEAM_ENERGY           ! 100 GeV proton
-Beams:eB  = 10                       ! 10 GeV electron
+Beams:eB  = EBEAM_ENERGY             ! 10 GeV electron
 Beams:frameType = 2 
 
 ! 4) Settings for the hard-process generation.
@@ -23,6 +23,10 @@ Beams:frameType = 2
 WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
 PhaseSpace:Q2Min = 100
 PDF:lepton = off
+PDF:pSet                  = LHAPDF6:CT18NNLO
+#PDF:pSet                  = LHAPDF6:CT18ANNLO
+#PDF:pSet                  = LHAPDF6:CT18NLO
+#PDF:pSet                  = LHAPDF6:CT18ANLO
 TimeShower:QEDshowerByL=off 
 SpaceShower:pTmaxMatch=2
 
