@@ -53,6 +53,8 @@ set ExecutionPath {
 
   ScalarHT
 
+  TrackCountingBTagging
+
   TreeWriter
 }
 
@@ -647,6 +649,48 @@ module JetFlavorAssociation JetFlavorAssociation {
   set PartonEtaMax 3.5
 
 }
+
+############################
+# b-tagging (track counting)
+############################
+
+set PResolutionFormula { 0.0 }
+set CtgThetaResolutionFormula { 0.0 }
+set PhiResolutionFormula { 0.0 }
+set D0ResolutionFormula {
+    ( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
+}
+set DZResolutionFormula {
+    ( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
+}
+
+
+module TrackCountingBTagging TrackCountingBTagging {
+  set JetInputArray JetEnergyScale/jets
+  set TrackInputArray HCal/eflowTracks
+
+  set BitNumber 0
+
+  # maximum distance between jet and track
+  set DeltaR 0.5
+
+  # minimum pt of tracks
+  set TrackPTMin 1.0
+
+  # maximum transverse impact parameter (in mm)
+  set TrackIPMax 3.0
+
+  # minimum ip significance for the track to be counted
+  set SigMin 2.0
+  set Use3D true
+  # alternate setting for 2D IP (default)
+#  set SigMin 1.3
+#  set Use3D false
+
+  # minimum number of tracks (high efficiency n=2, high purity n=3)
+  set Ntracks 3
+}
+
 
 
 #####################################################
