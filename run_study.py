@@ -87,12 +87,35 @@ print("Task ID requested: %d" % (int(SLURM_ARRAY_TASK_ID)))
 
 value_index = int(SLURM_ARRAY_TASK_ID)
 
-# Handle random number seed issues
+# Handle random number seed issues and other defaults
+
 random_seed = 0
 if "RANDOM_SEED" not in args.params:
     args.params.append("RANDOM_SEED")
     random_seed = abs(hash(args.name)) % (10 ** 8) + value_index
     args.values.append(random_seed)
+
+if "PDFSET" not in args.params:
+    args.params.append("PDFSET")
+    args.values.append('LHAPDF6:CT18NNLO')
+
+if "HADBEAM_ENERGY" not in args.params:
+    args.params.append("HADBEAM_ENERGY")
+    args.values.append('275')
+
+if "EBEAM_ENERGY" not in args.params:
+    args.params.append("EBEAM_ENERGY")
+    args.values.append('18')
+
+if "PARAM_BFIELD" not in args.params:
+    args.params.append("PARAM_BFIELD")
+    args.values.append('1.5')
+
+if "NEVENTS" not in args.params:
+    args.params.append("NEVENTS")
+    args.values.append('1000')
+
+
 
 
 # Execute the study
