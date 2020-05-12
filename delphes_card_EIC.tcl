@@ -48,6 +48,7 @@ set ExecutionPath {
   JetEnergyScale
 
   JetFlavorAssociation
+  GenJetFlavorAssociation
 
   UniqueObjectFinder
 
@@ -643,6 +644,19 @@ module JetFlavorAssociation JetFlavorAssociation {
   set ParticleInputArray Delphes/allParticles
   set ParticleLHEFInputArray Delphes/allParticlesLHEF
   set JetInputArray JetEnergyScale/jets
+
+  set DeltaR 0.5
+  set PartonPTMin 1.0
+  set PartonEtaMax 3.5
+
+}
+
+module JetFlavorAssociation GenJetFlavorAssociation {
+
+  set PartonInputArray Delphes/partons
+  set ParticleInputArray Delphes/allParticles
+  set ParticleLHEFInputArray Delphes/allParticlesLHEF
+  set JetInputArray GenJetFinder/jets
 
   set DeltaR 0.5
   set PartonPTMin 1.0
