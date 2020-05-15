@@ -5,6 +5,7 @@ import sys
 import ROOT
 from AtlasCommonUtils import *
 #from Legend import Legend
+
 try:
   input = raw_input
 except:
@@ -21,6 +22,18 @@ try:
   ROOT.gInterpreter.Declare('#include "external/ExRootAnalysis/ExRootTreeReader.h"')
 except:
   pass
+
+
+#from ROOT import *
+#ROOT.gROOT.LoadMacro("AtlasUtils.C")    
+
+def DrawText(x, y, text, color=1, size=0.05):
+    l = ROOT.TLatex()
+    # l.SetTextAlign(12)
+    l.SetTextSize(size)
+    l.SetNDC()
+    l.SetTextColor(color)
+    l.DrawLatex(x, y, text)
 
 isCC = False
 isNC = False
@@ -158,8 +171,8 @@ distribution['dphi_reco'] = ROOT.TH2F("distribution_dphi_reco", "",  6, 10.0, 40
 distribution['dphi_gen'] = ROOT.TH2F("distribution_dphi_gen", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())     
 
 
-ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 9, 10.0, 100.0, 100, -0.5, 0.5)
-profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 9, 10.0, 100.0, -0.5, 0.5,"s")
+ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 9, 10.0, 100.0, 100, -maxdphires, maxdphires)
+profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 9, 10.0, 100.0, -maxdphires, maxdphires,"s")
 distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "", 9, 10.0, 100.0, 20, 0,1.0)
 distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  9, 10.0, 100.0, 20, 0,1.0)
 
@@ -451,7 +464,10 @@ for entry in range(0, numberOfEntries):
         profile['dphi'].Fill(genjet.E(), dphi_reco-dphi_gen)
         distribution['dphi_gen'].Fill(genjet.E(), dphi_gen)
         distribution['dphi_reco'].Fill(genjet.E(), dphi_reco)
-        
+
+        #print 'qt/jetpt' , qT_truth/genjet.Pt()
+        #print 'sin qt/jetpt', ROOT.TMath.Sin(qT_truth/genjet.Pt())
+        #print 'dphi ' , dphi_gen
         ResMatrix['qtnormjet'].Fill(genjet.E(), qT_reco/jet.PT -qT_truth/genjet.Pt())
         profile['qtnormjet'].Fill(genjet.E(), qT_reco/jet.PT -qT_truth/genjet.Pt()) 
         distribution['qtnormjet_reco'].Fill(genjet.E(), qT_reco/jet.PT)
@@ -623,14 +639,28 @@ if isCC:
         c.SaveAs("plots/projection_metphi_comparison%s_%i.png"%(inputFile,i))  
 
 #qt
-title = {}
-title['qt'] = " #Delta q_{T} (GeV)"
-title['qtnormjet'] = " #Delta q_{T}/p_{T}^{jet} "
-title['jetphi'  ]  = " #Delta #phi^{jet} (GeV)"
-title['jete']  = " Relative resolution "
-title['dphi']  = " #Delta #phi"
+ytitle = {}
+ytitle['qt'] = " #Delta q_{T} (GeV)"
+ytitle['qtnormjet'] = " q_{T}/p_{T}^{jet} resolution "
+ytitle['jetphi'  ]  = " #phi^{jet} resolution (radians)"
+ytitle['jete']  = " Relative energy resolution "
+ytitle['dphi']  = " #Delta #phi resolution (radians)"
+ytitle['met']   = ' Relative MET resolution '
+ytitle['metphi']  = 'MET #phi resolution (radians)'
+ytitle['jetpt']  = 'Relative p_{T} resolution' 
 
-for variable in ['qt','qtnormjet','jetphi','jete','dphi']:
+
+xtitle = {}
+xtitle['jete'] = 'generated jet energy [GeV]'
+xtitle['dphi'] = 'generated jet energy [GeV]'
+xtitle['jetphi'] = 'generated jet energy [GeV]'
+xtitle['qt'] = 'generated jet energy [GeV]'
+xtitle['qtnormjet'] = 'generated jet energy [GeV]'
+xtitle['met']  = 'Generated MET'
+xtitle['metphi'] = 'Generated MET'
+xtitle['jetpt']  = 'generated jet p_{T} [GeV]'
+
+for variable in ['qt','qtnormjet','jetphi','jete','jetpt','dphi','met','metphi']:
     g_sigma = ROOT.TGraph()
     g_rms  = ROOT.TGraph()
     g_multi = ROOT.TMultiGraph()
@@ -642,11 +672,14 @@ for variable in ['qt','qtnormjet','jetphi','jete','dphi']:
         h.Draw()
         h.Fit("gaus")
         f = h.GetFunction("gaus")
+        
+        if not (f):
+            continue
         print 'Fitted Gaussian' , f.GetParameter(2)
-        print 'RMS '            , h.GetRMS()
-        if(f):
-           f.SetLineColor(2)
-           f.Draw("same")
+        print 'Standard deviation '            , h.GetStdDev()    
+        f.SetLineColor(2)
+        f.Draw("same")
+        
         g_sigma.SetPoint(i-1, x, f.GetParameter(2))
         g_rms.SetPoint(i-1, x, h.GetRMS())
         h.Draw("same")
@@ -658,8 +691,14 @@ for variable in ['qt','qtnormjet','jetphi','jete','dphi']:
         g_multi.Add(g_rms)
       
         g_multi.Draw("APL")
-        g_multi.SetTitle(" ; jet energy [GeV]; %s" %title[variable])
+        g_multi.SetTitle(" ; %s; %s" %(xtitle[variable], ytitle[variable]))
         g_multi.SetMinimum(0)
+
+        #latex = ROOT.TLatex()
+        #latex.SetNDC()
+        #latex.SetTextSize(0.06)
+        DrawText (0.5 ,0.80 , "Fitted Gaussian")
+        DrawText (0.5 ,0.74 , "Standard deviation",2)  
         c.SaveAs("plots/resolution_%s_%s.png"%(variable,inputFile))
         c.SaveAs("plots/resolution_%s_%s.pdf"%(variable,inputFile))
 
