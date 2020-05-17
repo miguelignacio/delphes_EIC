@@ -1,0 +1,36 @@
+! 1) Settings used in the main program.
+Main:numberOfEvents = 2000         ! number of events to generate
+Main:timesAllowErrors = 100          ! how many aborts before run stops
+
+Random:setSeed = on
+Random:seed = 0
+
+! 2) Settings related to output in init(), next() and stat().
+Init:showChangedSettings = on      ! list changed settings
+Init:showChangedParticleData = off ! list changed particle data
+Next:numberCount = 100             ! print message every n events
+Next:numberShowInfo = 1            ! print event information n times
+Next:numberShowProcess = 1         ! print process record n times
+Next:numberShowEvent = 0           ! print event record n times
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idB = 2212                     ! electron
+Beams:idA = 11                       ! proton
+Beams:eB  = 820                      ! proton energy
+Beams:eA  = 10                       ! electron energyx
+PDF:lepton2gamma=on
+PDF:lepton2gammaSet=1
+Beams:frameType = 2 
+
+! 4) Settings for the hard-process generation.
+
+HardQCD:all=on
+PhotonParton:all=on
+#Photon:ProcessType=0
+MultipartonInteractions:pT0Ref=3.00
+PhaseSpace:pTHatMin=10.0
+PartonLevel:MPI = off
+
+
+ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
+ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
