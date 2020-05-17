@@ -192,7 +192,7 @@ module SimpleCalorimeter ECal {
 
   set IsEcal true
   #200 MeV should be possible. 
-  set EnergyMin 0.2 
+  set EnergyMin 0.1  
   set EnergySignificanceMin 1.0
 
   set SmearTowerCenter true
@@ -287,7 +287,7 @@ module SimpleCalorimeter HCal {
   set IsEcal false
 
   ##Assumes noise 100 MeV per tower. 
-  set EnergyMin 0.5
+  set EnergyMin 0.4
   set EnergySignificanceMin 1.0
 
   set SmearTowerCenter true
