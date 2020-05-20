@@ -6,6 +6,14 @@
 # as well as on assumptions on calorimeter granularity and tracking efficiency (not specified in handbook). 
 #######################################################################################################################
 
+
+#######################################
+# Load any external configurations
+#######################################
+
+source customizations.tcl
+
+
 #######################################
 # Order of execution of various modules
 #######################################
@@ -20,7 +28,8 @@ set ExecutionPath {
   ElectronMomentumSmearing
 
   TrackMerger
- 
+  TrackSmearing
+
   ECal
   HCal
  
@@ -64,21 +73,21 @@ set ExecutionPath {
 #################################
 
 module ParticlePropagator ParticlePropagator {
-  set InputArray Delphes/stableParticles
-
-  set OutputArray stableParticles
-  set ChargedHadronOutputArray chargedHadrons
-  set ElectronOutputArray electrons
-
-
-  #Values taken from EIC detector handbook v1.2
-  # radius of the magnetic field coverage, in m
-  set Radius 0.8
-  # half-length of the magnetic field coverage, in m
-  set HalfLength 1.00
-
-  # magnetic field
-  set Bz 1.5
+    set InputArray Delphes/stableParticles
+    
+    set OutputArray stableParticles
+    set ChargedHadronOutputArray chargedHadrons
+    set ElectronOutputArray electrons
+    
+    
+    #Values taken from EIC detector handbook v1.2
+    # radius of the magnetic field coverage, in m
+    set Radius 0.8
+    # half-length of the magnetic field coverage, in m
+    set HalfLength 1.00
+    
+    # magnetic field
+    set Bz $PARAM_BZ
 }
 
 ####################################
@@ -131,6 +140,8 @@ module Efficiency ElectronTrackingEfficiency {
 
 
 
+
+
 ########################################
 # Momentum resolution for charged tracks
 ########################################
@@ -179,6 +190,30 @@ module Merger TrackMerger {
   set OutputArray tracks
 }
 
+################################                                                                    
+# Track impact parameter smearing                                                                   
+################################                                                                    
+
+module TrackSmearing TrackSmearing {
+  set InputArray TrackMerger/tracks
+#  set BeamSpotInputArray BeamSpotFilter/beamSpotParticle
+  set OutputArray tracks
+#  set ApplyToPileUp true
+
+  # magnetic field
+  set Bz $PARAM_BZ
+
+  set PResolutionFormula { 0.0 }
+  set CtgThetaResolutionFormula { 0.0 }
+  set PhiResolutionFormula { 0.0 }
+  set D0ResolutionFormula {
+  	( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
+  }
+  set DZResolutionFormula {
+  	( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
+  }
+    
+}
 
 
 #############
@@ -187,7 +222,7 @@ module Merger TrackMerger {
 
 module SimpleCalorimeter ECal {
   set ParticleInputArray ParticlePropagator/stableParticles
-  set TrackInputArray TrackMerger/tracks
+  set TrackInputArray TrackSmearing/tracks
 
   set TowerOutputArray ecalTowers
   set EFlowTrackOutputArray eflowTracks
@@ -664,47 +699,6 @@ module JetFlavorAssociation GenJetFlavorAssociation {
 
 }
 
-############################
-# b-tagging (track counting)
-############################
-
-set PResolutionFormula { 0.0 }
-set CtgThetaResolutionFormula { 0.0 }
-set PhiResolutionFormula { 0.0 }
-set D0ResolutionFormula {
-    ( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
-}
-set DZResolutionFormula {
-    ( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
-}
-
-
-module TrackCountingBTagging TrackCountingBTagging {
-  set JetInputArray JetEnergyScale/jets
-  set TrackInputArray HCal/eflowTracks
-
-  set BitNumber 0
-
-  # maximum distance between jet and track
-  set DeltaR 0.5
-
-  # minimum pt of tracks
-  set TrackPTMin 1.0
-
-  # maximum transverse impact parameter (in mm)
-  set TrackIPMax 3.0
-
-  # minimum ip significance for the track to be counted
-  set SigMin 2.0
-  set Use3D true
-  # alternate setting for 2D IP (default)
-#  set SigMin 1.3
-#  set Use3D false
-
-  # minimum number of tracks (high efficiency n=2, high purity n=3)
-  set Ntracks 3
-}
-
 
 
 #####################################################
@@ -719,6 +713,40 @@ module UniqueObjectFinder UniqueObjectFinder {
   add InputArray JetEnergyScale/jets jets
 }
 
+############################
+# b-tagging (track counting)
+############################
+
+module TrackCountingBTagging TrackCountingBTagging {
+    set JetInputArray JetEnergyScale/jets
+    set TrackInputArray HCal/eflowTracks
+    
+    set BitNumber 0
+    
+    # maximum distance between jet and track
+    set DeltaR 0.5
+    
+    # minimum pt of tracks
+    set TrackPtMin $PARAM_TRACKPTMIN
+    #set TrackPtMin 1.0
+    
+    # maximum transverse impact parameter (in mm)
+    set TrackIPMax $PARAM_TRACKIPMAX
+    #set TrackIPMax 3
+    
+    # minimum ip significance for the track to be counted
+    set SigMin $PARAM_TRACKSIGMIN
+    #set SigMin 2.0
+    set Use3D true
+    # alternate setting for 2D IP (default)
+    #  set SigMin 1.3
+    #  set Use3D false
+    
+    # minimum number of tracks (high efficiency n=2, high purity n=3)
+    set Ntracks 3
+}
+
+
 ##################
 # ROOT tree writer
 ##################
@@ -731,7 +759,7 @@ module TreeWriter TreeWriter {
 # add Branch InputArray BranchName BranchClass
   add Branch Delphes/allParticles Particle GenParticle
 
-  add Branch TrackMerger/tracks Track Track
+  add Branch TrackSmearing/tracks Track Track
   add Branch Calorimeter/towers Tower Tower
 
   add Branch HCal/eflowTracks EFlowTrack Track

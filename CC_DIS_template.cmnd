@@ -1,5 +1,16 @@
+! START HEADER
+!
+! PARAM_NEVENTS = 1000
+! PARAM_HADBEAM_ENERGY = 275
+! PARAM_EBEAM_ENERGY = 18
+! PARAM_PDFSET = LHAPDF6:CT18NNLO
+! PARAM_RANDOM_SEED = 12345
+!
+! END HEADER
+
+
 ! 1) Settings used in the main program.
-Main:numberOfEvents = NEVENTS      ! number of events to generate
+Main:numberOfEvents = PARAM_NEVENTS      ! number of events to generate
 Main:timesAllowErrors = 3          ! how many aborts before run stops
 
 ! 2) Settings related to output in init(), next() and stat().
@@ -13,8 +24,8 @@ Next:numberShowEvent = 0           ! print event record n times
 ! 3) Beam parameter settings. Values below agree with default ones.
 Beams:idA = 2212                     ! electron
 Beams:idB = 11                       ! proton
-Beams:eA  = HADBEAM_ENERGY           ! proton energy
-Beams:eB  = EBEAM_ENERGY             ! electron energy
+Beams:eA  = PARAM_HADBEAM_ENERGY     ! proton energy
+Beams:eB  = PARAM_EBEAM_ENERGY       ! electron energy
 Beams:frameType = 2 
 
 ! 4) Settings for the hard-process generation.
@@ -23,7 +34,7 @@ WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
 #WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
 PhaseSpace:Q2Min = 100
 PDF:lepton = off
-PDF:pSet = PDFSET
+PDF:pSet = PARAM_PDFSET
 #PDF:pSet                  = LHAPDF6:CT18NNLO
 #PDF:pSet                  = LHAPDF6:CT18ANNLO
 #PDF:pSet                  = LHAPDF6:CT18NLO
@@ -45,4 +56,4 @@ ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
 ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
 
 Random:setSeed = on
-Random:seed = RANDOM_SEED
+Random:seed = PARAM_RANDOM_SEED

@@ -44,6 +44,90 @@ import re
 import ast
 
 import argparse
+
+global tclparams, pythiaparams
+tclparams = {}
+pythiaparams = {}
+
+
+def LoadParamsTcl(tclfile):
+    tcl = open(tclfile)
+
+    param_pattern = re.compile("^set\s+(.*?)\s+(.*)")
+    for line in tcl:
+        line = line.rstrip('\n')
+        match = param_pattern.match(line)
+        if match != None:
+            tclparams[match.group(1)] = str(match.group(2))
+    
+    print("Customization TCL Parameters are:")
+    print(tclparams)
+
+def LoadParamsPythia(cmndfile):
+    cmnd = open(cmndfile)
+
+    param_pattern = re.compile("^\!\s*(.*?)\s*=\s*(.*)")
+    for line in cmnd:
+        line = line.rstrip('\n')
+
+        if line.find('END HEADER') != -1:
+            break
+
+        match = param_pattern.match(line)
+        if match != None:
+            pythiaparams[match.group(1)] = str(match.group(2))
+    
+    print("Customization Pythia8 Parameters are:")
+    print(pythiaparams)
+
+
+def WriteTclFile(filename):
+    global args
+    tclfile = open(filename, 'w')
+
+    for param in args.params:
+        value = args.params[param]
+        if (param not in tclparams.keys()) and (param not in pythiaparams.keys()):
+            print("WARNING: you tried to set %s, which is not an available parameter!" % (param))
+            continue
+        tclparams[param] = str(value)
+
+    for param in tclparams:
+        line = "set %s %s\n" % (param, tclparams[param])
+        tclfile.write(line)
+    tclfile.close()
+    
+def WritePythiaFile(output_filename):
+    global args
+
+    for param in args.params:
+        value = args.params[param]
+        if (param not in pythiaparams.keys()) and (param not in tclparams.keys()):
+            print("WARNING: you tried to set %s, which is not an available parameter!" % (param))
+            continue
+        pythiaparams[param] = str(value)
+
+
+    with open(args.commands, "rt") as input_template:
+        with open(output_filename, "wt") as output_template:
+            for line in input_template:
+                for param in pythiaparams:
+                    value = str(pythiaparams[param])
+                    line = line.replace(param, value)
+                    
+                output_template.write(line)
+
+
+def TransferTclFile(tclfile, taskdir):
+    with open(tclfile, "rt") as input_template:
+        with open("%s/%s" % (taskdir, tclfile), "wt") as output_template:
+            for line in input_template:
+                line = line.replace("customizations.tcl", "%s/customizations.tcl" % (taskdir))
+                    
+                output_template.write(line)
+
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-n", "--name", type=str,
@@ -52,16 +136,15 @@ parser.add_argument("-t", "--template", type=str,
                     help="template TCL file for study")
 parser.add_argument("-c", "--commands", type=str,
                     help="template command file for study")
-parser.add_argument("-p", "--params", type=ast.literal_eval, default=[],
+parser.add_argument("-p", "--params", type=ast.literal_eval, default={},
                     help="environment variables to set for study")
-parser.add_argument("-v", "--values", type=ast.literal_eval, default=[],
-                    help="parameter values for study")
+#parser.add_argument("-v", "--values", type=ast.literal_eval, default=[],
+#                    help="parameter values for study")
 parser.add_argument("-f", "--force", default=False, action='store_true',
                     help="force-overwrite existing output")
 
+global args
 args = parser.parse_args()
-
-
 
 # Create the task superdirectory
 
@@ -87,40 +170,28 @@ print("Task ID requested: %d" % (int(SLURM_ARRAY_TASK_ID)))
 
 value_index = int(SLURM_ARRAY_TASK_ID)
 
+
+# Load the available parameters and their default values from
+# customizations.tcl and from the header of the PYTHIA8 command
+# file
+
+LoadParamsTcl("customizations.tcl")
+LoadParamsPythia(args.commands)
+
+
 # Handle random number seed issues and other defaults
 
 random_seed = 0
-if "RANDOM_SEED" not in args.params:
-    args.params.append("RANDOM_SEED")
+if "PARAM_RANDOM_SEED" not in args.params:
     random_seed = abs(hash(args.name)) % (10 ** 8) + value_index
-    args.values.append(random_seed)
-
-if "PDFSET" not in args.params:
-    args.params.append("PDFSET")
-    args.values.append('LHAPDF6:CT18NNLO')
-
-if "HADBEAM_ENERGY" not in args.params:
-    args.params.append("HADBEAM_ENERGY")
-    args.values.append('275')
-
-if "EBEAM_ENERGY" not in args.params:
-    args.params.append("EBEAM_ENERGY")
-    args.values.append('18')
-
-if "PARAM_BFIELD" not in args.params:
-    args.params.append("PARAM_BFIELD")
-    args.values.append('1.5')
-
-if "NEVENTS" not in args.params:
-    args.params.append("NEVENTS")
-    args.values.append('1000')
-
-
-
+    pythiaparams["PARAM_RANDOM_SEED"] = random_seed
 
 # Execute the study
 
 taskdir="%s/%d" % (args.name, value_index)
+tclfile = "%s/customizations.tcl" % (taskdir)
+cmndfile = "%s/%s" % (taskdir, args.commands)
+
 if os.path.exists(taskdir) and not args.force:
     print("Skipping this task directory --- it already exists. Cleanup before overwriting!")
     print(taskdir)
@@ -129,32 +200,18 @@ else:
         os.makedirs(taskdir)
 
     # Replace parameter placeholders with values for this study
-    template_files = [args.template, args.commands]
-
-    for template_file in template_files:
-        with open(template_file, "rt") as input_template:
-            with open("%s/%s" % (taskdir, template_file), "wt") as output_template:
-                for line in input_template:
-                    for iparam in range(len(args.params)):
-                        param = args.params[iparam]
-                        values = args.values[iparam]
-                        value = None
-                        if type(values) == list:
-                            value = values[value_index]
-                        else:
-                            value = values
-                        line = line.replace(param, str(value))
-                
-                    output_template.write(line)
+    WriteTclFile(tclfile)
+    WritePythiaFile(cmndfile)
 
     # Copy files to the task directory before execution
     copy_files = ["delphes_card_EIC.tcl"]
     for a_file in copy_files:
         subprocess.call("cp %s %s" % (a_file, taskdir), shell=True)
+        #TransferTclFile(a_file, taskdir)
     # Write the random number seed to disk
     rndm_file = open(taskdir+"/random_seed.dat", "w")
     rndm_file.write(str(random_seed))
     rndm_file.close()
 
     # Execute the study
-    subprocess.call("DelphesPythia8 {0[taskdir]}/{0[template]} {0[taskdir]}/{0[commands]} {0[taskdir]}/out.root".format({'taskdir': taskdir, 'template': args.template, 'commands': args.commands}), shell=True)
+    subprocess.call("DelphesPythia8 {0[taskdir]}/delphes_card_EIC.tcl {0[taskdir]}/{0[commands]} {0[taskdir]}/out.root".format({'taskdir': taskdir, 'template': args.template, 'commands': args.commands}), shell=True)
