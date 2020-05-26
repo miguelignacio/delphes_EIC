@@ -1,0 +1,81 @@
+import matplotlib as mpl
+import uproot
+import matplotlib.pyplot as plt
+import scipy
+import numpy as np
+import math
+import pandas as pd
+import seaborn as sns
+import mplhep as hep
+#import zfit
+import inspect
+import sys
+import argparse 
+import glob
+
+from concurrent.futures import ThreadPoolExecutor
+
+plt.style.use(hep.style.ATLAS)
+
+plt.rcParams.update({'font.sans-serif': "Arial",
+                     'font.family': "sans-serif",
+                     'font.size': 30,
+                     'mathtext.fontset': 'custom',
+                     'mathtext.rm': 'Arial',
+                     })
+
+
+import EICAnalysisTools as eat
+
+# Grab all the CSV files
+csvfiles = glob.glob("tagging_study/*/tagging_study.csv")
+
+print(csvfiles)
+
+
+dataframes = []
+
+for csvfile in csvfiles:
+    dataframes.append(pd.read_csv(csvfile))
+
+
+data = pd.concat(dataframes)
+
+data = data.groupby(["Variation"], as_index=False).sum()
+
+print(data.head(10))
+
+# Add the Punzi DOM
+
+DiscoverySignificance = 5.0
+xsection = eat.TotalXSection('CC_DIS_e10_p275_CT18NNLO')
+lumi = 100 #/fb
+n_gen = 10e6
+
+allLight = float(data[data["Variation"] == "all" ]["Light"])
+allCharm = float(data[data["Variation"] == "all" ]["Charm"])
+
+
+data["LightEff"] = data["Light"]/allLight
+data["Light_100fb"] = xsection*lumi*data["Light"]/n_gen
+data["CharmEff"] = data["Charm"]/allCharm
+data["Charm_100fb"] = xsection*lumi*data["Charm"]/n_gen
+
+
+
+
+data["PunziFOM"] = (data["Charm"]/allCharm)/(DiscoverySignificance/2.0 + np.sqrt(data["Light_100fb"]))
+
+pd.set_option('display.max_rows', data.shape[0]+1)
+
+print(data)
+
+
+# Find the row with the max(PunziFOM)
+
+optimal_row = data["PunziFOM"].idxmax()
+
+print(data.iloc[optimal_row])
+
+
+
