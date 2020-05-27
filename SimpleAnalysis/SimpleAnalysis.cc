@@ -159,8 +159,13 @@ int main(int argc, char *argv[])
     module->initialize();
   }
 
-  std::cout
-    << "Processing all events in the sample..." << std::endl;
+  if (nevents < 0) {
+    std::cout
+      << "Processing all events in the sample..." << std::endl;
+  } else {
+    std::cout
+      << "Processing "<< nevents << " events in the sample..." << std::endl;
+  }
 
   for(int i=0; i < n_entries; ++i) {
     // event number printout

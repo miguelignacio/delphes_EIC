@@ -9,6 +9,9 @@
 
 #include "Module.h"
 #include "CharmJetModule.h"
+#include "KaonPIDModule.h"
+#include "ElectronPIDModule.h"
+#include "MuonPIDModule.h"
 #include "TaggingModule.h"
 #include "TaggingStudyModule.h"
 
@@ -42,11 +45,23 @@ class ModuleHandler {
     if (name == "CharmJetModule") {
       module = new CharmJetModule(_data);
     }
+    else if (name == "KaonPIDModule") {
+      module = new KaonPIDModule(_data);
+    }
+    else if (name == "ElectronPIDModule") {
+      module = new ElectronPIDModule(_data);
+    }
+    else if (name == "MuonPIDModule") {
+      module = new MuonPIDModule(_data);
+    }
     else if (name == "TaggingModule") {
       module = new TaggingModule(_data);
     }
     else if (name == "TaggingStudyModule") {
       module = new TaggingStudyModule(_data);
+    } else {
+      std::cout << "ModuleHandler(): The requested module, " << name << ", is unknown to the ModuleHandler!" << std::endl;
+      assert(1==1);
     }
 
     if (module != nullptr)

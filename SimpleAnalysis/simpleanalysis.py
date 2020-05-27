@@ -44,6 +44,8 @@ parser.add_argument("-n", "--name", type=str,
                     help="name for this study set (e.g. bfield)")
 parser.add_argument("-i", "--input", type=str,
                     help="input directory of Delphes ROOT files")
+parser.add_argument("-m", "--modules", type=str,
+                    help="analysis module list")
 parser.add_argument("-f", "--force", default=False, action='store_true',
                     help="force-overwrite existing output")
 
@@ -120,4 +122,4 @@ else:
 
     #subprocess.call("ln -s %s %s/" % (root_file, taskdir), shell=True);
     # Execute the study
-    subprocess.call("cd {0[taskdir]}; SimpleAnalysis.exe --input_dir {0[root_file]} --output_file out.root --module_sequence TaggingModule".format({'taskdir': taskdir, 'root_file': root_file}), shell=True)
+    subprocess.call('cd {0[taskdir]}; SimpleAnalysis.exe --input_dir {0[root_file]} --output_file out.root --module_sequence "{0[modules]}"'.format({'taskdir': taskdir, 'root_file': root_file, 'modules': args.modules}), shell=True)
