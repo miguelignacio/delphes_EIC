@@ -23,9 +23,11 @@ set ExecutionPath {
 
   ChargedHadronTrackingEfficiency
   ElectronTrackingEfficiency
+  MuonTrackingEfficiency
  
   ChargedHadronMomentumSmearing
   ElectronMomentumSmearing
+  MuonMomentumSmearing
 
   TrackMerger
   TrackSmearing
@@ -78,6 +80,7 @@ module ParticlePropagator ParticlePropagator {
     set OutputArray stableParticles
     set ChargedHadronOutputArray chargedHadrons
     set ElectronOutputArray electrons
+    set MuonOutputArray muons
     
     
     #Values taken from EIC detector handbook v1.2
@@ -137,10 +140,30 @@ module Efficiency ElectronTrackingEfficiency {
 
 }
 
+##############################
+# Muon tracking efficiency
+##############################
 
+module Efficiency MuonTrackingEfficiency {
+  set InputArray ParticlePropagator/muons
+  set OutputArray muons
 
+  # set EfficiencyFormula {efficiency formula as a function of eta and pt}
 
+  # tracking efficiency formula for muons
 
+   ##Made up numbers for the moment (need input from full sim)
+
+  set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
+                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
+                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.92) +
+                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.85) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
+                         (abs(eta) > 3.5)                                                  *(0.00) }
+
+}
 
 ########################################
 # Momentum resolution for charged tracks
@@ -158,6 +181,25 @@ module MomentumSmearing ChargedHadronMomentumSmearing {
                          (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
                          (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
 }
+
+###################################
+# Momentum resolution for muons
+###################################
+
+module MomentumSmearing MuonMomentumSmearing {
+  set InputArray MuonTrackingEfficiency/muons
+  set OutputArray muons
+
+  # set ResolutionFormula {resolution formula as a function of eta and pt}
+
+  # resolution formula for charged hadrons. 
+  # Based on EIC detector handbook v1.2 
+  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + pt^2*(5e-4)^2) +
+                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
+}
+
+
 
 ###################################
 # Momentum resolution for electrons
@@ -187,6 +229,7 @@ module Merger TrackMerger {
 # add InputArray InputArray
   add InputArray ChargedHadronMomentumSmearing/chargedHadrons
   add InputArray ElectronMomentumSmearing/electrons
+  add InputArray MuonMomentumSmearing/muons
   set OutputArray tracks
 }
 
