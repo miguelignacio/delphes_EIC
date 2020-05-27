@@ -1,8 +1,14 @@
+#delphes_path = $(DELPHES_PATH)
 CXX = g++
 CXXFLAGS = -std=c++17 $(shell root-config --cflags --ldflags --libs)
 CFILES   = $(wildcard *.cc)
-INCLUDE  = -I../../delphes
-LIBS     = -L../../delphes -lDelphes
+INCLUDE  = -I$(DELPHES_PATH)/delphes
+LIBS     = -L$(DELPHES_PATH)/delphes -lDelphes
+
+.PHONY: build check-env
+
+
+build: check-env SimpleAnalysis.exe
 
 SimpleAnalysis.exe: *.cc
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBS) -I. -o $@ $(CFILES) 
@@ -10,3 +16,9 @@ SimpleAnalysis.exe: *.cc
 
 clean:
 	rm -f SimpleAnalysis.exe
+
+
+check-env:
+ifndef DELPHES_PATH
+	$(error DELPHES_PATH is undefined)
+endif
