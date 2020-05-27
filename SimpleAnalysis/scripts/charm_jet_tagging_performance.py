@@ -29,8 +29,10 @@ import EICAnalysisTools as eat
 # Parse arguments
 parser = argparse.ArgumentParser()
 
-parser.add_argument("-i", "--input", type=str,
+parser.add_argument("-d", "--dir", type=str,
                     help="Directory containing input files")
+parser.add_argument("-i", "--input", type=str,
+                    help="Main input subfolder")
 parser.add_argument("-x", "--xvar", type=str, default='pt',
                     help="pt, eta, bjorken_x")
 
@@ -42,7 +44,7 @@ branchlist=["*"]
 
 print("Loading data...")
 
-df = eat.UprootLoad([f"{args.input}/*/out.root"], "tree", branches=branchlist)
+df = eat.UprootLoad([f"{args.dir}/{args.input}/*/out.root"], "tree", branches=branchlist)
 
 #df = df[:1000000]
 
@@ -200,7 +202,7 @@ elif args.xvar == 'pt':
     draw_config['xvar'] = 'jet_pt'
     draw_config['xrange'] = [10,50]
     draw_config['xbins'] = [10,12.5,15,20,25,30,40,50]
-    draw_config['ylimits'] = [1, 1e3]
+    draw_config['ylimits'] = [1, 1e4]
     draw_config['xlimits'] = [0,60]
     draw_config['yunits'] = '[$\\mathrm{GeV^{-1}}$]'
     draw_config['xunits'] = '[GeV]'
@@ -211,8 +213,8 @@ DrawDiffTagYieldPlot(df, draw_config)
 # Finally, project the data statistical uncertainties to 100/fb of EIC data
 # Overlay the PDF range variations with these predicted stat. errors
 
-df_20rs2 = eat.UprootLoad([f"CC_DIS_e10_p275_B15_lha_20Rs2/*/out.root"], "tree", branches=branchlist)
-df_21rs2 = eat.UprootLoad([f"CC_DIS_e10_p275_B15_lha_21Rs2/*/out.root"], "tree", branches=branchlist)
+df_20rs2 = eat.UprootLoad([f"{args.dir}/CC_DIS_e10_p275_lha_20Rs2/*/out.root"], "tree", branches=branchlist)
+df_21rs2 = eat.UprootLoad([f"{args.dir}/CC_DIS_e10_p275_lha_21Rs2/*/out.root"], "tree", branches=branchlist)
 
 xvar=draw_config['xvar']
 xrange=draw_config['xrange']

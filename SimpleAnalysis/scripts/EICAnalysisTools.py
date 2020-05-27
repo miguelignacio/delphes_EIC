@@ -111,19 +111,24 @@ def DISBjorkenX(row):
 ###################################################################
 
 # Flavour tagging study code
-def DifferentialTaggingYield(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all', process='CC_DIS_e18_p275', target_lumi = 100):
+def DifferentialTaggingYield(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all', process='CC_DIS_e18_p275', target_lumi = 100, taggers="jet_sip3dtagged"):
     global u_fb, n_gen
     print(f"n_gen = {n_gen}")
     jet_pt = (df['jet_pt'].to_numpy())
     jet_eta = (df['jet_eta'].to_numpy())
     jet_flavor = (df['jet_flavor'].to_numpy())
-    jet_tag = (df['jet_tagged'].to_numpy())
+    jet_sip3tag = (df['jet_sip3dtagged'].to_numpy())
+    jet_etag = (df['jet_etagged'].to_numpy())
+    jet_mtag = (df['jet_mutagged'].to_numpy())
+    jet_ktag = (df['jet_ktagged'].to_numpy())
 
     jet_x = (df[x].to_numpy())
 
 
+
     #jet_basics = (0.01 < jet_eta) & (jet_eta < 0.9)
-    jet_basics = (jet_tag == 1)
+    jet_basics = (jet_sip3tag == 1)
+    #jet_basics = (jet_sip3tag == 1) | (jet_etag == 1) | (jet_mtag == 1) | (jet_ktag == 1)
     
     all_flavor = ( jet_flavor > -999.0 ) & (jet_basics)
     light_flavor = (( jet_flavor < 4 ) | ( jet_flavor == 21 )) & (jet_basics)
@@ -165,16 +170,20 @@ def DifferentialTaggingYield(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,2
 
 
 
-def DifferentialTaggingEfficiency(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all'):
+def DifferentialTaggingEfficiency(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all', taggers="jet_sip3dtagged"):
     jet_pt = (df['jet_pt'].to_numpy())
     jet_eta = (df['jet_eta'].to_numpy())
     jet_flavor = (df['jet_flavor'].to_numpy())
-    jet_tag = (df['jet_tagged'].to_numpy())
+    jet_sip3tag = (df['jet_sip3dtagged'].to_numpy())
+    jet_etag = (df['jet_etagged'].to_numpy())
+    jet_mtag = (df['jet_mutagged'].to_numpy())
+    jet_ktag = (df['jet_ktagged'].to_numpy())
 
     jet_x = (df[x].to_numpy())
 
 
-    jet_tagged = (jet_tag == 1)
+    #jet_tagged = (jet_sip3tag == 1) | (jet_etag == 1) | (jet_mtag == 1) | (jet_ktag == 1)
+    jet_tagged = (jet_sip3tag == 1)
     
     all_flavor = ( jet_flavor > -999.0 ) 
     light_flavor = ( jet_flavor < 4 ) | ( jet_flavor == 21 )
