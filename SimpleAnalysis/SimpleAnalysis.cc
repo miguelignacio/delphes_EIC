@@ -135,6 +135,9 @@ int main(int argc, char *argv[])
 
   // Load object pointers
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
+  TClonesArray *branchElectron = treeReader->UseBranch("Electron");
+  TClonesArray *branchPhoton = treeReader->UseBranch("EFlowPhoton");
+  TClonesArray *branchNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
   TClonesArray *branchGenJet = treeReader->UseBranch("GenJet");
   TClonesArray *branchParticle = treeReader->UseBranch("Particle");
   TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
@@ -188,6 +191,10 @@ int main(int argc, char *argv[])
       module->setJets(branchJet);
       module->setGenJets(branchGenJet);
       module->setTracks(branchEFlowTrack);
+      module->setParticles(branchParticle);
+      module->setPhotons(branchPhoton);
+      module->setElectrons(branchElectron);
+      module->setNeutralHadrons(branchNeutralHadron);
       bool result = module->execute(&DataStore);
       if (result == false) 
 	break;
