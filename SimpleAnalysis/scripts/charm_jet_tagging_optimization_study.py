@@ -27,8 +27,18 @@ plt.rcParams.update({'font.sans-serif': "Arial",
 
 import EICAnalysisTools as eat
 
+
+# Parse arguments
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-i", "--input", type=str,
+                    help="Main input subfolder")
+
+args = parser.parse_args()
+
+
 # Grab all the CSV files
-csvfiles = glob.glob("tagging_study/*/tagging_study.csv")
+csvfiles = glob.glob(f"{args.input}/*/tagging_study.csv")
 
 print(csvfiles)
 
