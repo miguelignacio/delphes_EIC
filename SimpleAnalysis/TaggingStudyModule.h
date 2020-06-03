@@ -19,8 +19,8 @@ class TaggingStudyModule : public Module {
 
 
  private:
-
-  bool Tagged(Jet* jet, float minSignif=2.2, float minPT = 1.0, int minTracks = 3);
+  // errd0 and errz0 are in millimeters
+  bool Tagged(Jet* jet, float minSignif=2.2, float minPT = 1.0, int minTracks = 3, float errd0 = -1, float errz0 = -1);
 
   // Branch variables for storage to disk
   float _jet_pt;

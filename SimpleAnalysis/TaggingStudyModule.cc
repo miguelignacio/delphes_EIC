@@ -127,7 +127,7 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
       for (auto minTrkPt : minTrkPTVar) {
 	for (auto minSignif : minSignifVar) {
 	  std::string varName = std::string(Form("MinTrk: %d;TrkPT: %.2f;MinSig: %.2f",minTrack,minTrkPt,minSignif));
-	  if (Tagged(charmjet, minSignif, minTrkPt, minTrack))
+	  if (Tagged(charmjet, minSignif, minTrkPt, minTrack, 0.020, 0.020))
 	    study_variations[varName]["charm"] += 1;
 	}
       }
@@ -148,7 +148,7 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
       for (auto minTrkPt : minTrkPTVar) {
 	for (auto minSignif : minSignifVar) {
 	  std::string varName = std::string(Form("MinTrk: %d;TrkPT: %.2f;MinSig: %.2f",minTrack,minTrkPt,minSignif));
-	  if (Tagged(lightjet, minSignif, minTrkPt, minTrack))
+	  if (Tagged(lightjet, minSignif, minTrkPt, minTrack, 0.020, 0.020))
 	    study_variations[varName]["light"] += 1;
 	}
       }
@@ -161,7 +161,7 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
 
 
 bool TaggingStudyModule::Tagged(Jet* jet, 
-				float minSignif, float minPT, int minTracks)
+				float minSignif, float minPT, int minTracks, float errd0, float errz0)
 {
   bool tagged = false;
 
@@ -201,9 +201,13 @@ bool TaggingStudyModule::Tagged(Jet* jet,
       float xd = track->Xd;
       float yd = track->Yd;
       float zd = track->Zd;
-      float dd0 = TMath::Abs(track->ErrorD0);
+      float dd0 = errd0;
+      if (dd0 < 0) 
+	TMath::Abs(track->ErrorD0);
       float dz = TMath::Abs(track->DZ);
-      float ddz = TMath::Abs(track->ErrorDZ);
+      float ddz = errz0;
+      if (ddz < 0)
+	TMath::Abs(track->ErrorDZ);
 
       int sign = (jpx * xd + jpy * yd + jpz * zd > 0.0) ? 1 : -1;
       //add transverse and longitudinal significances in quadrature
