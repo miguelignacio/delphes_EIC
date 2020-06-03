@@ -2,8 +2,8 @@
 CXX = g++
 CXXFLAGS = -std=c++17 $(shell root-config --cflags --ldflags --libs)
 CFILES   = $(wildcard *.cc)
-INCLUDE  = -I$(DELPHES_PATH)/delphes
-LIBS     = -L$(DELPHES_PATH)/delphes -lDelphes
+INCLUDE  = -I$(DELPHES_PATH)
+LIBS     = -L$(DELPHES_PATH) -lDelphes
 
 .PHONY: build check-env
 
