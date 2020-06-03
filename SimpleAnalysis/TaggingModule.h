@@ -38,7 +38,10 @@ class TaggingModule : public Module {
   float _jet_mutagged;
   float _jet_btag;
 
-  float _jet_nk;
+  float _bjorken_x;
+  float _bjorken_Q2;
+  float _JB_x;
+  float _JB_Q2;
 
 
 

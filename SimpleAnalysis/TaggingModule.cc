@@ -34,7 +34,10 @@ void TaggingModule::initialize()
     tree_handler->getTree()->Branch("jet_etagged", &_jet_etagged, "jet_etagged/F");
     tree_handler->getTree()->Branch("jet_mutagged", &_jet_mutagged, "jet_mutagged/F");
     tree_handler->getTree()->Branch("jet_btag", &_jet_btag, "jet_btag/F");
-    tree_handler->getTree()->Branch("jet_nk", &_jet_nk, "jet_nk/F");
+    tree_handler->getTree()->Branch("bjorken_x", &_bjorken_x, "bjorken_x/F");
+    tree_handler->getTree()->Branch("bjorken_Q2", &_bjorken_Q2, "bjorken_Q2/F");
+    tree_handler->getTree()->Branch("JB_x", &_JB_x, "JB_x/F");
+    tree_handler->getTree()->Branch("JB_Q2", &_JB_Q2, "JB_Q2/F");
   }
 
 }
@@ -47,6 +50,17 @@ bool TaggingModule::execute(std::map<std::string, std::any>* DataStore)
 {
   auto data = getData();
   TreeHandler *tree_handler = tree_handler->getInstance();
+
+  // Compute global DIS variables
+  auto dis_variables = DISVariables(getParticles());
+  _bjorken_x = dis_variables["x"];
+  _bjorken_Q2 = dis_variables["Q2"];
+
+  auto jb_variables = DISJacquetBlondel(getTracks(), getElectrons(), getPhotons(), getNeutralHadrons());
+  _JB_x = jb_variables["x_JB"];
+  _JB_Q2 = jb_variables["Q2_JB"];
+
+
 
   // If event contains at least 1 jet
   std::vector<Jet*> all_jets;
