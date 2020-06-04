@@ -54,7 +54,6 @@ set ExecutionPath {
   GenMissingET
   
   FastJetFinder
-  FatJetFinder
 
   JetEnergyScale
 
@@ -93,6 +92,23 @@ module ParticlePropagator ParticlePropagator {
     set Bz $PARAM_BZ
 }
 
+
+####################################
+# Common Tracking Efficiency Model
+####################################
+
+set CommonTrackingEfficiency {
+    (pt <= 0.1)                                                       * (0.00) +
+    (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)                     * (0.97) +
+    (abs(eta) <= 1.5) * (pt > 1.0)                                    * (0.99) +
+    (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.96) +
+    (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.98) +
+    (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+    (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.97) +
+    (abs(eta) > 3.5)                                                  * (0.00)
+}
+
+
 ####################################
 # Charged hadron tracking efficiency
 ####################################
@@ -105,14 +121,15 @@ module Efficiency ChargedHadronTrackingEfficiency {
 
   # tracking efficiency formula for charged hadrons
   #Made up numbers for the moment (need input from full sim)
-  set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
-                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
-                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.92) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.85) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
-                         (abs(eta) > 3.5)                                                  *(0.00) }
+  #set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
+  #                                         (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+  #                                         (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
+  #                       (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.98) +
+  #                       (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
+  #                       (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+  #                       (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
+  #                       (abs(eta) > 3.5)                                                  *(0.00) }
+  set EfficiencyFormula $CommonTrackingEfficiency
 }
 
 ##############################
@@ -129,14 +146,15 @@ module Efficiency ElectronTrackingEfficiency {
 
    ##Made up numbers for the moment (need input from full sim)
 
-  set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
-                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
-                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.92) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.85) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
-                         (abs(eta) > 3.5)                                                  *(0.00) }
+  #set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
+  #                                         (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+  #                                         (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
+  #                       (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.98) +
+  #                       (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
+  #                       (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+  #                       (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
+  #                       (abs(eta) > 3.5)                                                  *(0.00) }
+  set EfficiencyFormula $CommonTrackingEfficiency
 
 }
 
@@ -154,14 +172,15 @@ module Efficiency MuonTrackingEfficiency {
 
    ##Made up numbers for the moment (need input from full sim)
 
-  set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
-                                           (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
-                                           (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.92) +
-                         (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.85) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
-                         (abs(eta) > 3.5)                                                  *(0.00) }
+  #set EfficiencyFormula {                                                    (pt <= 0.1)   * (0.00) +
+  #                                         (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+  #                                         (abs(eta) <= 1.5) * (pt > 1.0)                  * (0.98) +
+  #                       (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (0.98) +
+  #                       (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (0.95) +
+  #                       (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1   && pt <= 1.0)   * (0.95) +
+  #                       (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (0.90) +
+  #                       (abs(eta) > 3.5)                                                  *(0.00) }
+  set EfficiencyFormula $CommonTrackingEfficiency
 
 }
 
@@ -660,22 +679,6 @@ module FastJetFinder FastJetFinder {
   set JetAlgorithm 6
   set ParameterR 1.0
 
-  set JetPTMin 5.0
-}
-
-##################
-# Fat Jet finder
-##################
-
-module FastJetFinder FatJetFinder {
-  set InputArray EFlowMerger/eflow
-
-  set OutputArray jets
-
-  # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
-  set JetAlgorithm 6
-  set ParameterR 0.8
-
   set ComputeNsubjettiness 1
   set Beta 1.0
   set AxisMode 4
@@ -694,8 +697,9 @@ module FastJetFinder FatJetFinder {
   set SymmetryCutSoftDrop 0.1
   set R0SoftDrop 0.8
 
-  set JetPTMin 200.0
+  set JetPTMin 5.0
 }
+
 
 
 
@@ -786,7 +790,8 @@ module TrackCountingBTagging TrackCountingBTagging {
     #  set Use3D false
     
     # minimum number of tracks (high efficiency n=2, high purity n=3)
-    set Ntracks 3
+    #set Ntracks 3
+    set Ntracks $PARAM_TRACKSNMIN
 }
 
 
@@ -816,8 +821,6 @@ module TreeWriter TreeWriter {
   add Branch UniqueObjectFinder/electrons Electron Electron
   add Branch UniqueObjectFinder/photons Photon Photon
   
-  add Branch FatJetFinder/jets FatJet Jet
-
   add Branch MissingET/momentum MissingET MissingET
   add Branch ScalarHT/energy ScalarHT ScalarHT
 }
