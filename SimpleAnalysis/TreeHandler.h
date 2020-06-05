@@ -45,6 +45,12 @@ class TreeHandler {
     _tree = new TTree(_treename.c_str(), "");
   }
 
+  void execute() {
+    if (_tree == nullptr)
+      return;
+    _tree->Fill();
+  }
+
   void finalize() {
     if (_tree == nullptr)
       return;
