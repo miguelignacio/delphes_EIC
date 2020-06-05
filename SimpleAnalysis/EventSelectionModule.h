@@ -29,6 +29,11 @@ class EventSelectionModule : public Module {
 
   float              _met_et;
 
+  // DIS variables
+  float              _bjorken_x;
+  float              _jb_x;
+  float              _jb_Q2;
+
   // Cut flow
   //std::vector<std::pair<std::string, int>> _cut_flow;
   std::map<std::string, int> _cut_flow;

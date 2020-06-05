@@ -37,6 +37,13 @@ void EventSelectionModule::initialize()
     _met_et = 0.0;
     tree_handler->getTree()->Branch("met_et", &_met_et, "met_et/F");
 
+    _bjorken_x = 0.0;
+    _jb_x = 0.0;
+    _jb_Q2 = 0.0;
+    tree_handler->getTree()->Branch("bjorken_x", &_bjorken_x, "bjorken_x/F");
+    tree_handler->getTree()->Branch("jb_x", &_jb_x, "jb_x/F");
+    tree_handler->getTree()->Branch("jb_Q2", &_jb_Q2, "jb_Q2/F");
+
   }
 
 
@@ -74,6 +81,16 @@ void EventSelectionModule::finalize()
 bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
 {
   auto data = getData();
+
+  // Compute global DIS variables
+  auto dis_variables = DISVariables(getParticles());
+  _bjorken_x = dis_variables["x"];
+  //_bjorken_Q2 = dis_variables["Q2"];
+
+  auto jb_variables = DISJacquetBlondel(getTracks(), getElectrons(), getPhotons(), getNeutralHadrons());
+  _jb_x = jb_variables["x_JB"];
+  _jb_Q2 = jb_variables["Q2_JB"];
+
 
   // Initialize output variables
   _charmjet_pt = std::vector<float>();
