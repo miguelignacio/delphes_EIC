@@ -96,6 +96,16 @@ bool TaggingModule::execute(std::map<std::string, std::any>* DataStore)
   }
 
 
+  // Produce a list of tagged jets
+  std::vector<Jet*> charmtagged_jets;
+  for (auto jet : fiducial_jets) {
+    if (Tagged_sIP3D(jet, 3.75, 0.75, 2.0) == true) {
+      charmtagged_jets.push_back(jet);
+    }
+  }
+  (*DataStore)["CharmJets"] = charmtagged_jets;
+
+
   
   for (auto charmjet : charmJets) {
     _jet_pt = charmjet->PT;
@@ -119,7 +129,7 @@ bool TaggingModule::execute(std::map<std::string, std::any>* DataStore)
       _jet_mutagged = Tagged_Muon(charmjet, std::any_cast<std::vector<Track*>>((*DataStore)["Muons"]), 3.0, 1.0, 1);
     }
 
-    tree_handler->getTree()->Fill();
+    // tree_handler->getTree()->Fill();
   }
 
   for (auto lightjet : lightJets) {
@@ -144,7 +154,7 @@ bool TaggingModule::execute(std::map<std::string, std::any>* DataStore)
       _jet_mutagged = Tagged_Muon(lightjet, std::any_cast<std::vector<Track*>>((*DataStore)["Muons"]), 3.0, 1.0, 1);
     }
 
-    tree_handler->getTree()->Fill();
+    // tree_handler->getTree()->Fill();
   }
 
 
