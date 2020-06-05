@@ -35,7 +35,7 @@ class Module {
   void setNeutralHadrons(TClonesArray* neutralhadrons) { _neutralhadrons = neutralhadrons; };
   void setMuons(TClonesArray* muons) { _muons = muons; };
   void setTracks(TClonesArray* tracks) { _tracks = tracks; };
-  void setMet(TClonesArray* met) { _met = met; };
+  void setMET(TClonesArray* met) { _met = met; };
 
   void setParticles(TClonesArray* particles) { _particles = particles; };
   void setGenJets(TClonesArray* genjets) { _genjets = genjets; };
