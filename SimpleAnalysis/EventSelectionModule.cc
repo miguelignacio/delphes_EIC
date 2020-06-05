@@ -33,6 +33,10 @@ void EventSelectionModule::initialize()
     tree_handler->getTree()->Branch("charmjet_n", &_charmjet_n, "charmjet_n/I");
     tree_handler->getTree()->Branch("charmjet_pt", "std::vector<float>", &_charmjet_pt);
     tree_handler->getTree()->Branch("charmjet_eta", "std::vector<float>", &_charmjet_eta);
+
+    _met_et = 0.0;
+    tree_handler->getTree()->Branch("met_et", &_met_et, "met_et/F");
+
   }
 
 
@@ -87,8 +91,10 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
   }
   
   if (MET == nullptr) {
-    return false;
+    passed = false;
   }
+
+  _met_et = MET->MET;
   
   if (passed == true && MET->MET > 10.0) {
     _cut_flow["2: MET > 10 GeV"] += 1;

@@ -23,9 +23,11 @@ class EventSelectionModule : public Module {
  private:
 
   // Branch variables for storage to disk
-  unsigned int   _charmjet_n;
+  unsigned int       _charmjet_n;
   std::vector<float> _charmjet_pt;
   std::vector<float> _charmjet_eta;
+
+  float              _met_et;
 
   // Cut flow
   //std::vector<std::pair<std::string, int>> _cut_flow;
