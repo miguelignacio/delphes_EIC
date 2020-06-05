@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
   TClonesArray *branchGenJet = treeReader->UseBranch("GenJet");
   TClonesArray *branchParticle = treeReader->UseBranch("Particle");
   TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
-
+  TClonesArray *branchMET = treeReader->UseBranch("MissingET");
 
 
   // Setup the module handler
@@ -195,10 +195,15 @@ int main(int argc, char *argv[])
       module->setPhotons(branchPhoton);
       module->setElectrons(branchElectron);
       module->setNeutralHadrons(branchNeutralHadron);
+      module->setMET(branchMET);
+
       bool result = module->execute(&DataStore);
       if (result == false) 
 	break;
     }
+
+    tree_handler->execute();
+    
 
     // if (DataStore.find("CharmJets") != DataStore.end()) {
     //   std::vector<Jet*> charm_jets = std::any_cast<std::vector<Jet*>>(DataStore["CharmJets"]);
