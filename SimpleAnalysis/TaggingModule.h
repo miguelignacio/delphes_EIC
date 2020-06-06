@@ -20,14 +20,6 @@ class TaggingModule : public Module {
 
  private:
 
-  float sIP3D(Jet* jet, Track* track);
-
-  bool Tagged_Kaon(Jet* jet, std::vector<Track*> kaons, float minSignif = 3.0, float minPT = 1.0, int minKaons = 1);
-  bool Tagged_Electron(Jet* jet, std::vector<Track*> electrons, float minSignif = 3.0, float minPT = 1.0, int minElectrons = 1);
-  bool Tagged_Muon(Jet* jet, std::vector<Track*> muons, float minSignif = 3.0, float minPT = 1.0, int minMuons = 1);
-  bool Tagged_sIP3D(Jet* jet, float minSignif=2.2, float minPT = 1.0, int minTracks = 3);
-
-
   // Branch variables for storage to disk
   float _jet_pt;
   float _jet_eta;

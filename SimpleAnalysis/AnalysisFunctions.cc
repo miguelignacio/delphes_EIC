@@ -124,4 +124,163 @@ inline std::map<std::string, float> DISJacquetBlondel(TClonesArray* tracks,
   return dis_variables;
 }
 
+//
+// Tagging Methods
+//
+
+inline float sIP3D(Jet* jet, Track* track)
+{
+  const TLorentzVector &jetMomentum = jet->P4();
+  float jpx = jetMomentum.Px();
+  float jpy = jetMomentum.Py();
+  float jpz = jetMomentum.Pz();
+
+  float d0 = TMath::Abs(track->D0);
+
+  float xd = track->Xd;
+  float yd = track->Yd;
+  float zd = track->Zd;
+  float dd0 = TMath::Abs(track->ErrorD0);
+  float dz = TMath::Abs(track->DZ);
+  float ddz = TMath::Abs(track->ErrorDZ);
+  
+  int sign = (jpx * xd + jpy * yd + jpz * zd > 0.0) ? 1 : -1;
+  //add transverse and longitudinal significances in quadrature
+  float sip = sign * TMath::Sqrt(TMath::Power(d0 / dd0, 2) + TMath::Power(dz / ddz, 2));
+  
+  return sip;
+}
+
+
+inline bool Tagged_Kaon(Jet* jet, std::vector<Track*> kaons, float minSignif, float minPT, int minKaons)
+{
+  bool tagged = false;
+  int kaon_count = 0;
+  for (auto kaon : kaons) {
+    if (kaon->P4().DeltaR( jet->P4() ) > 0.5)
+      continue;
+    
+    if (kaon->PT < minPT)
+      continue;
+
+    if (sIP3D(jet, kaon) < minSignif)
+      continue;
+
+    kaon_count++;
+
+    if (kaon_count >= minKaons)
+      break;
+  }
+
+  tagged = (kaon_count >= minKaons); 
+
+  return tagged;
+}
+
+inline bool Tagged_Electron(Jet* jet, std::vector<Track*> electrons, float minSignif, float minPT, int minElectrons)
+{
+  bool tagged = false;
+  int electron_count = 0;
+  for (auto electron : electrons) {
+    if (electron->P4().DeltaR( jet->P4() ) > 0.5)
+      continue;
+    
+    if (electron->PT < minPT)
+      continue;
+
+    if (sIP3D(jet, electron) < minSignif)
+      continue;
+
+    electron_count++;
+
+    if (electron_count >= minElectrons)
+      break;
+  }
+
+  tagged = (electron_count >= minElectrons); 
+
+  return tagged;
+}
+
+inline bool Tagged_Muon(Jet* jet, std::vector<Track*> muons, float minSignif, float minPT, int minMuons)
+{
+  bool tagged = false;
+  int muon_count = 0;
+  for (auto muon : muons) {
+    if (muon->P4().DeltaR( jet->P4() ) > 0.5)
+      continue;
+    
+    if (muon->PT < minPT)
+      continue;
+    
+    if (sIP3D(jet, muon) < minSignif)
+      continue;
+
+    muon_count++;
+
+    if (muon_count >= minMuons)
+      break;
+  }
+
+  tagged = (muon_count >= minMuons); 
+
+  return tagged;
+}
+
+inline bool Tagged_sIP3D(Jet* jet, TClonesArray tracks,
+		  float minSignif, float minPT, int minTracks)
+{
+  bool tagged = false;
+
+  const TLorentzVector &jetMomentum = jet->P4();
+  float jpx = jetMomentum.Px();
+  float jpy = jetMomentum.Py();
+  float jpz = jetMomentum.Pz();
+  
+  auto jet_constituents = tracks;
+
+  int N_sIPtrack = 0;
+
+  for (int iconst = 0; iconst < jet_constituents.GetEntries(); iconst++) {
+
+
+    if (N_sIPtrack >= minTracks) 
+      break;
+
+    auto constituent = jet_constituents.At(iconst);
+    
+    if(constituent == 0) continue;
+
+    if (constituent->IsA() == Track::Class()) {
+      auto track = static_cast<Track*>(constituent);
+    
+      const TLorentzVector &trkMomentum = track->P4();
+      float tpt = trkMomentum.Pt();
+      if(tpt < minPT) continue;
+
+      if (trkMomentum.DeltaR(jetMomentum) > 0.5)
+	continue;
+
+      float d0 = TMath::Abs(track->D0);
+      if (d0 > 3.0) 
+	continue;
+
+      float sip = sIP3D(jet, track);
+
+
+      if(sip > minSignif) N_sIPtrack++;
+    }
+
+      
+
+
+  }
+  
+  tagged = (N_sIPtrack >= minTracks);
+
+  return tagged;
+}
+
+
+
 #endif
