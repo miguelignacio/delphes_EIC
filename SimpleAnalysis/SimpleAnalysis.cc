@@ -35,9 +35,11 @@ TreeHandler *TreeHandler::instance = 0;
 void PrintHelp()
 {
   std::cout <<
-    "--input_dir <i>:     Directory containing all the ROOT files you want to process\n"
-    "--output_file <o>:   Output ROOT file to store results\n"
-    "--help:              Show this helpful message!\n";
+    "--input_dir <i>:       Directory containing all the ROOT files you want to process\n"
+    "--output_file <o>:     Output ROOT file to store results\n"
+    "--module_sequence <s>: A string comma-separated list of modules to load; order is preserved in execution.\n"
+    "--nevents <n>:         The total number of events to process, starting from the zeroth event in the input.\n"
+    "--help:                Show this helpful message!\n";
   exit(1);
 }
 
