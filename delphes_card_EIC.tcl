@@ -177,9 +177,9 @@ module MomentumSmearing ChargedHadronMomentumSmearing {
 
   # resolution formula for charged hadrons. 
   # Based on EIC detector handbook v1.2 
-  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
+    set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+	(abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+	(abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + (pt*cosh(eta))^2*(1e-3)^2)  }
 }
 
 ###################################
@@ -191,12 +191,13 @@ module MomentumSmearing MuonMomentumSmearing {
   set OutputArray muons
 
   # set ResolutionFormula {resolution formula as a function of eta and pt}
-
+  # Resolution is parametrized as a function of p, not pT, in the matrix.
+    
   # resolution formula for charged hadrons. 
   # Based on EIC detector handbook v1.2 
-  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
+  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + (pt*cosh(eta))^2*(1e-3)^2)  }
 }
 
 
@@ -213,11 +214,11 @@ module MomentumSmearing ElectronMomentumSmearing {
   set OutputArray electrons
 
   # set ResolutionFormula {resolution formula as a function of eta and energy}
-  # resolution formula for electrons. Needs some thinking on how it combined tracking and EMCAL
+    # resolution formula for electrons; same as above. Needs some thinking on how to combine with EMCAL
   
-  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
+    set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+                                             (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+	                                     (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + (pt*cosh(eta))^2*(1e-3)^2)  }
 }
 
 
@@ -272,7 +273,6 @@ module SimpleCalorimeter ECal {
   set EFlowTowerOutputArray eflowPhotons
 
   set IsEcal true
-  #200 MeV should be possible. 
   set EnergyMin 0.1  
   set EnergySignificanceMin 1.0
 
