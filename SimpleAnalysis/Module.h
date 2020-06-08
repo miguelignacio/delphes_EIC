@@ -38,6 +38,7 @@ class Module {
   void setMET(TClonesArray* met) { _met = met; };
 
   void setParticles(TClonesArray* particles) { _particles = particles; };
+  void setGenParticles(TClonesArray* particles) { _genparticles = particles; };
   void setGenJets(TClonesArray* genjets) { _genjets = genjets; };
 
   TClonesArray* getJets() { return _jets;};
@@ -47,6 +48,7 @@ class Module {
   TClonesArray* getMuons() { return _muons;};
   TClonesArray* getTracks() { return _tracks;};
   TClonesArray* getMET() { return _met;};
+  TClonesArray* getGenParticles() { return _genparticles;};
   TClonesArray* getParticles() { return _particles;};
   TClonesArray* getGenJets() { return _genjets;};
 
@@ -65,6 +67,7 @@ class Module {
 
   TClonesArray* _met = nullptr;
 
+  TClonesArray* _genparticles = nullptr;
   TClonesArray* _particles = nullptr;
   TClonesArray* _genjets   = nullptr;
 
