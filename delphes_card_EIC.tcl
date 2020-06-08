@@ -196,9 +196,9 @@ module MomentumSmearing ChargedHadronMomentumSmearing {
 
   # resolution formula for charged hadrons. 
   # Based on EIC detector handbook v1.2 
-  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
+  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+	                 (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + (pt*cosh(eta))^2*(1e-3)^2)  }
 }
 
 ###################################
@@ -213,9 +213,9 @@ module MomentumSmearing MuonMomentumSmearing {
 
   # resolution formula for charged hadrons. 
   # Based on EIC detector handbook v1.2 
-  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
+  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+	                 (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + (pt*cosh(eta))^2*(1e-3)^2)  }
 }
 
 
@@ -234,9 +234,9 @@ module MomentumSmearing ElectronMomentumSmearing {
   # set ResolutionFormula {resolution formula as a function of eta and energy}
   # resolution formula for electrons. Needs some thinking on how it combined tracking and EMCAL
   
-  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + pt^2*(5e-4)^2) +
-                         (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + pt^2*(1e-3)^2)  }
+  set ResolutionFormula {                  (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((5e-3)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+                         (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((1e-2)^2 + (pt*cosh(eta))^2*(5e-4)^2) +
+	                 (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((2e-2)^2 + (pt*cosh(eta))^2*(1e-3)^2)  }
 }
 
 
