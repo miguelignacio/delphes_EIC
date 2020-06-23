@@ -47,12 +47,12 @@ bool TaggingModule::execute(std::map<std::string, std::any>* DataStore)
 
 
   // Retrieve the general tracks list
-  auto tracks = getTracks();
+  auto tracks = getEFlowTracks();
 
   // Produce a list of tagged jets
   std::vector<Jet*> charmtagged_jets;
   for (auto jet : fiducial_jets) {
-    if (Tagged_sIP3D(jet, *tracks, 3.75, 0.75, 2.0) == true) {
+    if (Tagged_sIP3D(jet, *tracks, 3.75, 1.00, 2.0) == true) {
       charmtagged_jets.push_back(jet);
     }
   }

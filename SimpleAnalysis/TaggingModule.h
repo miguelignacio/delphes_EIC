@@ -35,6 +35,8 @@ class TaggingModule : public Module {
   float _JB_x;
   float _JB_Q2;
 
+ private:
+  // Methods internal to the class for flavor tagging applications
 
 
 };
