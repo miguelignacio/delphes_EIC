@@ -48,17 +48,17 @@ bool KaonPIDModule::execute(std::map<std::string, std::any>* DataStore)
     
     
   } else {      
-    for (int itrk = 0; itrk < getTracks()->GetEntries(); itrk++)
+    for (int itrk = 0; itrk < getEFlowTracks()->GetEntries(); itrk++)
       {
-	Track* track = (Track*) getTracks()->At(itrk);
+	Track* track = (Track*) getEFlowTracks()->At(itrk);
 	if (KaonPID(track, 0.90, 3.0))
 	  all_kaons.push_back(track);
       }
 
     std::vector<Track*> tracks_for_PID;
-    for (int itrk = 0; itrk < getTracks()->GetEntries(); itrk++) 
+    for (int itrk = 0; itrk < getEFlowTracks()->GetEntries(); itrk++) 
       {
-	Track* track = (Track*) getTracks()->At(itrk);
+	Track* track = (Track*) getEFlowTracks()->At(itrk);
 	tracks_for_PID.push_back(track);
       }
     (*DataStore)["TracksForPID"] = tracks_for_PID;
