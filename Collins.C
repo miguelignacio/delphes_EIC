@@ -28,7 +28,10 @@ struct TestPlots
   TH1 *hphi;
   TH1 *hz;
   TH1 *hr;
+ 
 
+  TH1 *Dz_15_20;
+  
   TH1 *asym;
   TH1 *asym_smeared;
   
@@ -65,7 +68,8 @@ void BookHistograms(ExRootResult *result, TestPlots *plots)
     "(p_{T}^{jet} - p_{T}^{constituents})/p_{T}^{jet}", "number of jets",
     100, -1.0e-1, 1.0e-1);
 
-
+  //plots->Dz_15_20 = result->AddHist1D("Dz_15_20", "", "Dz", "entries", 20,0,1.0);
+  plots->Dz_15_20 = result->AddHist1D("Dz_15_20", "", "Dz " , "entries",10,0,1.0);   
   plots->hjt  = result->AddHist1D("jt", "", "jt " , "entries",50,0,3.0);
   plots->hz   = result->AddHist1D("z", ""," z " , "entries",50,0,1.0);
   plots->hphi = result->AddHist1D("phi", "", "phi " , "entries",180,-6.0,9.0);
@@ -122,7 +126,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
   // Loop over all events
 
   TF1 *f1 = new TF1("f1","1+0.05*sin(x)",-TMath::Pi(),TMath::Pi());
-  
+  int njets = 0;
   for(entry = 0; entry < allEntries; ++entry)
   {
     // Load selected branches with data from specified event
@@ -138,8 +142,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
       plots->fElectronDeltaEta->Fill((particle->Eta - electron->Eta)/particle->Eta);
     }
 
-    // Loop over all photons in event
-
+  
+  
     // Loop over all jets in event
     for(int i = 0; i < branchJet->GetEntriesFast(); ++i)
     {
@@ -173,7 +177,9 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
       //cout << deltaR << endl;
       genjet = (Jet*) branchGenJet->At(matched_index); 
       // genjet = bestGenJetMomentum #branchGenJet.At(0)
-
+      if( genjet->PT<15 and genjet->PT>10){
+      	njets = njets+1;
+      }
       
       momentum.SetPxPyPzE(0.0, 0.0, 0.0, 0.0);
 
@@ -217,7 +223,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	    
 	  double z = jet->P4().Vect().Dot( track->P4().Vect() )/(jet->P4().P()*jet->P4().P());
           //if( !(z>0.4 and z<0.6)) continue;
-	  
+
+
           double r = TMath::Sqrt( pow(jet->P4().Phi() - track->P4().Phi(),2.0) + pow(jet->P4().Eta() - track->P4().Eta(),2.0));
 	  TVector3 zaxis(0,0,1);
           TVector3 N = zaxis.Cross(jet->P4().Vect());
@@ -225,6 +232,9 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	  N = N.Unit();
 	  S = S.Unit();
 	  TVector3 jt  = track->P4().Vect().Dot(N)*N + track->P4().Vect().Dot(S)*S;
+	  //if(jet->PT<15 and jet->PT>10){
+	  //  plots->Dz_15_20->Fill(z);
+	  // }
           double angle = track->P4().Vect().Dot(N)/track->P4().Vect().Dot(S);	  
           double phi_h = TMath::ATan(angle); 
 	  //cout << "asd" << jt.Unit().Dot(jet->P4().Vect()) << endl;
@@ -262,7 +272,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	  }
 	 
        
-	 
+	  if(genjet->PT>10 and genjet->PT>10){                                                                                                                                                                                  plots->Dz_15_20->Fill(genz);
+	  }      
 
 	  if(genjet->P4().E()>10 and genjet->P4().E()<20){
 	      plots->res_dphi_z_10_20->Fill(dphi, genz);
@@ -298,12 +309,15 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
           //cout << "    Tower pt: " << tower->ET << ", eta: " << tower->Eta << ", phi: " << tower->Phi << endl;
           momentum += tower->P4();
         }
-      }
+      }//end loop over constituents
 
       
       plots->fJetDeltaPT->Fill((jet->PT - momentum.Pt())/jet->PT);
-    }
-  }
+    }//loop over jets
+    
+  }//loop over entries
+  std::cout << "NUMBER OF JETS "<< njets << std::endl;                                                                                                                                                               if(njets>0){
+    plots->Dz_15_20->Scale(1.0/njets);                                                                                                                                                                                 }                                
 }
 
 //------------------------------------------------------------------------------
