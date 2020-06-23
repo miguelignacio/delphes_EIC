@@ -1,6 +1,6 @@
 #delphes_path = $(DELPHES_PATH)
 CXX = g++
-CXXFLAGS = -std=c++17 $(shell root-config --cflags --ldflags --libs)
+CXXFLAGS = -std=c++17 $(shell root-config --cflags --ldflags --libs) -lEG
 CFILES   = $(wildcard *.cc)
 INCLUDE  = -I$(DELPHES_PATH)
 LIBS     = -L$(DELPHES_PATH) -lDelphes
