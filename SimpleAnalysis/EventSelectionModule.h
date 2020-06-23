@@ -35,18 +35,28 @@ class EventSelectionModule : public Module {
   std::vector<int>   _jet_ktag;
   std::vector<int>   _jet_etag;
   std::vector<int>   _jet_mutag;
+  std::vector<float> _jet_Ks_mass;
+  std::vector<float> _jet_Ks_p;
+  std::vector<float> _jet_Ks_flightlength;
+  std::vector<float> _jet_Ks_sumpt;
+  std::vector<float> _jet_K_sumpt;
 
+  
   float              _met_et;
 
   // DIS variables
   float              _bjorken_x;
   float              _bjorken_Q2;
+  float              _bjorken_y;
   float              _jb_x;
   float              _jb_Q2;
 
   // Cut flow
   //std::vector<std::pair<std::string, int>> _cut_flow;
   std::map<std::string, int> _cut_flow;
+
+  // Global variables
+  float _mpi;
 
 };
 
