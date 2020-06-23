@@ -107,11 +107,39 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
       all_jets.push_back(jet);
     }
 
+  // MET cut first
+  bool passed = true;
+
+
+  // Get the MET object and use it
+  MissingET* MET = nullptr;
+  for (int imet = 0; imet < getMET()->GetEntries(); imet++) {
+    MET = static_cast<MissingET*>(getMET()->At(imet));
+  }
+  
+  if (MET == nullptr) {
+    passed = false;
+  }
+
+  if (passed == true && MET->MET > 10.0) {
+    passed = true;
+  } else {
+    passed = false;
+  }
+
+
+  if (passed == false)
+    return false;
+
   std::vector<Jet*> fiducial_jets = SelectorFcn<Jet>(all_jets, [](Jet* j){ return (TMath::Abs(j->Eta) < 3.0 && j->PT > 5.0); });
 
   std::vector<Jet*> charmJets = SelectorFcn<Jet>(fiducial_jets, [](Jet* j){ return (j->Flavor == 4); });
 
   std::vector<Jet*> lightJets = SelectorFcn<Jet>(fiducial_jets, [](Jet* j){ return (j->Flavor < 4 || j->Flavor == 21); });
+
+  // Resolution settings
+  float d0err = 0.020; // mm
+  float z0err = 0.020; // mm
 
   
   study_variations["all"]["charm"] += charmJets.size();
@@ -121,13 +149,13 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
     _jet_flavor = charmjet->Flavor;
     _jet_tagged = Tagged(charmjet);
     _jet_btag = charmjet->BTag;
-    tree_handler->getTree()->Fill();
+    // tree_handler->getTree()->Fill();
 
     for (auto minTrack : minTrackVar) {
       for (auto minTrkPt : minTrkPTVar) {
 	for (auto minSignif : minSignifVar) {
 	  std::string varName = std::string(Form("MinTrk: %d;TrkPT: %.2f;MinSig: %.2f",minTrack,minTrkPt,minSignif));
-	  if (Tagged(charmjet, minSignif, minTrkPt, minTrack, 0.020, 0.020))
+	  if (Tagged(charmjet, minSignif, minTrkPt, minTrack, d0err, z0err))
 	    study_variations[varName]["charm"] += 1;
 	}
       }
@@ -142,13 +170,13 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
     _jet_flavor = lightjet->Flavor;
     _jet_tagged = Tagged(lightjet);
     _jet_btag = lightjet->BTag;
-    tree_handler->getTree()->Fill();
+    // tree_handler->getTree()->Fill();
 
     for (auto minTrack : minTrackVar) {
       for (auto minTrkPt : minTrkPTVar) {
 	for (auto minSignif : minSignifVar) {
 	  std::string varName = std::string(Form("MinTrk: %d;TrkPT: %.2f;MinSig: %.2f",minTrack,minTrkPt,minSignif));
-	  if (Tagged(lightjet, minSignif, minTrkPt, minTrack, 0.020, 0.020))
+	  if (Tagged(lightjet, minSignif, minTrkPt, minTrack, d0err, z0err))
 	    study_variations[varName]["light"] += 1;
 	}
       }
@@ -170,7 +198,7 @@ bool TaggingStudyModule::Tagged(Jet* jet,
   float jpy = jetMomentum.Py();
   float jpz = jetMomentum.Pz();
   
-  auto jet_constituents = *(getTracks());
+  auto jet_constituents = *(getEFlowTracks());
 
   int N_sIPtrack = 0;
 

@@ -33,9 +33,9 @@ class TaggingStudyModule : public Module {
   // study map linking variations to numbers and kinds of jet
 
   std::map<std::string, std::map<std::string, int>> study_variations;
-  std::vector<int> minTrackVar{2, 3};
-  std::vector<float> minSignifVar{1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.00, 4.25, 4.50, 4.75, 5.00};
-  std::vector<float> minTrkPTVar{0.25, 0.5, 0.75, 1.0, 1.25, 1.5};
+  std::vector<int> minTrackVar{2, 3, 4};
+  std::vector<float> minSignifVar{1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.00, 4.25, 4.50, 4.75, 5.00, 6.00, 7.00, 8.00, 9.00};
+  std::vector<float> minTrkPTVar{0.10, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5};
 
 };
 
