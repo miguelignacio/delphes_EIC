@@ -24,10 +24,11 @@ Beams:frameType = 2
 
 #WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
 WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
-PhaseSpace:Q2Min = 100
+PhaseSpace:Q2Min = 50
 PDF:lepton = off
 TimeShower:QEDshowerByL=off 
 SpaceShower:pTmaxMatch=2
+SpaceShower:dipoleRecoil=on
 
 ! 5) Switch on/off the key event generation steps.
 #PartonLevel:MPI = off              ! no multiparton interactions
