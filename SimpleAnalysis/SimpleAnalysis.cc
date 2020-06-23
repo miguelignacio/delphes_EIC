@@ -141,8 +141,8 @@ int main(int argc, char *argv[])
   TClonesArray *branchPhoton = treeReader->UseBranch("EFlowPhoton");
   TClonesArray *branchNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
   TClonesArray *branchGenJet = treeReader->UseBranch("GenJet");
-  TClonesArray *branchParticle = treeReader->UseBranch("Particle");
-  TClonesArray *branchGenParticle = treeReader->UseBranch("GenParticle");
+  TClonesArray *branchGenParticle = treeReader->UseBranch("Particle");
+  TClonesArray *branchRawTrack = treeReader->UseBranch("Track");
   TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
   TClonesArray *branchMET = treeReader->UseBranch("MissingET");
 
@@ -193,8 +193,8 @@ int main(int argc, char *argv[])
     for (auto module : module_handler->getModules()) {
       module->setJets(branchJet);
       module->setGenJets(branchGenJet);
-      module->setTracks(branchEFlowTrack);
-      module->setParticles(branchParticle);
+      module->setEFlowTracks(branchEFlowTrack);
+      module->setTracks(branchRawTrack);
       module->setGenParticles(branchGenParticle);
       module->setPhotons(branchPhoton);
       module->setElectrons(branchElectron);

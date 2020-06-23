@@ -35,9 +35,9 @@ class Module {
   void setNeutralHadrons(TClonesArray* neutralhadrons) { _neutralhadrons = neutralhadrons; };
   void setMuons(TClonesArray* muons) { _muons = muons; };
   void setTracks(TClonesArray* tracks) { _tracks = tracks; };
+  void setEFlowTracks(TClonesArray* tracks) { _eflowtracks = tracks; };
   void setMET(TClonesArray* met) { _met = met; };
 
-  void setParticles(TClonesArray* particles) { _particles = particles; };
   void setGenParticles(TClonesArray* particles) { _genparticles = particles; };
   void setGenJets(TClonesArray* genjets) { _genjets = genjets; };
 
@@ -46,10 +46,10 @@ class Module {
   TClonesArray* getPhotons() { return _photons;};
   TClonesArray* getNeutralHadrons() { return _neutralhadrons;};
   TClonesArray* getMuons() { return _muons;};
+  TClonesArray* getEFlowTracks() { return _eflowtracks;};
   TClonesArray* getTracks() { return _tracks;};
   TClonesArray* getMET() { return _met;};
   TClonesArray* getGenParticles() { return _genparticles;};
-  TClonesArray* getParticles() { return _particles;};
   TClonesArray* getGenJets() { return _genjets;};
 
  private:
@@ -64,11 +64,11 @@ class Module {
   TClonesArray* _neutralhadrons = nullptr;
   TClonesArray* _muons = nullptr;
   TClonesArray* _tracks = nullptr;
+  TClonesArray* _eflowtracks = nullptr;
 
   TClonesArray* _met = nullptr;
 
   TClonesArray* _genparticles = nullptr;
-  TClonesArray* _particles = nullptr;
   TClonesArray* _genjets   = nullptr;
 
 
