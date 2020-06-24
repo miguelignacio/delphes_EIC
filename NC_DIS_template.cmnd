@@ -31,7 +31,7 @@ Beams:frameType = 2
 ! 4) Settings for the hard-process generation.
 
 WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
-PhaseSpace:Q2Min = 100
+PhaseSpace:Q2Min = 50
 PDF:lepton = off
 PDF:pSet = PARAM_PDFSET
 #PDF:pSet                  = LHAPDF6:CT18NNLO
