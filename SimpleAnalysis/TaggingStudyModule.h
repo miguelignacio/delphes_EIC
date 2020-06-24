@@ -19,8 +19,8 @@ class TaggingStudyModule : public Module {
 
 
  private:
-
-  bool Tagged(Jet* jet, float minSignif=2.2, float minPT = 1.0, int minTracks = 3);
+  // errd0 and errz0 are in millimeters
+  bool Tagged(Jet* jet, float minSignif=2.2, float minPT = 1.0, int minTracks = 3, float errd0 = -1, float errz0 = -1);
 
   // Branch variables for storage to disk
   float _jet_pt;
@@ -33,9 +33,9 @@ class TaggingStudyModule : public Module {
   // study map linking variations to numbers and kinds of jet
 
   std::map<std::string, std::map<std::string, int>> study_variations;
-  std::vector<int> minTrackVar{2, 3};
-  std::vector<float> minSignifVar{1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.00, 4.25, 4.50, 4.75, 5.00};
-  std::vector<float> minTrkPTVar{0.25, 0.5, 0.75, 1.0, 1.25, 1.5};
+  std::vector<int> minTrackVar{2, 3, 4};
+  std::vector<float> minSignifVar{1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.00, 4.25, 4.50, 4.75, 5.00, 6.00, 7.00, 8.00, 9.00};
+  std::vector<float> minTrkPTVar{0.10, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5};
 
 };
 

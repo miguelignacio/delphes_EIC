@@ -94,8 +94,10 @@ def DrawDiffTagEfficiencyPlot(df, draw_config={}):
     ax1.set_ylim(ylimits)
     ax1.set_xlim(xlimits)
     
-    plt.xlabel(f'Reconstructed Jet ${xvar_symbol}$ {xunits}')
+    plt.xlabel(draw_config['xlabel'])
 
+    if xvar == 'bjorken_x' or xvar == 'JB_x':
+        plt.xscale('log')
 
     ax1.legend(fontsize=18)
     
@@ -156,7 +158,11 @@ def DrawDiffTagYieldPlot(df, draw_config={}, process='CC_DIS_e10_p275_CT18NNLO')
     ax1.set_ylim(ylimits)
     ax1.set_xlim(xlimits)
 
-    plt.xlabel(f'Reconstructed Jet ${xvar_symbol}$ {xunits}')
+    plt.xlabel(draw_config['xlabel'])
+
+    if xvar == 'bjorken_x' or xvar == 'JB_x':
+        plt.xscale('log')
+
 
     ax1.legend(fontsize=18)
     
@@ -178,6 +184,7 @@ if args.xvar == 'eta':
     draw_config['xlimits'] = [-5,5]
     draw_config['yunits'] = ''
     draw_config['xunits'] = ''
+    draw_config['xlabel'] = 'Reconstructed Jet $\eta$'
 elif args.xvar == 'pt':
     draw_config['xvar'] = 'jet_pt'
     draw_config['xrange'] = [10,50]
@@ -186,6 +193,28 @@ elif args.xvar == 'pt':
     draw_config['xlimits'] = [0,60]
     draw_config['yunits'] = '[$\\mathrm{GeV^{-1}}$]'
     draw_config['xunits'] = '[GeV]'
+    draw_config['xlabel'] = 'Reconstructed Jet $p_T$ [GeV]'
+elif args.xvar == 'bjorken_x':
+    draw_config['xvar'] = 'bjorken_x'
+    draw_config['xrange'] = [5e-3,1]
+    draw_config['xbins'] = np.concatenate([np.arange(5e-3,1e-2,1e-3),np.arange(1e-2,1e-1,1e-2),np.arange(1e-1,1.1,1e-1)])
+    #draw_config['xbins'] = [5e-3, 1e-2, 1e-1, 1]
+    draw_config['ylimits'] = [1e-5, 1]
+    draw_config['xlimits'] = [5e-3,1]
+    draw_config['yunits'] = ''
+    draw_config['xunits'] = ''
+    draw_config['xlabel'] = 'Bjorken x'
+elif args.xvar == 'JB_x':
+    draw_config['xvar'] = 'JB_x'
+    draw_config['xrange'] = [5e-3,1]
+    draw_config['xbins'] = np.concatenate([np.arange(5e-3,1e-2,1e-3),np.arange(1e-2,1e-1,1e-2),np.arange(1e-1,1.1,1e-1)])
+    #draw_config['xbins'] = [5e-3, 1e-2, 1e-1, 1]
+    draw_config['ylimits'] = [1e-5, 1]
+    draw_config['xlimits'] = [5e-3,1]
+    draw_config['yunits'] = ''
+    draw_config['xunits'] = ''
+    draw_config['xlabel'] = 'Reconstructed $x_{JB}$'
+
 
 DrawDiffTagEfficiencyPlot(df,draw_config)
 
@@ -198,6 +227,7 @@ if args.xvar == 'eta':
     draw_config['xlimits'] = [-5,5]
     draw_config['yunits'] = ''
     draw_config['xunits'] = ''
+    draw_config['xlabel'] = 'Reconstructed Jet $\eta$'
 elif args.xvar == 'pt':
     draw_config['xvar'] = 'jet_pt'
     draw_config['xrange'] = [10,50]
@@ -206,6 +236,26 @@ elif args.xvar == 'pt':
     draw_config['xlimits'] = [0,60]
     draw_config['yunits'] = '[$\\mathrm{GeV^{-1}}$]'
     draw_config['xunits'] = '[GeV]'
+    draw_config['xlabel'] = 'Reconstructed Jet $p_T$ [GeV]'
+elif args.xvar == 'bjorken_x':
+    draw_config['xvar'] = 'bjorken_x'
+    draw_config['xrange'] = [1e-2,1]
+    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(1e-1,1.2,2e-1)])
+    draw_config['ylimits'] = [1e-1, 1e4]
+    draw_config['xlimits'] = [1e-2,1]
+    draw_config['xunits'] = ''
+    draw_config['yunits'] = ''
+    draw_config['xlabel'] = 'Bjorken x'
+elif args.xvar == 'JB_x':
+    draw_config['xvar'] = 'JB_x'
+    draw_config['xrange'] = [1e-2,1]
+    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(1e-1,1.2,2e-1)])
+    draw_config['ylimits'] = [1e-1, 1e4]
+    draw_config['xlimits'] = [1e-2,1]
+    draw_config['yunits'] = ''
+    draw_config['xunits'] = ''
+    draw_config['xlabel'] = 'Reconstructed $x_{JB}$'
+    draw_config['xunits'] = ''
 
 DrawDiffTagYieldPlot(df, draw_config)
 
@@ -289,11 +339,10 @@ ax1.set_ylim([0.0, 2.00])
 ax1.set_xlim(xlimits)
 plt.ylabel('')
 
-xvar_symbol="p_T"
-if xvar.find('Eta') != -1:
-    xvar_symbol='\\eta'
+plt.xlabel(draw_config['xlabel'])
 
-plt.xlabel(f'Reconstructed Jet ${xvar_symbol}$ {xunits}')
+if xvar == 'bjorken_x' or xvar == 'JB_x':
+    plt.xscale('log')
     
 ax1.legend(handles=[errorboxes[0],enhanced], fontsize=18)
 

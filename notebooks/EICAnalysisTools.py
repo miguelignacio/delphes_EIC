@@ -41,12 +41,18 @@ def TotalXSection(process='CC_DIS_e18_p275'):
     global u_mb
     if process == 'CC_DIS_e18_p275':
         return 2.408e-08*u_mb
+    elif process == 'CC_DIS_e10_p100_CT18NNLO':
+        return 5.44044e-09*u_mb
     elif process == 'CC_DIS_e10_p275_CT18NNLO':
         return 1.47637e-08*u_mb
     elif process == 'CC_DIS_e10_p275_CT1820Rs2':
         return 1.47637e-08*u_mb
+    elif process == 'CC_DIS_e10_p100_CT1820Rs2':
+        return 5.44842e-09*u_mb
     elif process == 'CC_DIS_e10_p275_CT1821Rs2':
         return 1.45884e-08*u_mb
+    elif process == 'CC_DIS_e10_p100_CT1821Rs2':
+        return 5.36006e-09*u_mb
     elif process == 'NC_DIS_e18_p275':
         return 3.671e-06*u_mb
     

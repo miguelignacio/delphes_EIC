@@ -101,7 +101,7 @@ def DrawDiffTagEfficiencyPlot(df, draw_config={}):
     plt.ylabel(f'$\\varepsilon_{{tag}}$ {yunits}')
     plt.xlabel(f'Reconstructed Jet ${xvar_symbol}$ {xunits}')
     
-    beamconfig = "10x275"
+    beamconfig = "10x100"
 
     plt.title(f"CC-DIS, {beamconfig}GeV, $Q^2>100\\mathrm{{GeV^2}}$", fontsize=20)
     
@@ -126,7 +126,7 @@ def DrawDiffTagEfficiencyPlot(df, draw_config={}):
     plt.savefig(f"jet_differential_tagefficiency_{xvar}_{args.input}.pdf")
 
 
-def DrawDiffTagYieldPlot(df, draw_config={}, process='CC_DIS_e10_p275_CT18NNLO'):
+def DrawDiffTagYieldPlot(df, draw_config={}, process='CC_DIS_e10_p100_CT18NNLO'):
     xvar=draw_config['xvar']
     xrange=draw_config['xrange']
     xbins=draw_config['xbins']
@@ -165,10 +165,12 @@ def DrawDiffTagYieldPlot(df, draw_config={}, process='CC_DIS_e10_p275_CT18NNLO')
     plt.xlabel(f'Reconstructed Jet ${xvar_symbol}$ {xunits}')
     plt.yscale('log')
     
+    beamconfig = "10x100"
     process_name = 'CC-DIS'
+
     if process.find('NC') != -1:
         process_name = 'NC-DIS'
-    plt.title(f"{process_name}, 10x275GeV, $Q^2>100\\mathrm{{GeV^2}}$", fontsize=20)
+    plt.title(f"{process_name}, {beamconfig}GeV, $Q^2>100\\mathrm{{GeV^2}}$", fontsize=20)
     
     ax1.set_ylim(ylimits)
     ax1.set_xlim(xlimits)
@@ -259,8 +261,8 @@ if args.xvar == "bjorken_x":
 # Finally, project the data statistical uncertainties to 100/fb of EIC data
 # Overlay the PDF range variations with these predicted stat. errors
 
-df_20rs2 = eat.UprootLoad([f"../CC_DIS_e10_p275_B15_dR5_maxIP3mm_trkpt10_22sigmin_lha_20Rs2/*/out.root"], "Delphes", branches=branchlist)
-df_21rs2 = eat.UprootLoad([f"../CC_DIS_e10_p275_B15_dR5_maxIP3mm_trkpt10_22sigmin_lha_21Rs2/*/out.root"], "Delphes", branches=branchlist)
+df_20rs2 = eat.UprootLoad([f"../CC_DIS_e10_p100_B15_dR5_maxIP3mm_trkpt10_22sigmin_lha_20Rs2/*/out.root"], "Delphes", branches=branchlist)
+df_21rs2 = eat.UprootLoad([f"../CC_DIS_e10_p100_B15_dR5_maxIP3mm_trkpt10_22sigmin_lha_21Rs2/*/out.root"], "Delphes", branches=branchlist)
 
 #df_20rs2 = df_20rs2[:5000]
 #df_21rs2 = df_21rs2[:5000]
@@ -273,9 +275,9 @@ xlimits=draw_config['xlimits']
 yunits=draw_config['yunits']
 xunits=draw_config['xunits']
 
-charm_ct18nnlo = eat.DifferentialTaggingYield(df, x=xvar, xrange=xrange, xbins=xbins, which='charm', process='CC_DIS_e10_p275_CT18NNLO')
-charm_ct18nnlo_20rs2 = eat.DifferentialTaggingYield(df_20rs2, x=xvar, xrange=xrange, xbins=xbins, which='charm', process='CC_DIS_e10_p275_CT1820Rs2')
-charm_ct18nnlo_21rs2 = eat.DifferentialTaggingYield(df_21rs2, x=xvar, xrange=xrange, xbins=xbins, which='charm', process='CC_DIS_e10_p275_CT1821Rs2')
+charm_ct18nnlo = eat.DifferentialTaggingYield(df, x=xvar, xrange=xrange, xbins=xbins, which='charm', process='CC_DIS_e10_p100_CT18NNLO')
+charm_ct18nnlo_20rs2 = eat.DifferentialTaggingYield(df_20rs2, x=xvar, xrange=xrange, xbins=xbins, which='charm', process='CC_DIS_e10_p100_CT1820Rs2')
+charm_ct18nnlo_21rs2 = eat.DifferentialTaggingYield(df_21rs2, x=xvar, xrange=xrange, xbins=xbins, which='charm', process='CC_DIS_e10_p100_CT1821Rs2')
 
 
 # Calculate data statistical errors for 100/fb
@@ -334,7 +336,7 @@ enhanced = ax1.errorbar(bins, R_N_diff, xerr = bin_widths/2, marker='s', ms=10, 
 
 #ax1.fill_between(bins, pct_diff_ct18nnlo_20rs2, pct_diff_ct18nnlo_21rs2, color='#2D6CC0', alpha=0.35)
 
-ax1.set_ylim([0.25, 1.75])
+ax1.set_ylim([0.0, 2.00])
 ax1.set_xlim(xlimits)
 plt.ylabel('')
 

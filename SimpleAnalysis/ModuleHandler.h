@@ -14,6 +14,7 @@
 #include "MuonPIDModule.h"
 #include "TaggingModule.h"
 #include "TaggingStudyModule.h"
+#include "EventSelectionModule.h"
 
 using namespace std;
 
@@ -59,6 +60,9 @@ class ModuleHandler {
     }
     else if (name == "TaggingStudyModule") {
       module = new TaggingStudyModule(_data);
+    }
+    else if (name == "EventSelectionModule") {
+      module = new EventSelectionModule(_data);
     } else {
       std::cout << "ModuleHandler(): The requested module, " << name << ", is unknown to the ModuleHandler!" << std::endl;
       assert(1==1);

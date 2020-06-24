@@ -1,0 +1,878 @@
+#include "TROOT.h"
+#include "TChain.h"
+#include "TEfficiency.h"
+#include "TH1.h"
+#include "TGraphErrors.h"
+#include "TCut.h"
+#include "TCanvas.h"
+#include "TStyle.h"
+#include "TLegend.h"
+#include "TMath.h"
+#include "TLine.h"
+#include "TLatex.h"
+#include "TRatioPlot.h"
+
+#include <glob.h>
+#include <iostream>
+#include <iomanip>
+#include <vector>
+
+// Units, Cross-Sections
+
+float u_fb = 1.0;
+float u_mb = 1.0e12*u_fb;
+
+float xsec_e10_p275_CC_DIS = 1.47637e-08*u_mb;
+
+float lumi = 100*u_fb;
+
+Int_t histUID = 0;
+
+float n_gen = -1;
+
+Int_t getHistUID()
+{
+  Int_t thisID = histUID;
+  histUID++;
+  return thisID;
+}
+
+struct plot_config {
+  TString xtitle = "";
+  TString ytitle = "";
+  TH1F* htemplate = nullptr;
+  std::vector<float> xlimits;
+  std::vector<float> ylimits;
+  bool logy = kFALSE;
+  bool logx = kFALSE;
+};
+
+float smart_legend_x(float x_trial, float x_width) 
+{
+  float excess = 0.92 - (x_trial + x_width);
+  float x_new = x_trial;
+
+  if (excess < 0.0) {
+    std::cout << "smart_legend_x(): x width overshoots range - shifting by " << excess << std::endl; 
+    x_new = x_trial + excess;
+  }
+
+  return x_new;
+
+}
+
+float smart_legend_y(float y_trial, float y_height) 
+{
+  float excess = 0.92 - (y_trial + y_height);
+  float y_new = y_trial;
+
+  if (excess < 0.0) {
+    std::cout << "smart_legend_y(): y height overshoots range - shifting by " << excess << std::endl; 
+    y_new = y_trial + excess;
+  }
+
+  return y_new;
+
+}
+
+TLegend* smart_legend(std::string where = "upper right", float legend_width = 0.30, float legend_height = 0.10)
+{
+  TLegend* legend = nullptr;
+
+  float legend_x = 0.65;
+  float legend_y = 0.85;
+
+  if (where == "upper right") {
+    legend_x = smart_legend_x(0.65, legend_width);
+    legend_y = smart_legend_y(0.82, legend_height);
+  } else if (where == "center right") {
+    legend_x = smart_legend_x(0.65, legend_width);
+    legend_y = smart_legend_y(0.55, legend_height);
+  } else if (where == "lower right") {
+    legend_x = smart_legend_x(0.65, legend_width);
+    legend_y = smart_legend_y(0.15, legend_height);
+  } else if (where == "upper left") {
+    legend_x = smart_legend_x(0.15, legend_width);
+    legend_y = smart_legend_y(0.82, legend_height);
+  } else if (where == "center left") {
+    legend_x = smart_legend_x(0.15, legend_width);
+    legend_y = smart_legend_y(0.55, legend_height);
+  } else if (where == "lower left") {
+    legend_x = smart_legend_x(0.15, legend_width);
+    legend_y = smart_legend_y(0.15, legend_height);
+  } else {
+    std::cout << "You specified a placement of " << where << " that is unknown..." << std::endl;
+    
+  }
+
+  legend = new TLegend(legend_x, legend_y, legend_x + legend_width, legend_y + legend_height);
+  legend->SetFillStyle(0);
+  legend->SetBorderSize(0);
+
+  return legend;
+
+}
+
+void set_axis_range(TH1F* hist, float min, float max, std::string which = "X") {
+  hist->SetAxisRange(min, max, which.c_str());
+  std::cout << "set_axis_range: setting " << which << " axis range to: [" << min << ", " << max << "]" << std::endl;
+  if (which == "X") {
+    hist->GetXaxis()->SetLimits(min, max);
+    hist->GetXaxis()->SetRangeUser(min, max);
+  } else if (which == "Y") {
+    hist->GetYaxis()->SetLimits(min, max);
+    hist->GetYaxis()->SetRangeUser(min, max);
+  }
+  
+}
+
+template <class T> void configure_plot(T* object, plot_config options, std::string which = "" )
+{
+
+  if (which == "") {
+    return;
+  } else if (which == "charm") {
+    object->SetLineColor(kBlue+1);
+    object->SetMarkerColor(kBlue+1);
+    object->SetMarkerStyle(kOpenDiamond);
+  } else if (which == "light") {
+    object->SetLineColor(kRed+1);
+    object->SetMarkerColor(kRed+1);
+    object->SetMarkerStyle(kFullCircle);
+  } else if (which == "errorband") {
+
+  }
+
+  object->SetLineWidth(2);
+  object->SetMarkerSize(2);
+
+    // object->SetXTitle( options.xtitle );
+    // object->SetYTitle( options.ytitle );
+}
+
+
+TLatex make_title() {
+
+  TLatex plot_title;
+  plot_title.SetTextSize(0.035);
+  plot_title.SetTextAlign(22); // center-center
+  plot_title.DrawLatexNDC(0.55, 0.97, "CC-DIS, 10GeVx275GeV, Q^{2}>100 GeV^{2}");
+
+  return plot_title;
+}
+
+
+std::vector<std::string> fileVector(const std::string& pattern){
+  glob_t glob_result;
+  glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
+  std::vector<std::string> files;
+  for(unsigned int i=0;i<glob_result.gl_pathc;++i){
+    files.push_back(std::string(glob_result.gl_pathv[i]));
+  }
+  globfree(&glob_result);
+  return files;
+}
+
+TEfficiency DifferentialTaggingEfficiency(TTree* data, plot_config draw_config, TString xvar, TString which="all", TString taggers="jet_sip3dtag")
+{
+  std::cout << "DifferentialTaggingEfficiency: processing " << which.Data() << " ... " << std::endl;
+
+  TH1F* tru_yield = static_cast<TH1F*>(draw_config.htemplate->Clone(Form("tru_yield_%d", histUID)));
+  TH1F* tag_yield = static_cast<TH1F*>(draw_config.htemplate->Clone(Form("tag_yield_%d", histUID)));
+  
+  TCut* tru_selection = nullptr;
+  TCut* tag_selection = nullptr;
+
+  if (which=="light") {
+    tru_selection = new TCut("jet_flavor < 4 || jet_flavor == 21");
+    tag_selection = new TCut(*tru_selection && TCut("jet_sip3dtag==1"));
+  } else if (which == "charm") {
+    tru_selection = new TCut("jet_flavor == 4");
+    tag_selection = new TCut(*tru_selection && TCut("jet_sip3dtag==1"));
+  }
+
+
+  data->Project(tru_yield->GetName(), xvar.Data(), *tru_selection);
+  data->Project(tag_yield->GetName(), xvar.Data(), *tag_selection);
+
+  std::cout << "  True Yield: " << tru_yield->Integral() << std::endl;
+  std::cout << "  Tag  Yield: " << tag_yield->Integral() << std::endl;
+
+  TEfficiency eff(*tag_yield, *tru_yield);
+
+  if (tru_yield)
+    delete tru_yield;
+  if (tag_yield)
+    delete tag_yield;
+
+  histUID++;
+
+  return eff;
+
+}
+
+
+TH1F* DifferentialTaggingYield(TTree* data, plot_config draw_config, TString xvar, TString which="all", TString taggers="jet_sip3dtag")
+{
+  std::cout << "DifferentialTaggingYield: processing " << which.Data() << " ... " << std::endl;
+
+  TH1F* tag_yield = static_cast<TH1F*>(draw_config.htemplate->Clone(Form("%s_%s_tag_yield_%d", which.Data(), xvar.Data(), histUID)));
+  tag_yield->Sumw2();
+
+  TCut* tag_selection = nullptr;
+
+  if (which=="light") {
+    tag_selection = new TCut("(jet_flavor < 4 || jet_flavor == 21) && (jet_sip3dtag==1)");
+  } else if (which == "charm") {
+    tag_selection = new TCut("jet_flavor == 4 && jet_sip3dtag==1");
+  }
+
+  // Add other analysis-level cuts to the tag selection
+  *tag_selection = (*tag_selection) && TCut("met_et > 10.0");
+
+
+  data->Project(tag_yield->GetName(), xvar.Data(), *tag_selection);
+
+  std::cout << "  Unnormalized Tag Yield: " << tag_yield->GetEntries() << std::endl;
+  tag_yield->Scale(xsec_e10_p275_CC_DIS * lumi / data->GetEntries());
+  std::cout << "    Normalized Tag Yield: " << tag_yield->Integral() << std::endl;
+  
+
+  //auto tag_graph = new TGraphErrors(tag_yield);
+
+  histUID++;
+  return tag_yield;
+
+}
+
+
+void DrawTagEfficiencyPlot(TCanvas* pad, TTree* data, plot_config draw_config, TString xvar) 
+{
+    auto light_eff = DifferentialTaggingEfficiency(data, draw_config, xvar, "light");
+    auto charm_eff = DifferentialTaggingEfficiency(data, draw_config, xvar, "charm");
+    
+    
+    // make a template histogram to fine-tune layout of the final plot
+    TH1F* htemplate = new TH1F("htemplate", "", 1, draw_config.xlimits[0], draw_config.xlimits[1]);
+    set_axis_range(htemplate, draw_config.ylimits[0], draw_config.ylimits[1], "Y");
+    set_axis_range(htemplate, draw_config.xlimits[0], draw_config.xlimits[1], "X");
+    
+    // Configure plots
+    configure_plot<TEfficiency>(&charm_eff, draw_config, "charm");
+    configure_plot<TEfficiency>(&light_eff, draw_config, "light");
+
+    // Draw Layout
+    htemplate->Draw("HIST");
+    charm_eff.Draw("P E1 SAME");
+    light_eff.Draw("E1 P SAME");
+    
+    // Title
+    TLatex plot_title = make_title();
+    plot_title.Draw("SAME");
+
+    // Configure the Pad
+    pad->SetLogy(draw_config.logy);
+    pad->SetLogx(draw_config.logx);
+    pad->SetGrid(1,1);
+    
+    
+    // Configure the Legend
+    TLegend* legend = smart_legend("center right");
+    legend->SetFillStyle(0);
+    legend->SetBorderSize(0);
+    legend->AddEntry(&charm_eff, "Charm Jets", "lp");
+    legend->AddEntry(&light_eff, "Light Jets", "lp");
+    legend->Draw();
+    
+    pad->Update();
+    pad->SaveAs(Form("CharmTagPlot_tagging_efficiency_%s_%s.pdf", data->GetTitle(), xvar.Data()));
+
+    // Cleanup
+    if (htemplate != nullptr)
+      delete htemplate;
+    if (legend != nullptr)
+      delete legend;
+
+}
+
+void DrawTagYieldPlot(TCanvas* pad, TTree* data, plot_config draw_config, TString xvar)
+{
+
+    auto charm_yield = DifferentialTaggingYield(data, draw_config, xvar, "charm");
+    auto light_yield = DifferentialTaggingYield(data, draw_config, xvar, "light");
+
+    // Configure plots
+
+    configure_plot<TH1F>(charm_yield, draw_config, "charm");
+    configure_plot<TH1F>(light_yield, draw_config, "light");
+
+    // generate template histogram
+    TH1F* htemplate = new TH1F("htemplate", "", 1, draw_config.xlimits[0], draw_config.xlimits[1]);
+
+    set_axis_range(htemplate, draw_config.ylimits[0], draw_config.ylimits[1], "Y");
+    set_axis_range(htemplate, draw_config.xlimits[0], draw_config.xlimits[1], "X");
+    htemplate->SetXTitle( draw_config.xtitle );
+    htemplate->SetYTitle( draw_config.ytitle );
+
+    pad->SetGrid(1,1);
+    pad->SetLogy(draw_config.logy);
+    pad->SetLogx(draw_config.logx);
+
+    htemplate->Draw("HIST");
+    charm_yield->Draw("E1 P SAME");
+    light_yield->Draw("E1 P SAME");
+
+    TLatex plot_title = make_title();
+    plot_title.Draw("SAME");
+
+
+    // Legend
+    TLegend* legend = smart_legend("upper right");
+    legend->SetFillStyle(0);
+    legend->SetBorderSize(0);
+    legend->AddEntry(charm_yield, "Charm Jets", "lp");
+    legend->AddEntry(light_yield, "Light Jets", "lp");
+    legend->Draw();
+    pad->Update();
+
+
+    pad->SaveAs(Form("CharmTagPlot_tagging_yield_%s_%s.pdf", data->GetTitle(), xvar.Data()));
+
+    // Cleanup
+    if (htemplate != nullptr)
+      delete htemplate;
+    if (legend != nullptr)
+      delete legend;
+
+}
+
+float CutEfficiency(TTree* data, TCut cut, TString cutdesc = "")
+{
+  if (n_gen < 0) {
+    n_gen = static_cast<float>(data->GetEntries());
+  }
+
+  float n_yield = data->GetEntries(cut.GetTitle());
+
+  TString desc = cutdesc;
+  if (desc == "") {
+    desc = cut.GetTitle();
+  }
+
+  std::cout << setw(30) << desc << " efficiency: " << setprecision(4) << n_yield/n_gen * 100.0 << "%" << std::endl;
+
+  return (n_yield/n_gen);
+
+}
+
+
+void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern = "*/out.root")
+{
+  // Global options
+  gStyle->SetOptStat(0);
+
+  // Create the TCanvas
+  TCanvas* pad = new TCanvas("pad","",800,600);
+  TLegend * legend = nullptr;
+  TH1F* htemplate = nullptr;
+
+  auto default_data = new TChain("tree");
+  default_data->SetTitle(input.Data());
+  auto files = fileVector(Form("%s/%s/%s", dir.Data(), input.Data(), filePattern.Data()));
+
+  for (auto file : files) 
+    {
+      default_data->Add(file.c_str());
+    }
+
+
+
+  // Some basic cut efficiency information
+  TCut selection("jet_n>0");
+  CutEfficiency(default_data, selection, "Jet Reconstructed");
+
+  selection = selection && TCut("TMath::Abs(jet_eta) < 3.0");
+  CutEfficiency(default_data, selection, "Jet Fiducial");
+
+  selection = selection && TCut("met_et > 10.0");
+  CutEfficiency(default_data, selection, "MET > 10 GeV");
+  
+  TCut main_preselection = selection;
+
+  // Print charm jet MET cut efficiency
+  std::cout << "Char, Jet Efficiency Information: " << std::endl;
+  selection = TCut("jet_n > 0 && TMath::Abs(jet_eta) < 3.0 && jet_flavor == 4");
+  CutEfficiency(default_data, selection, "Charm Jet Reconstructed");
+
+  selection = selection && TCut("met_et > 10.0");
+  CutEfficiency(default_data, selection, "MET > 10 GeV");
+  
+
+  TTree* default_data_selected = default_data->CopyTree(main_preselection.GetTitle());
+
+
+  bool do_TagEffPlot = kFALSE;
+  bool do_TagYieldPlot = kFALSE;
+  bool do_100fbProjPlot = kTRUE;
+  bool do_Helicity = kFALSE;
+
+
+
+
+  // plot configurations
+  plot_config draw_config;
+  if (xvar=="jet_pt") {
+    float xbins[] = {10,12.5,15,20,25,35,60};
+    int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
+    draw_config.htemplate = new TH1F(xvar, "", nbins, xbins);
+    draw_config.xlimits = std::vector<float>();
+    draw_config.xlimits.push_back(0);
+    draw_config.xlimits.push_back(60);
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(1e-5);
+    draw_config.ylimits.push_back(1.0);
+    draw_config.xtitle = "Reconstructed Jet p_{T} [GeV]";
+    draw_config.ytitle = "#varepsilon_{tag}";
+    draw_config.logy = kTRUE;
+    draw_config.logx = kFALSE;
+  } else if (xvar == "bjorken_x") {
+    float xbins[] = {0.01, 0.043333, 0.076666, 0.1, 0.25, 0.5, 1.0};
+    int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
+    draw_config.htemplate = new TH1F(xvar, "", nbins, xbins);
+    draw_config.xlimits = std::vector<float>();
+    draw_config.xlimits.push_back(0.01);
+    draw_config.xlimits.push_back(1.0);
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(1e-5);
+    draw_config.ylimits.push_back(1.0);
+    draw_config.xtitle = "Bjorken x";
+    draw_config.ytitle = "#varepsilon_{tag}";
+    draw_config.logy = kTRUE;
+    draw_config.logx = kTRUE;
+  } else if (xvar == "jb_x") { 
+    float xbins[] = {0.01, 0.043333, 0.076666, 0.1, 0.25, 0.5, 1.0};
+    int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
+    draw_config.htemplate = new TH1F(xvar, "", nbins, xbins);
+    draw_config.xlimits = std::vector<float>();
+    draw_config.xlimits.push_back(0.01);
+    draw_config.xlimits.push_back(1.0);
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(1e-5);
+    draw_config.ylimits.push_back(1.0);
+    draw_config.xtitle = "Reconstructed x_{JB}";
+    draw_config.ytitle = "#varepsilon_{tag}";
+    draw_config.logy = kTRUE;
+    draw_config.logx = kTRUE;
+  } else {
+    do_TagEffPlot = kFALSE;
+  }
+
+
+  //
+  // Efficiency Plot
+  //
+
+  if (do_TagEffPlot) {
+    DrawTagEfficiencyPlot(pad, default_data_selected, draw_config, xvar);
+  }
+
+  //
+  // Cleanup
+  //
+
+  pad->Clear();
+
+  //
+  // Yield plot
+  //
+  gStyle->SetErrorX(0.5);
+
+
+  if (xvar=="jet_pt") {
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(0.1);
+    draw_config.ylimits.push_back(5000);
+    draw_config.xtitle = "Reconstructed Jet p_{T} [GeV]";
+    draw_config.ytitle = "#varepsilon_{tag} #times #sigma_{CC-DIS} #times 100fb^{-1}";
+  } else if (xvar == "bjorken_x") {
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(0.1);
+    draw_config.ylimits.push_back(5000);
+    draw_config.xtitle = "Bjorken x";
+    draw_config.ytitle = "#varepsilon_{tag} #times #sigma_{CC-DIS} #times 100fb^{-1}";
+  } else if (xvar == "jb_x") { 
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(0.1);
+    draw_config.ylimits.push_back(5000);
+    draw_config.xtitle = "Reconstructed x_{JB}";
+    draw_config.ytitle = "#varepsilon_{tag} #times #sigma_{CC-DIS} #times 100fb^{-1}";
+  } else {
+    do_TagYieldPlot = kFALSE;
+  }
+
+
+
+  if (do_TagYieldPlot) { 
+    DrawTagYieldPlot(pad, default_data_selected, draw_config, xvar);
+  }
+
+  //
+  // Error Bands at 100/fb
+  //
+
+  if (xvar=="jet_pt") {
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(0.1);
+    draw_config.ylimits.push_back(5000);
+    draw_config.xtitle = "Reconstructed Jet p_{T} [GeV]";
+    draw_config.ytitle = "Relative Variation to Suppressed Strangeness";
+  } else if (xvar == "bjorken_x") {
+    draw_config.ytitle = "Relative Variation to Suppressed Strangeness";
+  } else if (xvar == "jb_x") { 
+    draw_config.ytitle = "Relative Variation to Suppressed Strangeness";
+  } else {
+    do_100fbProjPlot = kFALSE;
+  }
+
+  if (do_100fbProjPlot == kTRUE) {
+    pad->Clear();
+    gStyle->SetErrorX(0.5);
+
+    auto charm_yield = DifferentialTaggingYield(default_data_selected, draw_config, xvar, "charm");
+    auto charm_yield_100fb = static_cast<TH1F*>(charm_yield->Clone("charm_yield_100fb"));
+
+    // Load alternative samples
+    auto ccdis_20Rs2_data = new TChain("tree");
+    files = fileVector(Form("%s/CC_DIS_e10_p275_lha_20Rs2/%s", dir.Data(), filePattern.Data()));
+  
+    for (auto file : files) 
+      {
+	ccdis_20Rs2_data->Add(file.c_str());
+      }
+
+    auto ccdis_21Rs2_data = new TChain("tree");
+    files = fileVector(Form("%s/CC_DIS_e10_p275_lha_21Rs2/%s", dir.Data(), filePattern.Data()));
+  
+    for (auto file : files) 
+      {
+	ccdis_21Rs2_data->Add(file.c_str());
+      }
+
+    TTree* ccdis_20Rs2_data_selected = ccdis_20Rs2_data->CopyTree(main_preselection.GetTitle());
+    TTree* ccdis_21Rs2_data_selected = ccdis_21Rs2_data->CopyTree(main_preselection.GetTitle());
+
+    auto ccdis_20Rs2_yield = DifferentialTaggingYield(ccdis_20Rs2_data_selected, draw_config, xvar, "charm");
+    auto ccdis_21Rs2_yield = DifferentialTaggingYield(ccdis_21Rs2_data_selected, draw_config, xvar, "charm");
+
+    auto ccdis_20Rs2_yield_100fb = static_cast<TH1F*>(ccdis_20Rs2_yield->Clone("20Rs2_yield_100fb"));
+    auto ccdis_21Rs2_yield_100fb = static_cast<TH1F*>(ccdis_21Rs2_yield->Clone("ccdis_21Rs2_yield_100fb"));
+  
+
+    for (Int_t i = 1; i <= charm_yield_100fb->GetNbinsX(); i++) {
+      charm_yield_100fb->SetBinError(i, TMath::Sqrt(charm_yield_100fb->GetBinContent(i)) );
+      ccdis_20Rs2_yield_100fb->SetBinError(i, TMath::Sqrt(ccdis_20Rs2_yield_100fb->GetBinContent(i)) );
+      ccdis_21Rs2_yield_100fb->SetBinError(i, TMath::Sqrt(ccdis_21Rs2_yield_100fb->GetBinContent(i)) );
+    }
+  
+    // Generate the error band histogram for the suppressed case
+    TH1F* error_band_100fb = static_cast<TH1F*>(ccdis_20Rs2_yield_100fb->Clone("error_band_100fb"));
+    for (Int_t i = 1; i <= error_band_100fb->GetNbinsX(); i++) {
+      error_band_100fb->SetBinError(i, error_band_100fb->GetBinError(i)/error_band_100fb->GetBinContent(i));
+      error_band_100fb->SetBinContent(i, 1.0);
+    }
+
+    // Draw the enhanced-suppressed range overlay
+    std::cout << "Draw the Rs range band..." << std::endl;
+    TH1F* range_band_100fb = static_cast<TH1F*>(ccdis_20Rs2_yield_100fb->Clone("range_band_100fb"));
+    range_band_100fb->Scale(-1.0);
+    range_band_100fb->Add(ccdis_21Rs2_yield_100fb);
+    range_band_100fb->Divide(ccdis_20Rs2_yield_100fb);
+  
+    for (Int_t i = 1; i <= range_band_100fb->GetNbinsX(); i++) {
+      range_band_100fb->SetBinError(i, 0.0);
+      range_band_100fb->SetBinContent(i, range_band_100fb->GetBinContent(i) + 1.0);
+    }
+    TGraphErrors* range_plot_100fb = new TGraphErrors(range_band_100fb);
+    range_plot_100fb->SetMarkerColor(kBlue-5);
+    range_plot_100fb->SetLineColor(kBlue-5);
+    range_plot_100fb->SetMarkerSize(2.0);
+    range_plot_100fb->SetMarkerStyle(kOpenDiamond);
+    range_plot_100fb->SetTitle("CT18ZNNLO with enhanced strangeness [R_{s}=0.863]");
+
+    error_band_100fb->SetLineColor(kGray);
+    error_band_100fb->SetFillColor(kGray);
+    error_band_100fb->SetMarkerSize(0.0001);
+    error_band_100fb->SetMarkerColor(kGray);
+    error_band_100fb->SetTitle( "Stat. Uncertainty [CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]" );
+  
+    htemplate = new TH1F("htemplate", "", 1, draw_config.xlimits[0], draw_config.xlimits[1]);
+    htemplate->SetXTitle( draw_config.xtitle );
+    htemplate->SetYTitle( draw_config.ytitle );
+    htemplate->GetYaxis()->SetTitleSize(0.04);
+    set_axis_range(htemplate, 0.0, 2.0, "Y");
+    set_axis_range(htemplate, draw_config.xlimits[0], draw_config.xlimits[1], "X");
+
+    htemplate->Draw("HIST");
+    error_band_100fb->Draw("E2 SAME");
+    range_plot_100fb->Draw("E1 SAME P");
+
+    TLine OneLine(draw_config.xlimits[0], 1.0, draw_config.xlimits[1], 1.0);
+    OneLine.SetLineWidth(2);
+    OneLine.SetLineColor(kBlack);
+    OneLine.Draw("SAME");
+
+    TLatex plot_title = make_title();
+    plot_title.Draw("SAME");
+
+
+    pad->SetLogy(kFALSE);
+    if (xvar.Contains("_x")) 
+      pad->SetLogx(kTRUE);
+
+    pad->SetGrid(1,1);
+
+    // Legend
+    legend = smart_legend("lower left", 0.75,0.25);
+    legend->SetFillStyle(0);
+    legend->SetBorderSize(0);
+    legend->AddEntry(error_band_100fb, "Stat. Uncertainty [CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]", "lf");
+    legend->AddEntry(range_plot_100fb, "CT18ZNNLO with enhanced strangeness [R_{s}=0.863]", "lp");
+    legend->Draw();
+
+    pad->Update();
+  
+    pad->SaveAs(Form("CharmTagPlot_tagging_yield_100fb_%s_%s.pdf", input.Data(), xvar.Data()));
+
+
+    if (htemplate != nullptr)
+      delete htemplate;
+  }
+
+
+  //
+  // Polarized strangeness sensitivity estimate plot
+  //
+
+  if (xvar=="jet_pt") {
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(-100);
+    draw_config.ylimits.push_back(100);
+    draw_config.xtitle = "Reconstructed Jet p_{T} [GeV]";
+    draw_config.ytitle = "Asymmetry Uncertainty [%]";
+    draw_config.logy = kFALSE;
+    draw_config.logx = kFALSE;
+  } else {
+    do_Helicity = kFALSE;
+  }
+
+  if (do_Helicity == kTRUE) {
+    pad->Clear();
+    gStyle->SetErrorX(0.5);
+
+    auto charm_yield = DifferentialTaggingYield(default_data_selected, draw_config, xvar, "charm");
+    Float_t polarization_e=0.70;
+    Float_t polarization_p=0.70;
+    Float_t polarization  =0.70; // # single beam polarization
+    
+    
+    // Generate the error band histogram for the suppressed case
+    TH1F* dA_band_100fb = static_cast<TH1F*>(charm_yield->Clone("dA_band_100fb"));
+    Float_t n_gen = static_cast<Float_t>(default_data_selected->GetEntries());
+    std::cout << "N_gen: " << n_gen << std::endl;
+    for (Int_t i = 1; i <= dA_band_100fb->GetNbinsX(); i++) {
+      Float_t n_events = dA_band_100fb->GetBinContent(i);
+      Float_t err_n = TMath::Sqrt(n_events*(1.0 + polarization_e)/2.0);
+      Float_t dA = 0.0;
+      if (err_n > 0.0) {
+	dA = 1.0/(err_n*polarization_p)*100.0;
+      }
+      dA_band_100fb->SetBinError(i, dA);
+      dA_band_100fb->SetBinContent(i, 0.0);
+    }
+  
+    htemplate = new TH1F("htemplate", "", 1, draw_config.xlimits[0], draw_config.xlimits[1]);
+    htemplate->SetXTitle( draw_config.xtitle );
+    htemplate->SetYTitle( draw_config.ytitle );
+    set_axis_range(htemplate, draw_config.ylimits[0], draw_config.ylimits[1], "Y");
+    set_axis_range(htemplate, draw_config.xlimits[0], draw_config.xlimits[1], "X");
+
+    dA_band_100fb->SetFillColor(kBlue+2);
+    dA_band_100fb->SetLineColor(kBlue+2);
+    dA_band_100fb->SetMarkerSize(0.001);
+    dA_band_100fb->SetMarkerColor(kBlue+2);
+    dA_band_100fb->SetFillColorAlpha(kBlue+0.2, 0.5);
+
+    htemplate->Draw("HIST");
+    dA_band_100fb->Draw("E2 SAME");
+    
+    TLine ZeroLine(draw_config.xlimits[0], 0.0, draw_config.xlimits[1], 0.0);
+    ZeroLine.SetLineWidth(2);
+    ZeroLine.SetLineColor(kBlack);
+    ZeroLine.Draw("SAME");
+
+    TLatex plot_title = make_title();
+    plot_title.Draw("SAME");
+
+
+    pad->SetLogy(draw_config.logx);
+    pad->SetLogx(draw_config.logy);
+
+    pad->SetGrid(1,1);
+
+    // Legend
+    TLegend* legend = smart_legend("upper right", 0.25,0.10);
+    legend->SetFillStyle(0);
+    legend->SetBorderSize(0);
+    legend->AddEntry(dA_band_100fb, "p=70%", "f");
+    legend->Draw();
+
+    pad->Update();
+  
+    pad->SaveAs(Form("CharmTagPlot_dA_strange_helicity_100fb_%s_%s.pdf", input.Data(), xvar.Data()));
+    
+  
+  }
+  
+  
+  //
+  // Generator-level plots
+  // 
+
+  pad->Clear();
+
+  bool do_GenJetPlot = kTRUE;
+
+  if (xvar=="GenJet.PT") {
+    float xbins[] = {0, 2.5, 5.0, 7.5, 10,12.5,15,20,25,35,60};
+    int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
+    draw_config.htemplate = new TH1F(xvar, "", nbins, xbins);
+
+    draw_config.xlimits = std::vector<float>();
+    draw_config.xlimits.push_back(0);
+    draw_config.xlimits.push_back(60);
+
+    draw_config.ylimits = std::vector<float>();
+    draw_config.ylimits.push_back(1);
+    draw_config.ylimits.push_back(2e5);
+
+    draw_config.logy = kTRUE;
+    draw_config.logx = kFALSE;
+
+    draw_config.xtitle = "Generated Jet p_{T} [GeV]";
+    draw_config.ytitle = "d#sigma/dp_{T} #times 100fb^{-1} [GeV^{-1}]";
+  } else {
+    do_GenJetPlot = kFALSE;
+  }
+
+
+  if (do_GenJetPlot == kTRUE) {
+
+    pad = new TCanvas("pad","",900,1200);
+    
+    // Load Delphes samples for this plot
+    auto delphes_data = new TChain("Delphes");
+    files = fileVector(Form("%s/../%s/%s", dir.Data(), input.Data(), filePattern.Data()));
+    
+    for (auto file : files) 
+      {
+	delphes_data->Add(file.c_str());
+      }
+
+    TH1F* light_genjets = static_cast<TH1F*>(draw_config.htemplate->Clone(Form("GenJet_light_%s_%d", xvar.Data(), getHistUID())));
+    light_genjets->Sumw2();
+
+    TH1F* charm_genjets = static_cast<TH1F*>(draw_config.htemplate->Clone(Form("GenJet_charm_%s_%d", xvar.Data(), getHistUID())));
+    charm_genjets->Sumw2();
+
+    delphes_data->Project(light_genjets->GetName(), xvar.Data(), "");
+    delphes_data->Project(charm_genjets->GetName(), xvar.Data(), "GenJet.Flavor == 4");
+
+    // Transform these into differential cross-section distributions
+    Float_t n_gen = static_cast<float>(delphes_data->GetEntries());
+    for (Int_t ibin = 1; ibin <= light_genjets->GetNbinsX(); ibin++) {
+      Float_t dydx = light_genjets->GetBinContent(ibin)*lumi*xsec_e10_p275_CC_DIS/n_gen/light_genjets->GetBinWidth(ibin);
+      Float_t dydx_relerr = light_genjets->GetBinError(ibin)/light_genjets->GetBinContent(ibin);
+      light_genjets->SetBinContent(ibin, dydx);
+      light_genjets->SetBinError(ibin, dydx*dydx_relerr);
+
+      dydx = charm_genjets->GetBinContent(ibin)*lumi*xsec_e10_p275_CC_DIS/n_gen/charm_genjets->GetBinWidth(ibin);
+      dydx_relerr = charm_genjets->GetBinError(ibin)/charm_genjets->GetBinContent(ibin);
+      charm_genjets->SetBinContent(ibin, dydx);
+      charm_genjets->SetBinError(ibin, dydx*dydx_relerr);
+    }
+
+    configure_plot<TH1F>(charm_genjets, draw_config, "charm");
+    configure_plot<TH1F>(light_genjets, draw_config, "light");
+
+    // generate template histogram
+    htemplate = new TH1F("htemplate", "", 1, draw_config.xlimits[0], draw_config.xlimits[1]);
+    
+    set_axis_range(htemplate, draw_config.ylimits[0], draw_config.ylimits[1], "Y");
+    set_axis_range(htemplate, draw_config.xlimits[0], draw_config.xlimits[1], "X");
+    htemplate->SetXTitle( draw_config.xtitle );
+    htemplate->SetYTitle( draw_config.ytitle );
+
+    set_axis_range(charm_genjets, draw_config.ylimits[0], draw_config.ylimits[1], "Y");
+    set_axis_range(charm_genjets, draw_config.xlimits[0], draw_config.xlimits[1], "X");
+    charm_genjets->SetXTitle( draw_config.xtitle );
+    charm_genjets->SetYTitle( draw_config.ytitle );
+
+    set_axis_range(light_genjets, draw_config.ylimits[0], draw_config.ylimits[1], "Y");
+    set_axis_range(light_genjets, draw_config.xlimits[0], draw_config.xlimits[1], "X");
+    light_genjets->SetXTitle( draw_config.xtitle );
+    light_genjets->SetYTitle( draw_config.ytitle );
+
+
+    pad->cd();
+    pad->SetLogy(draw_config.logy);
+    pad->SetLogx(draw_config.logx);
+    pad->SetGrid(1,1);
+    pad->Update();
+
+    auto rp = new TRatioPlot(charm_genjets, light_genjets);
+
+    rp->SetH1DrawOpt("E1 P");
+    rp->SetH2DrawOpt("E1 P");
+
+    rp->Draw();
+    rp->GetLowerRefYaxis()->SetTitle("Charm-to-All Ratio");
+    rp->GetLowerRefYaxis()->SetLabelSize(0.022);
+    rp->GetLowerRefYaxis()->SetTitleSize(0.027);
+    rp->GetLowerRefYaxis()->SetTitleOffset(2);
+    rp->SetLeftMargin(0.15);
+    rp->SetRightMargin(0.05);
+    rp->SetLowBottomMargin(0.55);
+
+    rp->GetLowerRefYaxis()->SetRangeUser(0.0, 0.05);
+    rp->GetLowerRefYaxis()->SetNdivisions(5,1,0,kFALSE);
+    rp->GetLowYaxis()->SetRangeUser(-0.01, 0.051);
+    rp->GetLowYaxis()->SetNdivisions(5,1,0,kTRUE);
+
+    TLatex plot_title = make_title();
+    plot_title.Draw("SAME");
+
+
+    // Legend
+    rp->GetUpperPad()->cd();
+    TLegend* legend = smart_legend("lower left", 0.55, 0.15);
+    legend->SetFillStyle(0);
+    legend->SetBorderSize(0);
+    legend->AddEntry(light_genjets, "All Jets [CT18NNLO]", "lp");
+    legend->AddEntry(charm_genjets, "Charm Jets [CT18NNLO]", "lp");
+    legend->Draw();
+
+    rp->GetUpperPad()->SetGrid(1,1);
+
+    pad->Update();
+    pad->SaveAs(Form("CharmTagPlot_differential_xs_%s_%s.pdf", delphes_data->GetTitle(), xvar.Data()));
+
+    // Cleanup
+    if (htemplate != nullptr)
+      delete htemplate;
+    if (legend != nullptr)
+      delete legend;
+
+
+  }  
+  
+}

@@ -35,9 +35,11 @@ TreeHandler *TreeHandler::instance = 0;
 void PrintHelp()
 {
   std::cout <<
-    "--input_dir <i>:     Directory containing all the ROOT files you want to process\n"
-    "--output_file <o>:   Output ROOT file to store results\n"
-    "--help:              Show this helpful message!\n";
+    "--input_dir <i>:       Directory containing all the ROOT files you want to process\n"
+    "--output_file <o>:     Output ROOT file to store results\n"
+    "--module_sequence <s>: A string comma-separated list of modules to load; order is preserved in execution.\n"
+    "--nevents <n>:         The total number of events to process, starting from the zeroth event in the input.\n"
+    "--help:                Show this helpful message!\n";
   exit(1);
 }
 
@@ -135,10 +137,14 @@ int main(int argc, char *argv[])
 
   // Load object pointers
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
+  TClonesArray *branchElectron = treeReader->UseBranch("Electron");
+  TClonesArray *branchPhoton = treeReader->UseBranch("EFlowPhoton");
+  TClonesArray *branchNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
   TClonesArray *branchGenJet = treeReader->UseBranch("GenJet");
-  TClonesArray *branchParticle = treeReader->UseBranch("Particle");
+  TClonesArray *branchGenParticle = treeReader->UseBranch("Particle");
+  TClonesArray *branchRawTrack = treeReader->UseBranch("Track");
   TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
-
+  TClonesArray *branchMET = treeReader->UseBranch("MissingET");
 
 
   // Setup the module handler
@@ -187,11 +193,21 @@ int main(int argc, char *argv[])
     for (auto module : module_handler->getModules()) {
       module->setJets(branchJet);
       module->setGenJets(branchGenJet);
-      module->setTracks(branchEFlowTrack);
+      module->setEFlowTracks(branchEFlowTrack);
+      module->setTracks(branchRawTrack);
+      module->setGenParticles(branchGenParticle);
+      module->setPhotons(branchPhoton);
+      module->setElectrons(branchElectron);
+      module->setNeutralHadrons(branchNeutralHadron);
+      module->setMET(branchMET);
+
       bool result = module->execute(&DataStore);
       if (result == false) 
 	break;
     }
+
+    tree_handler->execute();
+    
 
     // if (DataStore.find("CharmJets") != DataStore.end()) {
     //   std::vector<Jet*> charm_jets = std::any_cast<std::vector<Jet*>>(DataStore["CharmJets"]);

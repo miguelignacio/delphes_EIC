@@ -30,8 +30,7 @@ Beams:frameType = 2
 
 ! 4) Settings for the hard-process generation.
 
-WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
-#WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
+WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
 PhaseSpace:Q2Min = 100
 PDF:lepton = off
 PDF:pSet = PARAM_PDFSET
@@ -57,7 +56,7 @@ SpaceShower:pTmaxMatch=2
 ! 6) Other settings. Can be expanded as desired.
 #Tune:preferLHAPDF = off            ! use internal PDFs when LHAPDF not linked
 #Tune:pp = 6                        ! use Tune 4Cx
-ParticleDecays:limitTau0 = on       ! set long-lived particle stable ...
+ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
 ParticleDecays:tau0Max = 1000       ! ... if c*tau0 > 1000 mm - the half-length along z of the solenoidal field
 		       	 	    ! (c.f. delphes_EIC_card.tcl)
 

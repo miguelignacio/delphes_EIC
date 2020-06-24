@@ -40,7 +40,7 @@ bool MuonPIDModule::execute(std::map<std::string, std::any>* DataStore)
   std::vector<Track*> all_muons;
 
   // If the DataStore contains already a list of tracks to be used for PID assignment,
-  // use that. If not, use the getTracks() method to get the general list of all tracks.
+  // use that. If not, use the getEFlowTracks() method to get the general list of all tracks.
   // TracksForPID is special - it contains tracks NOT already used by another PID algorithm,
   // to avoid using the same track (pion) twice in two categories.
 
@@ -58,17 +58,17 @@ bool MuonPIDModule::execute(std::map<std::string, std::any>* DataStore)
     
     
   } else {      
-    for (int itrk = 0; itrk < getTracks()->GetEntries(); itrk++)
+    for (int itrk = 0; itrk < getEFlowTracks()->GetEntries(); itrk++)
       {
-	Track* track = (Track*) getTracks()->At(itrk);
+	Track* track = (Track*) getEFlowTracks()->At(itrk);
 	if (MuonPID(track, mu_efficiency, mupi_separation))
 	  all_muons.push_back(track);
       }
 
     std::vector<Track*> tracks_for_PID;
-    for (int itrk = 0; itrk < getTracks()->GetEntries(); itrk++) 
+    for (int itrk = 0; itrk < getEFlowTracks()->GetEntries(); itrk++) 
       {
-	Track* track = (Track*) getTracks()->At(itrk);
+	Track* track = (Track*) getEFlowTracks()->At(itrk);
 	tracks_for_PID.push_back(track);
       }
     (*DataStore)["TracksForPID"] = tracks_for_PID;
