@@ -11,6 +11,7 @@ import mplhep as hep
 import inspect
 import sys
 import argparse 
+import awkward
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -44,9 +45,7 @@ branchlist=["*"]
 
 print("Loading data...")
 
-df = eat.UprootLoad([f"{args.dir}/{args.input}/*/out.root"], "tree", branches=branchlist)
-
-#df = df[:1000000]
+df = eat.UprootLoad([f"{args.dir}/{args.input}/0/out.root"], "tree", branches=branchlist)
 
 
 def DrawDiffTagEfficiencyPlot(df, draw_config={}):
@@ -188,7 +187,7 @@ if args.xvar == 'eta':
 elif args.xvar == 'pt':
     draw_config['xvar'] = 'jet_pt'
     draw_config['xrange'] = [10,50]
-    draw_config['xbins'] = [10,12.5,15,20,25,30,40,50]
+    draw_config['xbins'] = [10,12.5,15,20,25,35,60]
     draw_config['ylimits'] = [1e-5, 1]
     draw_config['xlimits'] = [0,60]
     draw_config['yunits'] = '[$\\mathrm{GeV^{-1}}$]'
@@ -197,7 +196,7 @@ elif args.xvar == 'pt':
 elif args.xvar == 'bjorken_x':
     draw_config['xvar'] = 'bjorken_x'
     draw_config['xrange'] = [5e-3,1]
-    draw_config['xbins'] = np.concatenate([np.arange(5e-3,1e-2,1e-3),np.arange(1e-2,1e-1,1e-2),np.arange(1e-1,1.1,1e-1)])
+    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(0.1,0.5,0.2),[0.5,1.0]])
     #draw_config['xbins'] = [5e-3, 1e-2, 1e-1, 1]
     draw_config['ylimits'] = [1e-5, 1]
     draw_config['xlimits'] = [5e-3,1]
@@ -207,7 +206,7 @@ elif args.xvar == 'bjorken_x':
 elif args.xvar == 'JB_x':
     draw_config['xvar'] = 'JB_x'
     draw_config['xrange'] = [5e-3,1]
-    draw_config['xbins'] = np.concatenate([np.arange(5e-3,1e-2,1e-3),np.arange(1e-2,1e-1,1e-2),np.arange(1e-1,1.1,1e-1)])
+    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(0.1,0.5,0.2),[0.5,1.0]])
     #draw_config['xbins'] = [5e-3, 1e-2, 1e-1, 1]
     draw_config['ylimits'] = [1e-5, 1]
     draw_config['xlimits'] = [5e-3,1]
@@ -231,7 +230,7 @@ if args.xvar == 'eta':
 elif args.xvar == 'pt':
     draw_config['xvar'] = 'jet_pt'
     draw_config['xrange'] = [10,50]
-    draw_config['xbins'] = [10,12.5,15,20,25,30,40,50]
+    draw_config['xbins'] = [10,12.5,15,20,25,35,60]
     draw_config['ylimits'] = [1, 1e4]
     draw_config['xlimits'] = [0,60]
     draw_config['yunits'] = '[$\\mathrm{GeV^{-1}}$]'
@@ -240,7 +239,7 @@ elif args.xvar == 'pt':
 elif args.xvar == 'bjorken_x':
     draw_config['xvar'] = 'bjorken_x'
     draw_config['xrange'] = [1e-2,1]
-    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(1e-1,1.2,2e-1)])
+    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(0.1,0.5,0.2),[0.5,1.0]])
     draw_config['ylimits'] = [1e-1, 1e4]
     draw_config['xlimits'] = [1e-2,1]
     draw_config['xunits'] = ''
@@ -249,7 +248,7 @@ elif args.xvar == 'bjorken_x':
 elif args.xvar == 'JB_x':
     draw_config['xvar'] = 'JB_x'
     draw_config['xrange'] = [1e-2,1]
-    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(1e-1,1.2,2e-1)])
+    draw_config['xbins'] = np.concatenate([np.arange(1e-2,1e-1,3.33333e-2),np.arange(0.1,0.5,0.2),[0.5,1.0]])
     draw_config['ylimits'] = [1e-1, 1e4]
     draw_config['xlimits'] = [1e-2,1]
     draw_config['yunits'] = ''

@@ -60,7 +60,7 @@ print(data.head(10))
 DiscoverySignificance = 5.0
 xsection = eat.TotalXSection('CC_DIS_e10_p275_CT18NNLO')
 lumi = 100 #/fb
-n_gen = 10e6
+n_gen = len(dataframes)*2e5 # 100,000 collisions generated per file
 
 allLight = float(data[data["Variation"] == "all" ]["Light"])
 allCharm = float(data[data["Variation"] == "all" ]["Charm"])
@@ -86,6 +86,18 @@ print(data)
 optimal_row = data["PunziFOM"].idxmax()
 
 print(data.iloc[optimal_row])
+print(f"Number of generated events: {n_gen}")
 
+# Hold light jet efficiency ~constant at some value and find the best operating point there.
 
+#print(data[ np.abs(data["LightEff"] - 2.0e-5)/1.0e-5 < 0.5 ])
+
+lighteff_target = 1.00e-5
+tolerance = 0.50e-5
+
+print(f"Optimization of charm efficiency holding Light Jet Efficiency at ~{lighteff_target}")
+print(data[ np.abs(data["LightEff"] - lighteff_target) < tolerance ].head(20))
+optimal_row = data[ np.abs(data["LightEff"] - lighteff_target) < tolerance ]["PunziFOM"].idxmax()
+
+print(data.iloc[optimal_row])
 

@@ -74,6 +74,7 @@ void StrangeJetClassification(TString dir, TString input, TString filePattern = 
 
   loader.AddSpectator("jet_pt");
   loader.AddSpectator("jet_eta");
+  loader.AddVariable("jet_nconstituents");
   loader.AddVariable("jet_Ks_leading_zhadron");
   loader.AddVariable("jet_K_leading_zhadron");
   loader.AddVariable("jet_charge");

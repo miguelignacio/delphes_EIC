@@ -31,6 +31,7 @@ class EventSelectionModule : public Module {
   std::vector<float> _jet_pt;
   std::vector<float> _jet_eta;
   std::vector<int>   _jet_flavor;
+  std::vector<int>   _jet_nconstituents;
   std::vector<int>   _jet_sip3dtag;
   std::vector<int>   _jet_ktag;
   std::vector<int>   _jet_etag;

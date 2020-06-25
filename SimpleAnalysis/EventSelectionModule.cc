@@ -34,6 +34,7 @@ void EventSelectionModule::initialize()
     _jet_pt = std::vector<float>();
     _jet_eta = std::vector<float>();
     _jet_flavor = std::vector<int>();
+    _jet_nconstituents = std::vector<int>();
     _jet_sip3dtag = std::vector<int>();
     _jet_ktag = std::vector<int>();
     _jet_etag = std::vector<int>();
@@ -44,6 +45,7 @@ void EventSelectionModule::initialize()
     tree_handler->getTree()->Branch("jet_pt",       "std::vector<float>", &_jet_pt);
     tree_handler->getTree()->Branch("jet_eta",      "std::vector<float>", &_jet_eta);
     tree_handler->getTree()->Branch("jet_flavor",   "std::vector<int>", &_jet_flavor);
+    tree_handler->getTree()->Branch("jet_nconstituents",   "std::vector<int>", &_jet_nconstituents);
     tree_handler->getTree()->Branch("jet_sip3dtag", "std::vector<int>", &_jet_sip3dtag);
     tree_handler->getTree()->Branch("jet_ktag",     "std::vector<int>", &_jet_ktag);
     tree_handler->getTree()->Branch("jet_etag",     "std::vector<int>", &_jet_etag);
@@ -178,6 +180,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
   _jet_pt.clear();
   _jet_eta.clear();
   _jet_flavor.clear();
+  _jet_nconstituents.clear();
   _jet_sip3dtag.clear();
   _jet_ktag.clear();
   _jet_etag.clear();
@@ -312,6 +315,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
       _jet_pt.push_back( jet->PT );
       _jet_eta.push_back( jet->Eta );
       _jet_flavor.push_back( jet->Flavor );
+      _jet_nconstituents.push_back( jet->Constituents.GetEntries() );
       _jet_sip3dtag.push_back( Tagged_sIP3D(jet, *getEFlowTracks(), 3.75, 1.00, 2.0) );
       if (use_electrons) {
 	_jet_etag.push_back( Tagged_Electron(jet, std::any_cast<std::vector<Track*>>((*DataStore)["Electrons"]), 3.0, 1.0, 1) );
