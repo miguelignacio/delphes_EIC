@@ -11,6 +11,7 @@
 #include <iostream>
 #include <iomanip>  
 #include <fstream>
+#include <algorithm>
 
 EventSelectionModule::EventSelectionModule(ExRootTreeReader* data)
   : Module(data)
@@ -37,6 +38,7 @@ void EventSelectionModule::initialize()
     _jet_ktag = std::vector<int>();
     _jet_etag = std::vector<int>();
     _jet_mutag = std::vector<int>();
+    _jet_charge = std::vector<float>();
 
     tree_handler->getTree()->Branch("jet_n",        &_jet_n, "jet_n/I");
     tree_handler->getTree()->Branch("jet_pt",       "std::vector<float>", &_jet_pt);
@@ -46,19 +48,29 @@ void EventSelectionModule::initialize()
     tree_handler->getTree()->Branch("jet_ktag",     "std::vector<int>", &_jet_ktag);
     tree_handler->getTree()->Branch("jet_etag",     "std::vector<int>", &_jet_etag);
     tree_handler->getTree()->Branch("jet_mutag",    "std::vector<int>", &_jet_mutag);
+    tree_handler->getTree()->Branch("jet_charge",    "std::vector<float>", &_jet_charge);
 
-    _jet_Ks_mass = std::vector<float>();
-    _jet_Ks_p = std::vector<float>();
-    _jet_Ks_flightlength = std::vector<float>();
+    _jet_Ks_mass = std::vector<std::vector<float>>();
+    _jet_Ks_p = std::vector<std::vector<float>>();
+    _jet_Ks_flightlength = std::vector<std::vector<float>>();
     _jet_Ks_sumpt = std::vector<float>();
     _jet_K_sumpt = std::vector<float>();
+    _jet_Ks_zhadron = std::vector<std::vector<float>>();
+    _jet_K_zhadron = std::vector<std::vector<float>>();
+    _jet_Ks_leading_zhadron = std::vector<float>();
+    _jet_K_leading_zhadron =  std::vector<float>();
+    _jet_ehadoveremratio = std::vector<float>();
 
-    tree_handler->getTree()->Branch("jet_Ks_mass",          "std::vector<float>", &_jet_Ks_mass);
-    tree_handler->getTree()->Branch("jet_Ks_p",             "std::vector<float>", &_jet_Ks_p);
-    tree_handler->getTree()->Branch("jet_Ks_flightlength",  "std::vector<float>", &_jet_Ks_flightlength);
+    tree_handler->getTree()->Branch("jet_Ks_mass",          "std::vector<std::vector<float>>", &_jet_Ks_mass);
+    tree_handler->getTree()->Branch("jet_Ks_p",             "std::vector<std::vector<float>>", &_jet_Ks_p);
+    tree_handler->getTree()->Branch("jet_Ks_flightlength",  "std::vector<std::vector<float>>", &_jet_Ks_flightlength);
     tree_handler->getTree()->Branch("jet_Ks_sumpt",         "std::vector<float>", &_jet_Ks_sumpt);
     tree_handler->getTree()->Branch("jet_K_sumpt",          "std::vector<float>", &_jet_K_sumpt);
-
+    tree_handler->getTree()->Branch("jet_Ks_zhadron",             "std::vector<std::vector<float>>", &_jet_Ks_zhadron);
+    tree_handler->getTree()->Branch("jet_K_zhadron",             "std::vector<std::vector<float>>", &_jet_K_zhadron);
+    tree_handler->getTree()->Branch("jet_Ks_leading_zhadron",             "std::vector<float>", &_jet_Ks_leading_zhadron);
+    tree_handler->getTree()->Branch("jet_K_leading_zhadron",             "std::vector<float>", &_jet_K_leading_zhadron);
+    tree_handler->getTree()->Branch("jet_ehadoveremratio",  "std::vector<float>", &_jet_ehadoveremratio);
 
     _charmjet_n = 0;
     _charmjet_pt = std::vector<float>();
@@ -163,13 +175,6 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
 
 
   _jet_n = 0;
-  // _jet_pt = std::vector<float>();
-  // _jet_eta = std::vector<float>();
-  // _jet_flavor = std::vector<int>();
-  // _jet_sip3dtag = std::vector<int>();
-  // _jet_ktag = std::vector<int>();
-  // _jet_etag = std::vector<int>();
-  // _jet_mutag = std::vector<int>();
   _jet_pt.clear();
   _jet_eta.clear();
   _jet_flavor.clear();
@@ -177,13 +182,19 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
   _jet_ktag.clear();
   _jet_etag.clear();
   _jet_mutag.clear();
+  _jet_charge.clear();
 
   _jet_Ks_mass.clear();
   _jet_Ks_p.clear();
   _jet_Ks_flightlength.clear();
   _jet_Ks_sumpt.clear();
   _jet_K_sumpt.clear();
-  
+  _jet_Ks_zhadron.clear();
+  _jet_K_zhadron.clear();
+  _jet_Ks_leading_zhadron.clear();
+  _jet_K_leading_zhadron.clear();
+  _jet_ehadoveremratio.clear();
+
   auto tracks = getTracks();
 
 
@@ -301,7 +312,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
       _jet_pt.push_back( jet->PT );
       _jet_eta.push_back( jet->Eta );
       _jet_flavor.push_back( jet->Flavor );
-      _jet_sip3dtag.push_back( Tagged_sIP3D(jet, *tracks, 3.75, 1.00, 2.0) );
+      _jet_sip3dtag.push_back( Tagged_sIP3D(jet, *getEFlowTracks(), 3.75, 1.00, 2.0) );
       if (use_electrons) {
 	_jet_etag.push_back( Tagged_Electron(jet, std::any_cast<std::vector<Track*>>((*DataStore)["Electrons"]), 3.0, 1.0, 1) );
       } else { 
@@ -321,44 +332,73 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
 	_jet_ktag.push_back( 0.0 );
       }
 
-      Candidate best_Ks;
       TVector3 Ks_sumpt;
+      _jet_Ks_mass.push_back(std::vector<float>());
+      _jet_Ks_p.push_back(std::vector<float>());
+      _jet_Ks_flightlength.push_back(std::vector<float>());
+      _jet_Ks_zhadron.push_back(std::vector<float>());
       for (auto Ks_candidate : Ks_candidates) {
 	if (Ks_candidate.Position.Rho() < 5) // 5mm minimum displacement from IP 
 	  continue;
 	if (Ks_candidate.Momentum.DeltaR( jet->P4() ) < 0.5) {
 	  
 	  Ks_sumpt += Ks_candidate.Momentum.Vect();
+	  _jet_Ks_mass[ijet].push_back( Ks_candidate.Mass );
+	  _jet_Ks_p[ijet].push_back( Ks_candidate.Momentum.Rho() );
+	  _jet_Ks_flightlength[ijet].push_back( Ks_candidate.Position.Rho() );
 
-	  if (_jet_Ks_mass.size() < ijet+1) {
-	    _jet_Ks_mass.push_back( Ks_candidate.Mass );
-	    _jet_Ks_p.push_back( Ks_candidate.Momentum.Rho() );
-	    _jet_Ks_flightlength.push_back( Ks_candidate.Position.Rho() );
-	    best_Ks = Ks_candidate;
-	  } else {
-	    if (Ks_candidate.Position.Rho() > best_Ks.Position.Rho()) {
-	      _jet_Ks_mass[ijet] = Ks_candidate.Mass;
-	      _jet_Ks_p[ijet] = Ks_candidate.Momentum.Rho();
-	      _jet_Ks_flightlength[ijet] = Ks_candidate.Position.Rho();
-	      best_Ks = Ks_candidate;
-	    }
-	  }
+	  _jet_Ks_zhadron[ijet].push_back( TMath::Abs((Ks_candidate.Momentum.Vect() * jet->P4().Vect())/jet->P4().Vect().Mag2()) );
+
 	}
       }
+
+      if (_jet_Ks_zhadron[ijet].size() == 0) {
+	_jet_Ks_zhadron[ijet].push_back(-1.0); // TMVA hates empty vector branches!
+      }
+
+      _jet_Ks_leading_zhadron.push_back( *max_element(_jet_Ks_zhadron[ijet].begin(), _jet_Ks_zhadron[ijet].end()) );
+
+
       _jet_Ks_sumpt.push_back( Ks_sumpt.Perp() );
 
       // handle charged kaons
+      _jet_K_zhadron.push_back(std::vector<float>());
       TVector3 K_sumpt;
       if (use_kaons) {
 	auto kaon_candidates = std::any_cast<std::vector<Track*>>((*DataStore)["Kaons"]);
 	for (auto kaon : kaon_candidates) {
 	  if (kaon->P4().DeltaR(jet->P4()) < 0.5) {
 	    K_sumpt += kaon->P4().Vect();
+	    _jet_K_zhadron[ijet].push_back( TMath::Abs((kaon->P4().Vect() * jet->P4().Vect())/jet->P4().Vect().Mag2()) );
 	  }
 	}
       }
+      if (_jet_K_zhadron[ijet].size() == 0) {
+	_jet_K_zhadron[ijet].push_back(-1.0); // TMVA hates empty vector branches!
+      }
+
+      _jet_K_leading_zhadron.push_back( *max_element(_jet_K_zhadron[ijet].begin(), _jet_K_zhadron[ijet].end()) );
+
       _jet_K_sumpt.push_back( K_sumpt.Perp() );
 
+
+      // Calorimeter energy ratios
+      _jet_ehadoveremratio.push_back( jet->EhadOverEem );
+
+      // Jet charge!
+      float jet_Q = -999.0;
+      float kappa = 0.5;
+      for (auto obj_track : *getEFlowTracks()) {
+	auto track = static_cast<Track*>(obj_track);
+	if (track->P4().DeltaR(jet->P4()) < 0.5) {
+	  if (jet_Q == -999.0) {
+	    jet_Q = 0.0;
+	  }
+	  jet_Q += track->Charge * TMath::Power(track->PT, kappa);
+	}
+      }
+      jet_Q /= TMath::Power(jet->PT, kappa);
+      _jet_charge.push_back( jet_Q );
 
     }
 

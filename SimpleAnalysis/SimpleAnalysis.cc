@@ -4,6 +4,7 @@
 #include <TTree.h>
 #include <TString.h>
 #include <TObjString.h>
+#include "TInterpreter.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -61,6 +62,11 @@ int main(int argc, char *argv[])
 {
   std::cout <<
     "===================== SIMPLEANALYSIS =====================" << std::endl;
+
+
+  // Handle complex TTree data storage types by defining them for ROOT
+  gInterpreter->GenerateDictionary("std::vector<std::vector<float>>","vector");
+
 	    
 
   if (argc <= 1) {

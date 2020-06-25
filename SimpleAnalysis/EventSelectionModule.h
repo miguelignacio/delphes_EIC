@@ -35,12 +35,17 @@ class EventSelectionModule : public Module {
   std::vector<int>   _jet_ktag;
   std::vector<int>   _jet_etag;
   std::vector<int>   _jet_mutag;
-  std::vector<float> _jet_Ks_mass;
-  std::vector<float> _jet_Ks_p;
-  std::vector<float> _jet_Ks_flightlength;
+  std::vector<float> _jet_charge;
+  std::vector<std::vector<float>> _jet_Ks_mass;
+  std::vector<std::vector<float>> _jet_Ks_p;
+  std::vector<std::vector<float>> _jet_Ks_flightlength;
   std::vector<float> _jet_Ks_sumpt;
   std::vector<float> _jet_K_sumpt;
-
+  std::vector<std::vector<float>> _jet_Ks_zhadron;
+  std::vector<std::vector<float>> _jet_K_zhadron;
+  std::vector<float> _jet_Ks_leading_zhadron;
+  std::vector<float> _jet_K_leading_zhadron;
+  std::vector<float> _jet_ehadoveremratio;
   
   float              _met_et;
 
