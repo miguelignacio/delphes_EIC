@@ -66,6 +66,8 @@ set ExecutionPath {
 
   TrackCountingBTagging
 
+  mRICHPID
+
   TreeWriter
 }
 
@@ -258,6 +260,7 @@ module Merger TrackMerger {
 # Track impact parameter smearing                                                                   
 ################################                                                                    
 
+
 module TrackSmearing TrackSmearing {
   set InputArray TrackMerger/tracks
 #  set BeamSpotInputArray BeamSpotFilter/beamSpotParticle
@@ -270,12 +273,10 @@ module TrackSmearing TrackSmearing {
   set PResolutionFormula { 0.0 }
   set CtgThetaResolutionFormula { 0.0 }
   set PhiResolutionFormula { 0.0 }
-  set D0ResolutionFormula {
-  	( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
-  }
-  set DZResolutionFormula {
-  	( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * 0.020
-  }
+  set D0ResolutionFormula "( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * $PARAM_D0RES"
+  
+  set DZResolutionFormula "( abs(eta) <= 3.5 ) * ( pt > 0.1 ) * $PARAM_DZRES"
+  
     
 }
 
@@ -685,8 +686,9 @@ module FastJetFinder FastJetFinder {
   set AxisMode 4
 
   set ComputeTrimming 1
-  set RTrim 0.2
-  set PtFracTrim 0.05
+  set RTrim 0.4
+  set PtFracTrim 0.20
+  #set PtFracTrim 0.05
 
   set ComputePruning 1
   set ZcutPrun 0.1
@@ -795,6 +797,724 @@ module TrackCountingBTagging TrackCountingBTagging {
     set Ntracks $PARAM_TRACKSNMIN
 }
 
+##################
+# PID Systems
+##################
+
+# mRICH
+
+module IdentificationMap mRICHPID {
+  set InputArray HCal/eflowTracks
+  set OutputArray tracks
+
+  # {PID in} {PID out} {formula}
+  # make sure "PID in" and "PID out" have the same charge (e.g {-13} {211} or {-321} {211})
+  # {211} {-13} is equivalent to {-211} {13} (and needs to be written once only...)
+
+
+
+ # From EIC Yellow Report PID studies, the mRICH coverage is -3.5<eta<-1 and 1<eta<2
+
+
+  # --- pions ---
+
+  add EfficiencyFormula {-11} {-11} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (0.99) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (0.98) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (0.96) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (0.92) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (0.87) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (0.82) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (0.77) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (0.73) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (0.69) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (0.65) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (0.62) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (0.60) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (0.58) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (0.57) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (0.56) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (0.55) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (0.54) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (0.53) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (0.53) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (0.52) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (0.52) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (0.52) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.50) } 
+
+    add EfficiencyFormula {-11} {211} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (0.08) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (0.13) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (0.27) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (0.31) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (0.35) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (0.38) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (0.42) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (0.43) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (0.44) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (0.45) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (0.46) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.50) } 
+
+    add EfficiencyFormula {211} {211} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (0.98) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (0.96) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (0.92) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (0.87) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (0.82) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (0.77) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (0.73) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (0.69) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (0.65) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (0.62) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (0.60) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (0.58) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (0.57) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (0.56) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (0.55) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (0.54) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (0.53) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (0.53) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (0.52) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (0.52) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (0.52) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (0.51) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.46) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.46) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.45) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.45) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.44) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.44) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.43) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.43) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.42) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.42) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.42) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.41) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.41) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.39) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.39) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.39) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.38) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.38) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.38) } 
+
+    add EfficiencyFormula {211} {-11} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (0.08) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (0.13) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (0.27) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (0.31) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (0.35) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (0.38) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (0.42) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (0.43) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (0.44) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (0.45) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (0.46) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.50) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.49) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.48) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.47) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.46) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.46) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.45) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.45) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.44) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.44) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.43) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.43) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.42) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.42) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.41) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.41) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.40) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.39) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.39) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.39) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.38) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.38) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.38) } 
+
+    add EfficiencyFormula {211} {321} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.03) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.05) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.06) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.07) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.08) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.09) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.10) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.11) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.12) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.13) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.14) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.15) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.16) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.17) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.19) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.20) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.21) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.21) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.22) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.24) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.24) } 
+
+    add EfficiencyFormula {321} {321} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (1.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.99) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.99) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.99) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.99) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.98) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.98) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.97) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.96) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.95) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.94) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.92) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.91) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.89) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.88) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.86) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.84) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.82) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.80) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.78) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.76) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.74) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.72) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.70) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.68) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.66) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.65) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.63) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.61) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.60) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.58) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.57) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.56) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.54) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.53) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.52) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.52) } 
+
+    add EfficiencyFormula {321} {-11} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.03) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.05) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.06) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.07) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.08) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.09) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.10) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.11) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.12) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.13) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.14) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.15) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.16) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.17) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.19) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.20) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.21) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.21) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.22) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.24) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.24) } 
+
+    add EfficiencyFormula {321} {211} { (eta<-3.5 || (-1 < eta && eta < 1) || eta>2.0)*( 0.00 ) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 0.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (0.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 1.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (1.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 2.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (2.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 3.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (3.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 4.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (4.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 5.90) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (5.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.00) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.10) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.20) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.30) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.40) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.50) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.60) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.70) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.80) * (0.00) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 6.90) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (6.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.00) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.10) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.20) * (0.01) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.30) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.40) * (0.02) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.50) * (0.03) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.60) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.70) * (0.04) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.80) * (0.05) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 7.90) * (0.06) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (7.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.00) * (0.07) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.10) * (0.08) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.20) * (0.09) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.30) * (0.10) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.40) * (0.11) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.50) * (0.12) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.60) * (0.13) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.70) * (0.14) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.80) * (0.15) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 8.90) * (0.16) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (8.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.00) * (0.17) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.00 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.10) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.10 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.20) * (0.18) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.20 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.30) * (0.19) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.30 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.40) * (0.20) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.40 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.50) * (0.21) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.50 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.60) * (0.21) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.60 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.70) * (0.22) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.70 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.80) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.80 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 9.90) * (0.23) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (9.90 <= (pt * cosh(eta)) && (pt * cosh(eta)) < 10.00) * (0.24) + 
+                                     ((-3.5 <= eta && eta <= -1.0) || (1.0 <= eta && eta <= 2.0)) * (10.00 <= (pt * cosh(eta))) * (0.24) } 
+
+
+ # efficiency for other charged particles (should be always {0} {0} {formula})
+
+    add EfficiencyFormula {0} {0}     {      (fabs(eta) < 4.0) * (0.00)     }
+
+}
+
+
+
 
 ##################
 # ROOT tree writer
@@ -814,6 +1534,8 @@ module TreeWriter TreeWriter {
   add Branch HCal/eflowTracks EFlowTrack Track
   add Branch ECal/eflowPhotons EFlowPhoton Tower
   add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
+
+  add Branch mRICHPID/tracks mRICHTrack Track
 
   add Branch GenJetFinder/jets GenJet Jet
   add Branch GenMissingET/momentum GenMissingET MissingET
