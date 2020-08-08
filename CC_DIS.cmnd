@@ -1,5 +1,5 @@
 ! 1) Settings used in the main program.
-Main:numberOfEvents = 100000         ! number of events to generate
+Main:numberOfEvents = 10000        ! number of events to generate
 Main:timesAllowErrors = 3          ! how many aborts before run stops
 
 Random:setSeed = on
@@ -8,7 +8,7 @@ Random:seed = 0
 ! 2) Settings related to output in init(), next() and stat().
 Init:showChangedSettings = on      ! list changed settings
 Init:showChangedParticleData = off ! list changed particle data
-Next:numberCount = 100             ! print message every n events
+Next:numberCount = 1000            ! print message every n events
 Next:numberShowInfo = 1            ! print event information n times
 Next:numberShowProcess = 1         ! print process record n times
 Next:numberShowEvent = 0           ! print event record n times
@@ -40,5 +40,8 @@ SpaceShower:dipoleRecoil=on
 ! 6) Other settings. Can be expanded as desired.
 #Tune:preferLHAPDF = off            ! use internal PDFs when LHAPDF not linked
 #Tune:pp = 6                        ! use Tune 4Cx
-ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
-ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
+
+! Allow long-lived particle decay within the EIC tracking volume
+ParticleDecays:limitCylinder = on
+ParticleDecays:xyMax = 800
+ParticleDecays:zMax = 1000
