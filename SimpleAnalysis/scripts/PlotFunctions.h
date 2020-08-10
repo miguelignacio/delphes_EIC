@@ -11,12 +11,28 @@
 #include "TLine.h"
 #include "TLatex.h"
 #include "TRatioPlot.h"
+#include "TString.h"
 
 #include <glob.h>
 #include <iostream>
 #include <iomanip>
 #include <vector>
 
+//
+// Some universal constants for code to use
+//
+
+// Units, Cross-Sections
+// standard baseline units: fb, GeV, mm, seconds
+
+float u_fb = 1.0;
+float u_mb = 1.0e12 * u_fb; // convert to fb
+
+float u_GeV = 1.0;
+float u_MeV = 1.0e3 * u_GeV; // convert to GeV
+
+float u_mm = 1.0;
+float u_cm = 1e2 * u_mm;
 
 
 struct plot_config {
@@ -94,7 +110,7 @@ inline TLegend* smart_legend(std::string where = "upper right", float legend_wid
     legend_y = smart_legend_y(0.55, legend_height);
   } else if (where == "lower right") {
     legend_x = smart_legend_x(0.65, legend_width);
-    legend_y = smart_legend_y(0.15, legend_height);
+    legend_y = smart_legend_y(0.20, legend_height);
   } else if (where == "upper left") {
     legend_x = smart_legend_x(0.15, legend_width);
     legend_y = smart_legend_y(0.82, legend_height);
@@ -103,7 +119,7 @@ inline TLegend* smart_legend(std::string where = "upper right", float legend_wid
     legend_y = smart_legend_y(0.55, legend_height);
   } else if (where == "lower left") {
     legend_x = smart_legend_x(0.15, legend_width);
-    legend_y = smart_legend_y(0.15, legend_height);
+    legend_y = smart_legend_y(0.20, legend_height);
   } else {
     std::cout << "You specified a placement of " << where << " that is unknown..." << std::endl;
     
@@ -175,6 +191,20 @@ inline std::vector<std::string> fileVector(const std::string& pattern){
   }
   globfree(&glob_result);
   return files;
+}
+
+
+float LookupCrossSection(TString samplename)
+{
+  float xsection = 0.0;
+  if (samplename.Contains("CC") && samplename.Contains("DIS")) {
+    // Q^2 > 100 GeV^2
+    xsection = 1.47637e-08*u_mb;
+  } else if (samplename.Contains("NC") && samplename.Contains("DIS")) {
+    // Q^2 > 50 GeV^2
+    xsection = 7.444e-06*u_mb;
+  }
+  return xsection;
 }
 
 

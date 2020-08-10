@@ -128,6 +128,30 @@ inline std::map<std::string, float> DISJacquetBlondel(TClonesArray* tracks,
 // Tagging Methods
 //
 
+inline bool IsTaggingTrack(Track* track)
+{
+  bool good_track = true;
+
+
+  // Avoid decays that are too far from the beamspot (e.g. Ks, etc.)
+  float d0 = TMath::Abs(track->D0);
+  float z0 = TMath::Abs(track->DZ);
+
+  // In the original approach, we merely restricted d0 to be < 3mm
+  // However, with Ks and Lambda, etc. long-lived light decays turned on,
+  // more displaced tracks started contaminating this in light jets.
+  // (e.g. with small d0 but large z0)
+  // Use a 3D impact parameter maximum to constrain these tracks.
+
+  float r0 = TMath::Sqrt(d0*d0 + z0*z0);
+
+  if (r0 > 3.0) // mm
+	  good_track &= false;
+
+  return good_track;
+}
+
+
 inline float sIP3D(Jet* jet, Track* track)
 {
   const TLorentzVector &jetMomentum = jet->P4();
@@ -148,6 +172,12 @@ inline float sIP3D(Jet* jet, Track* track)
   //add transverse and longitudinal significances in quadrature
   float sip = sign * TMath::Sqrt(TMath::Power(d0 / dd0, 2) + TMath::Power(dz / ddz, 2));
   
+  // if (d0 > 3) { // 3mm maximum in d0
+  if (!IsTaggingTrack(track)) {
+    // Tracks far outside the beamspot region should be ignored (Ks, Lambda, etc.)
+    sip = -999.0;
+  }
+
   return sip;
 }
 
@@ -162,6 +192,10 @@ inline bool Tagged_Kaon(Jet* jet, std::vector<Track*> kaons, float minSignif, fl
     
     if (kaon->PT < minPT)
       continue;
+
+    if (!IsTaggingTrack(kaon))
+      continue;
+
 
     if (sIP3D(jet, kaon) < minSignif)
       continue;
@@ -186,6 +220,9 @@ inline bool Tagged_Electron(Jet* jet, std::vector<Track*> electrons, float minSi
       continue;
     
     if (electron->PT < minPT)
+      continue;
+
+    if (!IsTaggingTrack(electron))
       continue;
 
     if (sIP3D(jet, electron) < minSignif)
@@ -213,8 +250,12 @@ inline bool Tagged_Muon(Jet* jet, std::vector<Track*> muons, float minSignif, fl
     if (muon->PT < minPT)
       continue;
     
+    if (!IsTaggingTrack(muon))
+      continue;
+
     if (sIP3D(jet, muon) < minSignif)
       continue;
+
 
     muon_count++;
 
@@ -241,6 +282,8 @@ inline bool Tagged_sIP3D(Jet* jet, TClonesArray tracks,
 
   int N_sIPtrack = 0;
 
+  // std::cout << "------------ Processing Jet " << jet << " ------------" << std::endl;
+
   for (int iconst = 0; iconst < jet_constituents.GetEntries(); iconst++) {
 
 
@@ -261,9 +304,11 @@ inline bool Tagged_sIP3D(Jet* jet, TClonesArray tracks,
       if (trkMomentum.DeltaR(jetMomentum) > 0.5)
 	continue;
 
-      float d0 = TMath::Abs(track->D0);
-      if (d0 > 3.0) 
-	continue;
+      // Avoid decays that are too far from the beamspot (e.g. Ks, etc.)
+      // float d0 = TMath::Abs(track->D0);
+      // float z0 = TMath::Abs(track->DZ);
+      if (!IsTaggingTrack(track)) 
+	      continue;
 
       float sip = sIP3D(jet, track);
 
@@ -277,6 +322,7 @@ inline bool Tagged_sIP3D(Jet* jet, TClonesArray tracks,
   }
   
   tagged = (N_sIPtrack >= minTracks);
+  // std::cout << "------------ xxxxxxxxxxxxxx ------------" << std::endl;
 
   return tagged;
 }

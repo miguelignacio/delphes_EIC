@@ -31,8 +31,27 @@ class EventSelectionModule : public Module {
   std::vector<float> _jet_pt;
   std::vector<float> _jet_eta;
   std::vector<int>   _jet_flavor;
+  std::vector<int>   _jet_nconstituents;
   std::vector<int>   _jet_sip3dtag;
+  
+  // kaon information
   std::vector<int>   _jet_ktag;
+  std::vector<float> _jet_k1_pt;
+  std::vector<float> _jet_k1_sIP3D;
+  std::vector<float> _jet_k2_pt;
+  std::vector<float> _jet_k2_sIP3D;
+
+  std::vector<float> _jet_t1_sIP3D;
+  std::vector<float> _jet_t2_sIP3D;
+  std::vector<float> _jet_t3_sIP3D;
+  std::vector<float> _jet_t4_sIP3D;
+
+  std::vector<float> _jet_t1_pt;
+  std::vector<float> _jet_t2_pt;
+  std::vector<float> _jet_t3_pt;
+  std::vector<float> _jet_t4_pt;
+
+
   std::vector<int>   _jet_etag;
   std::vector<int>   _jet_mutag;
   std::vector<float> _jet_charge;
@@ -62,6 +81,10 @@ class EventSelectionModule : public Module {
 
   // Global variables
   float _mpi;
+  float _mK;
+
+  // Branch pointers - only initialize once per run
+  TClonesArray * _branch_mRICHTracks;
 
 };
 

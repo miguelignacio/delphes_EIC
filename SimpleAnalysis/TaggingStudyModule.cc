@@ -29,7 +29,7 @@ void TaggingStudyModule::initialize()
     tree_handler->getTree()->Branch("jet_pt", &_jet_pt, "jet_pt/F");
     tree_handler->getTree()->Branch("jet_eta", &_jet_eta, "jet_eta/F");
     tree_handler->getTree()->Branch("jet_flavor", &_jet_flavor, "jet_flavor/F");
-    tree_handler->getTree()->Branch("jet_tagged", &_jet_tagged, "jet_tagged/F");
+    // tree_handler->getTree()->Branch("jet_tagged", &_jet_tagged, "jet_tagged/F");
     tree_handler->getTree()->Branch("jet_btag", &_jet_btag, "jet_btag/F");
   }
 
@@ -73,7 +73,9 @@ void TaggingStudyModule::finalize()
   for (auto& [variation, jet] : study_variations) {
     float nLight = float(study_variations[variation]["light"]);
     float nCharm = float(study_variations[variation]["charm"]);
-    float PunziFOM = (nCharm/allCharm)/( 1.5 + TMath::Sqrt(nLight));
+    float PunziFOM = -1;
+    if (allCharm>0)
+      PunziFOM = (nCharm/allCharm)/( 1.5 + TMath::Sqrt(nLight));
 
     std::cout << std::setw(40) << variation << std::setw(6) << int(nLight)
 	      << std::setw(6) << int(nCharm) << std::setw(8) << Form("%.4f", PunziFOM) << std::endl;
@@ -138,16 +140,25 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
   std::vector<Jet*> lightJets = SelectorFcn<Jet>(fiducial_jets, [](Jet* j){ return (j->Flavor < 4 || j->Flavor == 21); });
 
   // Resolution settings
-  float d0err = 0.020; // mm
-  float z0err = 0.020; // mm
+  // float d0err = 0.020; // mm
+  // float z0err = 0.020; // mm
 
+
+  // Clone the tracks and adjust their errors to suit this study
+  auto ModifiedTracks = static_cast<TClonesArray*>(getEFlowTracks()->Clone());
+  for (int i = 0; i < ModifiedTracks->GetEntries(); i++) {
+    auto track = static_cast<Track*>(ModifiedTracks->At(i));
+    // track->ErrorD0 = d0err;
+    // track->ErrorDZ = z0err;
+  }
+ 
   
   study_variations["all"]["charm"] += charmJets.size();
   for (auto charmjet : charmJets) {
     _jet_pt = charmjet->PT;
     _jet_eta = charmjet->Eta;
     _jet_flavor = charmjet->Flavor;
-    _jet_tagged = Tagged(charmjet);
+    // _jet_tagged = Tagged_sIP3D(charmjet);
     _jet_btag = charmjet->BTag;
     // tree_handler->getTree()->Fill();
 
@@ -155,7 +166,7 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
       for (auto minTrkPt : minTrkPTVar) {
 	for (auto minSignif : minSignifVar) {
 	  std::string varName = std::string(Form("MinTrk: %d;TrkPT: %.2f;MinSig: %.2f",minTrack,minTrkPt,minSignif));
-	  if (Tagged(charmjet, minSignif, minTrkPt, minTrack, d0err, z0err))
+	  if (Tagged_sIP3D(charmjet, *ModifiedTracks, minSignif, minTrkPt, minTrack))
 	    study_variations[varName]["charm"] += 1;
 	}
       }
@@ -168,7 +179,7 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
     _jet_pt = lightjet->PT;
     _jet_eta = lightjet->Eta;
     _jet_flavor = lightjet->Flavor;
-    _jet_tagged = Tagged(lightjet);
+    // _jet_tagged = Tagged_sIP3D(lightjet);
     _jet_btag = lightjet->BTag;
     // tree_handler->getTree()->Fill();
 
@@ -176,80 +187,82 @@ bool TaggingStudyModule::execute(std::map<std::string, std::any>* DataStore)
       for (auto minTrkPt : minTrkPTVar) {
 	for (auto minSignif : minSignifVar) {
 	  std::string varName = std::string(Form("MinTrk: %d;TrkPT: %.2f;MinSig: %.2f",minTrack,minTrkPt,minSignif));
-	  if (Tagged(lightjet, minSignif, minTrkPt, minTrack, d0err, z0err))
+	  if (Tagged_sIP3D(lightjet, *ModifiedTracks, minSignif, minTrkPt, minTrack))
 	    study_variations[varName]["light"] += 1;
 	}
       }
     }
   }
 
+  if (ModifiedTracks)
+    delete ModifiedTracks;
 
   return true;
 }
 
 
-bool TaggingStudyModule::Tagged(Jet* jet, 
-				float minSignif, float minPT, int minTracks, float errd0, float errz0)
-{
-  bool tagged = false;
+// bool TaggingStudyModule::Tagged(Jet* jet, 
+// 				float minSignif, float minPT, int minTracks, float errd0, float errz0)
+// {
+//   bool tagged = false;
 
-  const TLorentzVector &jetMomentum = jet->P4();
-  float jpx = jetMomentum.Px();
-  float jpy = jetMomentum.Py();
-  float jpz = jetMomentum.Pz();
+//   const TLorentzVector &jetMomentum = jet->P4();
+//   float jpx = jetMomentum.Px();
+//   float jpy = jetMomentum.Py();
+//   float jpz = jetMomentum.Pz();
   
-  auto jet_constituents = *(getEFlowTracks());
+//   auto jet_constituents = *(getEFlowTracks());
 
-  int N_sIPtrack = 0;
+//   int N_sIPtrack = 0;
 
-  for (int iconst = 0; iconst < jet_constituents.GetEntries(); iconst++) {
+//   for (int iconst = 0; iconst < jet_constituents.GetEntries(); iconst++) {
 
 
-    if (N_sIPtrack >= minTracks) 
-      break;
+//     if (N_sIPtrack >= minTracks) 
+//       break;
 
-    auto constituent = jet_constituents.At(iconst);
+//     auto constituent = jet_constituents.At(iconst);
     
-    if(constituent == 0) continue;
+//     if(constituent == 0) continue;
 
-    if (constituent->IsA() == Track::Class()) {
-      auto track = static_cast<Track*>(constituent);
+//     if (constituent->IsA() == Track::Class()) {
+//       auto track = static_cast<Track*>(constituent);
     
-      const TLorentzVector &trkMomentum = track->P4();
-      float tpt = trkMomentum.Pt();
-      if(tpt < minPT) continue;
+//       const TLorentzVector &trkMomentum = track->P4();
+//       float tpt = trkMomentum.Pt();
+//       if(tpt < minPT) continue;
 
-      if (trkMomentum.DeltaR(jetMomentum) > 0.5)
-	continue;
+//       if (trkMomentum.DeltaR(jetMomentum) > 0.5)
+// 	continue;
 
-      float d0 = TMath::Abs(track->D0);
-      if (d0 > 3.0) 
-	continue;
+//       float d0 = TMath::Abs(track->D0);
+//       if (d0 > 3.0) 
+// 	continue;
 
-      float xd = track->Xd;
-      float yd = track->Yd;
-      float zd = track->Zd;
-      float dd0 = errd0;
-      if (dd0 < 0) 
-	TMath::Abs(track->ErrorD0);
-      float dz = TMath::Abs(track->DZ);
-      float ddz = errz0;
-      if (ddz < 0)
-	TMath::Abs(track->ErrorDZ);
+//       float xd = track->Xd;
+//       float yd = track->Yd;
+//       float zd = track->Zd;
+//       float dd0 = errd0;
+//       if (dd0 < 0) 
+// 	TMath::Abs(track->ErrorD0);
+//       float dz = TMath::Abs(track->DZ);
+//       float ddz = errz0;
+//       if (ddz < 0)
+// 	TMath::Abs(track->ErrorDZ);
 
-      int sign = (jpx * xd + jpy * yd + jpz * zd > 0.0) ? 1 : -1;
-      //add transverse and longitudinal significances in quadrature
-      float sip = sign * TMath::Sqrt(TMath::Power(d0 / dd0, 2) + TMath::Power(dz / ddz, 2));
+//       int sign = (jpx * xd + jpy * yd + jpz * zd > 0.0) ? 1 : -1;
+//       //add transverse and longitudinal significances in quadrature
+//       float sip = sign * TMath::Sqrt(TMath::Power(d0 / dd0, 2) + TMath::Power(dz / ddz, 2));
 
-      if(sip > minSignif) N_sIPtrack++;
-    }
+//       if(sip > minSignif) N_sIPtrack++;
+//     }
 
       
 
 
-  }
+//   }
   
-  tagged = (N_sIPtrack >= minTracks);
+//   tagged = (N_sIPtrack >= minTracks);
 
-  return tagged;
-}
+//   return tagged;
+// }

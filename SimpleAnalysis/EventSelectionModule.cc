@@ -26,6 +26,12 @@ EventSelectionModule::~EventSelectionModule()
 
 void EventSelectionModule::initialize()
 {
+
+  // Get the pointer to the mRICH tracks
+  _branch_mRICHTracks = getData()->UseBranch("mRICHTrack");
+
+
+  // Tree handler initialization
   TreeHandler *tree_handler = tree_handler->getInstance();
 
   if (tree_handler->getTree() != nullptr) {
@@ -34,8 +40,25 @@ void EventSelectionModule::initialize()
     _jet_pt = std::vector<float>();
     _jet_eta = std::vector<float>();
     _jet_flavor = std::vector<int>();
+    _jet_nconstituents = std::vector<int>();
     _jet_sip3dtag = std::vector<int>();
+  
     _jet_ktag = std::vector<int>();
+    _jet_k1_pt = std::vector<float>();  
+    _jet_k1_sIP3D = std::vector<float>();  
+    _jet_k2_pt = std::vector<float>();  
+    _jet_k2_sIP3D = std::vector<float>();  
+
+    _jet_t1_pt = std::vector<float>();  
+    _jet_t1_sIP3D = std::vector<float>();  
+    _jet_t2_pt = std::vector<float>();  
+    _jet_t2_sIP3D = std::vector<float>();  
+    _jet_t3_pt = std::vector<float>();  
+    _jet_t3_sIP3D = std::vector<float>();  
+    _jet_t4_pt = std::vector<float>();  
+    _jet_t4_sIP3D = std::vector<float>();  
+
+
     _jet_etag = std::vector<int>();
     _jet_mutag = std::vector<int>();
     _jet_charge = std::vector<float>();
@@ -44,8 +67,25 @@ void EventSelectionModule::initialize()
     tree_handler->getTree()->Branch("jet_pt",       "std::vector<float>", &_jet_pt);
     tree_handler->getTree()->Branch("jet_eta",      "std::vector<float>", &_jet_eta);
     tree_handler->getTree()->Branch("jet_flavor",   "std::vector<int>", &_jet_flavor);
+    tree_handler->getTree()->Branch("jet_nconstituents",   "std::vector<int>", &_jet_nconstituents);
     tree_handler->getTree()->Branch("jet_sip3dtag", "std::vector<int>", &_jet_sip3dtag);
+
     tree_handler->getTree()->Branch("jet_ktag",     "std::vector<int>", &_jet_ktag);
+    tree_handler->getTree()->Branch("jet_k1_pt",    "std::vector<float>", &_jet_k1_pt);
+    tree_handler->getTree()->Branch("jet_k1_sIP3D", "std::vector<float>", &_jet_k1_sIP3D);
+    tree_handler->getTree()->Branch("jet_k2_pt",    "std::vector<float>", &_jet_k2_pt);
+    tree_handler->getTree()->Branch("jet_k2_sIP3D", "std::vector<float>", &_jet_k2_sIP3D);
+
+    tree_handler->getTree()->Branch("jet_t1_sIP3D", "std::vector<float>", &_jet_t1_sIP3D);
+    tree_handler->getTree()->Branch("jet_t2_sIP3D", "std::vector<float>", &_jet_t2_sIP3D);
+    tree_handler->getTree()->Branch("jet_t3_sIP3D", "std::vector<float>", &_jet_t3_sIP3D);
+    tree_handler->getTree()->Branch("jet_t4_sIP3D", "std::vector<float>", &_jet_t4_sIP3D);
+
+    tree_handler->getTree()->Branch("jet_t1_pt", "std::vector<float>", &_jet_t1_pt);
+    tree_handler->getTree()->Branch("jet_t2_pt", "std::vector<float>", &_jet_t2_pt);
+    tree_handler->getTree()->Branch("jet_t3_pt", "std::vector<float>", &_jet_t3_pt);
+    tree_handler->getTree()->Branch("jet_t4_pt", "std::vector<float>", &_jet_t4_pt);
+
     tree_handler->getTree()->Branch("jet_etag",     "std::vector<int>", &_jet_etag);
     tree_handler->getTree()->Branch("jet_mutag",    "std::vector<int>", &_jet_mutag);
     tree_handler->getTree()->Branch("jet_charge",    "std::vector<float>", &_jet_charge);
@@ -105,6 +145,7 @@ void EventSelectionModule::initialize()
 
   // Global variables
   _mpi = TDatabasePDG().GetParticle(211)->Mass();
+  _mK  = TDatabasePDG().GetParticle(321)->Mass();
 
 
 
@@ -129,6 +170,7 @@ void EventSelectionModule::finalize()
 bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
 {
   auto data = getData();
+
 
   // Compute global DIS variables
   auto dis_variables = DISVariables(getGenParticles());
@@ -178,8 +220,25 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
   _jet_pt.clear();
   _jet_eta.clear();
   _jet_flavor.clear();
+  _jet_nconstituents.clear();
   _jet_sip3dtag.clear();
   _jet_ktag.clear();
+  _jet_k1_pt.clear();
+  _jet_k1_sIP3D.clear();
+  _jet_k2_pt.clear();
+  _jet_k2_sIP3D.clear();
+
+  _jet_t1_sIP3D.clear();
+  _jet_t2_sIP3D.clear();
+  _jet_t3_sIP3D.clear();
+  _jet_t4_sIP3D.clear();
+
+  _jet_t1_pt.clear();
+  _jet_t2_pt.clear();
+  _jet_t3_pt.clear();
+  _jet_t4_pt.clear();
+
+
   _jet_etag.clear();
   _jet_mutag.clear();
   _jet_charge.clear();
@@ -203,6 +262,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
     // store the number of kaons in the jets
     use_kaons = true;
   }
+
 
   bool use_electrons = false;
   if (DataStore->find("Electrons") != DataStore->end()) {
@@ -302,6 +362,16 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
 	}
     }
 
+
+  // Get Kaons, etc. from the RICH detector
+  std::vector<Track*> mrich_kaons;
+  for (int itrk = 0; itrk < _branch_mRICHTracks->GetEntries(); itrk++) {
+    Track* track = (Track*) _branch_mRICHTracks->At(itrk);
+    if (TMath::Abs(track->PID) == 321) {
+      mrich_kaons.push_back( track );
+    }
+  }
+
   std::vector<Jet*> all_jets;
   for (int ijet = 0; ijet < getJets()->GetEntries(); ijet++) 
     {
@@ -312,7 +382,67 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
       _jet_pt.push_back( jet->PT );
       _jet_eta.push_back( jet->Eta );
       _jet_flavor.push_back( jet->Flavor );
-      _jet_sip3dtag.push_back( Tagged_sIP3D(jet, *getEFlowTracks(), 3.75, 1.00, 2.0) );
+      _jet_nconstituents.push_back( jet->Constituents.GetEntries() );
+      // pre-long-lived particle decay optimization
+      //_jet_sip3dtag.push_back( Tagged_sIP3D(jet, *getEFlowTracks(), 3.75, 1.00, 2.0) );
+      // after including long-lived particle decay, optimization
+      //_jet_sip3dtag.push_back( Tagged_sIP3D(jet, *getEFlowTracks(), 2.75, 0.25, 2.0) );
+      // _jet_sip3dtag.push_back( Tagged_sIP3D(jet, *tagging_tracks, 2.75, 0.25, 2.0) );
+      //_jet_sip3dtag.push_back( Tagged_sIP3D(jet, *tagging_tracks, 3.75, 1.00, 2.0) );
+
+      // After using the significance of the charm tag yield in 100/fb to optimize the tagging,
+      // and after fixing the PYTHIA ctau_max bug:
+      _jet_sip3dtag.push_back( Tagged_sIP3D(jet, *getEFlowTracks(), 3.00, 0.25, 2.0) );
+
+
+      // Find all the good flavor-tagging tracks in this jet
+      std::vector<Track*> jet_tracks;
+      for (int itrk = 0; itrk < getEFlowTracks()->GetEntries(); itrk++) {
+	auto track = (Track*) getEFlowTracks()->At(itrk);
+
+      	if (track->P4().DeltaR( jet->P4() ) < 0.5 && IsTaggingTrack(track)) {
+	  jet_tracks.push_back( track );
+	}
+      }
+
+
+
+      // Rank by sIP3D
+      std::sort( jet_tracks.begin( ), jet_tracks.end( ), [ jet ](auto& lhs, const auto& rhs )
+		 {
+		   return sIP3D(jet,lhs) > sIP3D(jet,rhs);
+		 });
+      
+      // store the HIP track information
+      if (jet_tracks.size() > 0) {
+	_jet_t1_sIP3D.push_back( sIP3D(jet, jet_tracks[0]) );
+	_jet_t1_pt.push_back( jet_tracks[0]->PT );
+      } else {
+	_jet_t1_sIP3D.push_back(-999.0);
+	_jet_t1_pt.push_back( -1.0 );
+      }
+      if (jet_tracks.size() > 1) {
+	_jet_t2_sIP3D.push_back( sIP3D(jet, jet_tracks[1]) );
+	_jet_t2_pt.push_back( jet_tracks[1]->PT );
+      } else {
+	_jet_t2_sIP3D.push_back(-999.0);
+	_jet_t2_pt.push_back( -1.0 );
+      }
+      if (jet_tracks.size() > 2) {
+	_jet_t3_sIP3D.push_back( sIP3D(jet, jet_tracks[2]) );
+	_jet_t3_pt.push_back( jet_tracks[2]->PT );
+      } else {
+	_jet_t3_sIP3D.push_back(-999.0);
+	_jet_t3_pt.push_back( -1.0 );
+      }
+      if (jet_tracks.size() > 3) {
+	_jet_t4_sIP3D.push_back( sIP3D(jet, jet_tracks[3]) );
+	_jet_t4_pt.push_back( jet_tracks[3]->PT );
+      } else {
+	_jet_t4_sIP3D.push_back(-999.0);
+	_jet_t4_pt.push_back( -1.0 );
+      }
+
       if (use_electrons) {
 	_jet_etag.push_back( Tagged_Electron(jet, std::any_cast<std::vector<Track*>>((*DataStore)["Electrons"]), 3.0, 1.0, 1) );
       } else { 
@@ -330,6 +460,32 @@ bool EventSelectionModule::execute(std::map<std::string, std::any>* DataStore)
 	_jet_ktag.push_back( Tagged_Kaon(jet, std::any_cast<std::vector<Track*>>((*DataStore)["Kaons"]), 3.0, 1.0, 1) );
       } else {
 	_jet_ktag.push_back( 0.0 );
+      }
+
+      // mRICH Kaon Information
+      
+      // Sort by PT
+      std::sort( mrich_kaons.begin( ), mrich_kaons.end( ), [ ](auto& lhs, const auto& rhs )
+	    {
+	      return lhs->PT > rhs->PT;
+	    });
+
+      if (mrich_kaons.size() > 0) {
+	auto k1 = mrich_kaons[0];
+	_jet_k1_pt.push_back( k1->PT );
+	_jet_k1_sIP3D.push_back( sIP3D(jet, k1) );
+      } else {
+	_jet_k1_pt.push_back( -1.0 );
+	_jet_k1_sIP3D.push_back( -999.0 );
+      }
+
+      if (mrich_kaons.size() > 1) {
+	auto k2 = mrich_kaons[1];
+	_jet_k2_pt.push_back( k2->PT );
+	_jet_k2_sIP3D.push_back( sIP3D(jet, k2) );
+      } else {
+	_jet_k2_pt.push_back( -1.0 );
+	_jet_k2_sIP3D.push_back( -999.0 );
       }
 
       TVector3 Ks_sumpt;

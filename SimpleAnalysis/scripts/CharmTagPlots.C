@@ -20,14 +20,10 @@
 #include "PlotFunctions.h"
 
 
-// Units, Cross-Sections
 
-float u_fb = 1.0;
-float u_mb = 1.0e12*u_fb;
+float target_xsec = LookupCrossSection("CC_DIS");
 
-float xsec_e10_p275_CC_DIS = 1.47637e-08*u_mb;
-
-float lumi = 100*u_fb;
+float target_lumi = 100*u_fb;
 
 float n_gen = -1;
 
@@ -93,7 +89,7 @@ TH1F* DifferentialTaggingYield(TTree* data, plot_config draw_config, TString xva
   data->Project(tag_yield->GetName(), xvar.Data(), *tag_selection);
 
   std::cout << "  Unnormalized Tag Yield: " << tag_yield->GetEntries() << std::endl;
-  tag_yield->Scale(xsec_e10_p275_CC_DIS * lumi / data->GetEntries());
+  tag_yield->Scale(target_xsec * target_lumi / data->GetEntries());
   std::cout << "    Normalized Tag Yield: " << tag_yield->Integral() << std::endl;
   
 
@@ -107,6 +103,7 @@ TH1F* DifferentialTaggingYield(TTree* data, plot_config draw_config, TString xva
 
 void DrawTagEfficiencyPlot(TCanvas* pad, TTree* data, plot_config draw_config, TString xvar) 
 {
+
     auto light_eff = DifferentialTaggingEfficiency(data, draw_config, xvar, "light");
     auto charm_eff = DifferentialTaggingEfficiency(data, draw_config, xvar, "charm");
     
@@ -136,7 +133,7 @@ void DrawTagEfficiencyPlot(TCanvas* pad, TTree* data, plot_config draw_config, T
     
     
     // Configure the Legend
-    TLegend* legend = smart_legend("center right");
+    TLegend* legend = smart_legend("lower right");
     legend->SetFillStyle(0);
     legend->SetBorderSize(0);
     legend->AddEntry(&charm_eff, "Charm Jets", "lp");
@@ -268,12 +265,12 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
   
 
   TTree* default_data_selected = default_data->CopyTree(main_preselection.GetTitle());
+  default_data_selected->SetTitle(input.Data());
 
-
-  bool do_TagEffPlot = kFALSE;
-  bool do_TagYieldPlot = kFALSE;
-  bool do_100fbProjPlot = kTRUE;
-  bool do_Helicity = kFALSE;
+  bool do_TagEffPlot = kTRUE;
+  bool do_TagYieldPlot = kFALSE; //kTRUE;
+  bool do_100fbProjPlot = kFALSE; //kTRUE;
+  bool do_Helicity = kFALSE; //kTRUE;
 
 
 
@@ -281,14 +278,14 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
   // plot configurations
   plot_config draw_config;
   if (xvar=="jet_pt") {
-    float xbins[] = {10,12.5,15,20,25,35,60};
+    float xbins[] = {10,12.5,15,17.5,20,25,35,60};
     int nbins = sizeof(xbins)/sizeof(xbins[0]) - 1;
     draw_config.htemplate = new TH1F(xvar, "", nbins, xbins);
     draw_config.xlimits = std::vector<float>();
     draw_config.xlimits.push_back(0);
     draw_config.xlimits.push_back(60);
     draw_config.ylimits = std::vector<float>();
-    draw_config.ylimits.push_back(1e-5);
+    draw_config.ylimits.push_back(1e-3);
     draw_config.ylimits.push_back(1.0);
     draw_config.xtitle = "Reconstructed Jet p_{T} [GeV]";
     draw_config.ytitle = "#varepsilon_{tag}";
@@ -302,7 +299,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     draw_config.xlimits.push_back(0.01);
     draw_config.xlimits.push_back(1.0);
     draw_config.ylimits = std::vector<float>();
-    draw_config.ylimits.push_back(1e-5);
+    draw_config.ylimits.push_back(1e-3);
     draw_config.ylimits.push_back(1.0);
     draw_config.xtitle = "Bjorken x";
     draw_config.ytitle = "#varepsilon_{tag}";
@@ -316,7 +313,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     draw_config.xlimits.push_back(0.01);
     draw_config.xlimits.push_back(1.0);
     draw_config.ylimits = std::vector<float>();
-    draw_config.ylimits.push_back(1e-5);
+    draw_config.ylimits.push_back(1e-3);
     draw_config.ylimits.push_back(1.0);
     draw_config.xtitle = "Reconstructed x_{JB}";
     draw_config.ytitle = "#varepsilon_{tag}";
@@ -349,8 +346,12 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
 
   if (xvar=="jet_pt") {
     draw_config.ylimits = std::vector<float>();
-    draw_config.ylimits.push_back(0.1);
-    draw_config.ylimits.push_back(5000);
+    // draw_config.ylimits.push_back(0.1);
+    // draw_config.ylimits.push_back(5000);
+    draw_config.ylimits.push_back(0.0);
+    draw_config.ylimits.push_back(2500);
+    draw_config.logy = kFALSE;
+
     draw_config.xtitle = "Reconstructed Jet p_{T} [GeV]";
     draw_config.ytitle = "#varepsilon_{tag} #times #sigma_{CC-DIS} #times 100fb^{-1}";
   } else if (xvar == "bjorken_x") {
@@ -393,12 +394,43 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     do_100fbProjPlot = kFALSE;
   }
 
+  bool do_BkgSubtraction = kTRUE;
+
   if (do_100fbProjPlot == kTRUE) {
     pad->Clear();
     gStyle->SetErrorX(0.5);
 
     auto charm_yield = DifferentialTaggingYield(default_data_selected, draw_config, xvar, "charm");
     auto charm_yield_100fb = static_cast<TH1F*>(charm_yield->Clone("charm_yield_100fb"));
+    for (Int_t i = 1; i <= charm_yield_100fb->GetNbinsX(); i++) {
+      charm_yield_100fb->SetBinError(i, TMath::Sqrt(charm_yield_100fb->GetBinContent(i)) );
+    }
+
+    TH1F* light_yield = nullptr;
+    TH1F* light_yield_100fb = nullptr;
+
+    if (do_BkgSubtraction == kTRUE) {
+      std::cout << "   For Yield Estimate, performing a naive background subtraction error estimation..." << std::endl;
+      light_yield = DifferentialTaggingYield(default_data_selected, draw_config, xvar, "light");
+      light_yield_100fb = static_cast<TH1F*>(light_yield->Clone("light_yield_100fb"));
+      for (Int_t i = 1; i <= light_yield_100fb->GetNbinsX(); i++) {
+        light_yield_100fb->SetBinError(i, TMath::Sqrt(light_yield_100fb->GetBinContent(i)) );
+      }
+
+      // inflate the charm yield errors to account for "background subtraction"
+      for (Int_t i = 1; i <= light_yield_100fb->GetNbinsX(); i++) {
+        float err_charm = charm_yield_100fb->GetBinError(i);
+        float err_light = light_yield_100fb->GetBinError(i);
+        float err_total = TMath::Sqrt(charm_yield_100fb->GetBinContent(i) + light_yield_100fb->GetBinContent(i));
+
+        float new_charm_err = TMath::Sqrt( TMath::Power(err_total, 2.0) + TMath::Power(err_light, 2.0) );
+
+
+        charm_yield_100fb->SetBinError(i, new_charm_err );
+      }
+      
+
+    }
 
     // Load alternative samples
     auto ccdis_20Rs2_data = new TChain("tree");
@@ -428,8 +460,19 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
   
 
     for (Int_t i = 1; i <= charm_yield_100fb->GetNbinsX(); i++) {
-      charm_yield_100fb->SetBinError(i, TMath::Sqrt(charm_yield_100fb->GetBinContent(i)) );
+      //charm_yield_100fb->SetBinError(i, TMath::Sqrt(charm_yield_100fb->GetBinContent(i)) );
       ccdis_20Rs2_yield_100fb->SetBinError(i, TMath::Sqrt(ccdis_20Rs2_yield_100fb->GetBinContent(i)) );
+
+      if (do_BkgSubtraction == kTRUE) {
+
+        float err_charm = ccdis_20Rs2_yield_100fb->GetBinError(i);
+        float err_light = light_yield_100fb->GetBinError(i);
+        float err_total = TMath::Sqrt(ccdis_20Rs2_yield_100fb->GetBinContent(i) + light_yield_100fb->GetBinContent(i));
+
+        float new_charm_err = TMath::Sqrt( TMath::Power(err_total, 2.0) + TMath::Power(err_light, 2.0) );
+        ccdis_20Rs2_yield_100fb->SetBinError(i, new_charm_err);
+      }
+
       ccdis_21Rs2_yield_100fb->SetBinError(i, TMath::Sqrt(ccdis_21Rs2_yield_100fb->GetBinContent(i)) );
     }
   
@@ -529,6 +572,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     gStyle->SetErrorX(0.5);
 
     auto charm_yield = DifferentialTaggingYield(default_data_selected, draw_config, xvar, "charm");
+    // auto light_yield = DifferentialTaggingYield(default_data_selected, draw_config, xvar, "light");
     Float_t polarization_e=0.70;
     Float_t polarization_p=0.70;
     Float_t polarization  =0.70; // # single beam polarization
@@ -649,12 +693,12 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     // Transform these into differential cross-section distributions
     Float_t n_gen = static_cast<float>(delphes_data->GetEntries());
     for (Int_t ibin = 1; ibin <= light_genjets->GetNbinsX(); ibin++) {
-      Float_t dydx = light_genjets->GetBinContent(ibin)*lumi*xsec_e10_p275_CC_DIS/n_gen/light_genjets->GetBinWidth(ibin);
+      Float_t dydx = light_genjets->GetBinContent(ibin)*target_lumi*target_xsec/n_gen/light_genjets->GetBinWidth(ibin);
       Float_t dydx_relerr = light_genjets->GetBinError(ibin)/light_genjets->GetBinContent(ibin);
       light_genjets->SetBinContent(ibin, dydx);
       light_genjets->SetBinError(ibin, dydx*dydx_relerr);
 
-      dydx = charm_genjets->GetBinContent(ibin)*lumi*xsec_e10_p275_CC_DIS/n_gen/charm_genjets->GetBinWidth(ibin);
+      dydx = charm_genjets->GetBinContent(ibin)*target_lumi*target_xsec/n_gen/charm_genjets->GetBinWidth(ibin);
       dydx_relerr = charm_genjets->GetBinError(ibin)/charm_genjets->GetBinContent(ibin);
       charm_genjets->SetBinContent(ibin, dydx);
       charm_genjets->SetBinError(ibin, dydx*dydx_relerr);

@@ -4,6 +4,7 @@ import numpy as np
 import uproot
 import scipy
 import math
+import glob
 from uproot_methods import *
 from concurrent.futures import ThreadPoolExecutor
 
@@ -22,22 +23,35 @@ global n_gen
 n_gen = 10e6
 
 
+
 def UprootLoad(files=[], treename="", branches=[]):
+    global n_gen
     print(f"::UprootLoad({files}")
     executor = ThreadPoolExecutor(8)
 
-    df_list = []
-    data = uproot.pandas.iterate(files, 
-                                 treename, 
-                                 branches=branches,
-                                 flatten=False,
-                                 executor=executor)
-    for dataframe in data:
-        df_list.append(dataframe)
-    
-    df = pd.concat(df_list)
+    #df = uproot.lazyarrays(files,
+    #                       treename,
+    #                       branches=branches, 
+    #                       entrysteps=1000)
 
-    return df
+    filenames = glob.glob(files[0])
+
+    data = pd.DataFrame(columns=branches)
+
+    for filename in filenames:
+        tree = uproot.open(filename)[treename]
+        data = pd.concat([data, tree.arrays(branches, namedecode='utf-8', outputtype=pd.DataFrame)])
+
+    n_gen = len(data) #uproot.numentries(files, treename, total=True)
+
+    print(f"Originally generated number of collisions: {n_gen}")
+
+    print("Exploding the DataFrame...")
+    #data = data.set_index(['bjorken_x', 'jb_x', 'jb_Q2']).apply(pd.Series.explode).reset_index()
+    #data = data.apply(pd.Series.explode)
+    print("Completed exploding the DataFrame")
+
+    return data
 
 def TotalXSection(process='CC_DIS_e18_p275'):
     global u_mb
@@ -111,36 +125,27 @@ def DISBjorkenX(row):
 ###################################################################
 
 # Flavour tagging study code
-def DifferentialTaggingYield(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all', process='CC_DIS_e18_p275', target_lumi = 100, taggers="jet_sip3dtagged"):
+def DifferentialTaggingYield(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all', process='CC_DIS_e18_p275', target_lumi = 100, taggers="jet_sip3dtag"):
     global u_fb, n_gen
     print(f"n_gen = {n_gen}")
-    jet_pt = (df['jet_pt'].to_numpy())
-    jet_eta = (df['jet_eta'].to_numpy())
-    jet_flavor = (df['jet_flavor'].to_numpy())
-    jet_sip3tag = (df['jet_sip3dtagged'].to_numpy())
-    jet_etag = (df['jet_etagged'].to_numpy())
-    jet_mtag = (df['jet_mutagged'].to_numpy())
-    jet_ktag = (df['jet_ktagged'].to_numpy())
 
-    jet_x = (df[x].to_numpy())
+    jet_flavor = np.concatenate(df['jet_flavor'].to_numpy()).ravel()
+    jet_tag = np.concatenate(df['jet_sip3dtag'].to_numpy()).ravel()
 
+    jet_x = np.concatenate(df[x].to_numpy()).ravel()
 
+    #jet_flavor = df['jet_flavor']
+    #jet_tag = df['jet_sip3dtag']
 
-    #jet_basics = (0.01 < jet_eta) & (jet_eta < 0.9)
-    jet_basics = (jet_sip3tag == 1)
-    #jet_basics = (jet_sip3tag == 1) | (jet_etag == 1) | (jet_mtag == 1) | (jet_ktag == 1)
-    
-    all_flavor = ( jet_flavor > -999.0 ) & (jet_basics)
-    light_flavor = (( jet_flavor < 4 ) | ( jet_flavor == 21 )) & (jet_basics)
-    charm_flavor = ( jet_flavor == 4 ) & (jet_basics)
+    #jet_x = df[x]
 
-    selection = all_flavor
     if which == 'charm':
-        selection = charm_flavor
+        jet_x = jet_x[ (jet_tag == 1) & (jet_flavor == 4) ]
     elif which == 'light':
-        selection = light_flavor
+        jet_x = jet_x[ (jet_tag == 1) & ((jet_flavor < 4) | (jet_flavor == 21)) ]
 
-    (counts, bins) = np.histogram(jet_x[ selection ], range=xrange, 
+
+    (counts, bins) = np.histogram(jet_x, range=xrange, 
                                   bins=xbins)
                                   #bins=40)
 
@@ -170,35 +175,35 @@ def DifferentialTaggingYield(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,2
 
 
 
-def DifferentialTaggingEfficiency(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all', taggers="jet_sip3dtagged"):
-    jet_pt = (df['jet_pt'].to_numpy())
-    jet_eta = (df['jet_eta'].to_numpy())
-    jet_flavor = (df['jet_flavor'].to_numpy())
-    jet_sip3tag = (df['jet_sip3dtagged'].to_numpy())
-    jet_etag = (df['jet_etagged'].to_numpy())
-    jet_mtag = (df['jet_mutagged'].to_numpy())
-    jet_ktag = (df['jet_ktagged'].to_numpy())
+def DifferentialTaggingEfficiency(df, x='jet_pt', xrange=[10,50], xbins=[10,12.5,15,20,25,30,40,50], which='all', taggers="jet_sip3dtag"):
 
-    jet_x = (df[x].to_numpy())
+    jet_flavor = np.concatenate(df['jet_flavor'].to_numpy()).ravel()
+    jet_tag = np.concatenate(df['jet_sip3dtag'].to_numpy()).ravel()
 
+    jet_x = np.concatenate(df[x].to_numpy()).ravel()
 
-    #jet_tagged = (jet_sip3tag == 1) | (jet_etag == 1) | (jet_mtag == 1) | (jet_ktag == 1)
-    jet_tagged = (jet_sip3tag == 1)
-    
-    all_flavor = ( jet_flavor > -999.0 ) 
-    light_flavor = ( jet_flavor < 4 ) | ( jet_flavor == 21 )
-    charm_flavor = ( jet_flavor == 4 ) 
+    # too slow
+    #if len(jet_x.flatten()) != len(jet_flavor.flatten()):
+    #    print("Hi!")
+    #    print(len(jet_x))
+    #    new_jet_x = np.array([])
+    #    for i in np.arange(len(jet_x)):
+    #        if len(jet_flavor[i]) > 1:
+    #            print(len(jet_flavor[i]), " ", np.ones(len(jet_flavor[i])), " ", np.ones(len(jet_flavor[i]))*jet_x[i])
+    #        new_jet_x = np.append(new_jet_x, np.ones(len(jet_flavor[i]))*jet_x[i])
+    #print(new_jet_x[:15])
 
-    selection = all_flavor
     if which == 'charm':
-        selection = charm_flavor
+        jet_x = jet_x[ jet_flavor == 4 ]
+        jet_tag = jet_tag[ jet_flavor == 4 ]
     elif which == 'light':
-        selection = light_flavor
+        jet_x = jet_x[ ((jet_flavor < 4) | (jet_flavor == 21)) ]
+        jet_tag = jet_tag[ ((jet_flavor < 4) | (jet_flavor == 21)) ]
 
-    (tru_counts, bins) = np.histogram(jet_x[ selection ], range=xrange, 
+    (tru_counts, bins) = np.histogram(jet_x, range=xrange, 
                                       bins=xbins)
 
-    (tag_counts, bins) = np.histogram(jet_x[ (selection) & (jet_tagged) ], range=xrange, 
+    (tag_counts, bins) = np.histogram(jet_x[ jet_tag == 1 ], range=xrange, 
                                       bins=xbins)
 
 
