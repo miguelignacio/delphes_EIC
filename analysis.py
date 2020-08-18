@@ -81,10 +81,14 @@ neutral_E = {}
 photon_E  = {}
 track_E   = {}
 for i in range(1,5):
-    neutral_E['etabin%i'%i] = ROOT.TH1F("neutral_E_eta%i"%i, "", 100, 0.0, 100.0)
-    photon_E['etabin%i'%i]  = ROOT.TH1F("photon_E_eta%i"%i , "" , 100, 0.0,100.0)
-    track_E['etabin%i'%i]   = ROOT.TH1F("track_E_eta%i"%i, "", 100, 0.0,100.0)
+    neutral_E['etabin%i'%i] = ROOT.TH1F("neutral_E_eta%i"%i, "", 100, 0.1, 100.0)
+    photon_E['etabin%i'%i]  = ROOT.TH1F("photon_E_eta%i"%i , "" , 100, 0.1,100.0)
+    track_E['etabin%i'%i]   = ROOT.TH1F("track_E_eta%i"%i, "", 100, 0.1,100.0)
 
+
+neutral_E['2D'] = ROOT.TH2F("neutral_2D", "", 100, 0.1, 100.0, 50,-4.0,4.0)
+photon_E['2D']  =  ROOT.TH2F("photon_2D", "", 100, 0.1, 100.0, 50,-4.0,4.0)   
+track_E['2D']   = ROOT.TH2F("track_2D", "",  100, 0.1, 100.0, 50,-4.0,4.0)
 
 #Kinematic
 y_Matrix = ROOT.TH2F("y_Matrix", "inelasticity response matrix, JB method", 10, 0.0,1.0, 10,0.0,1.0)
@@ -257,28 +261,39 @@ for entry in range(0, numberOfEntries):
     #Jacquet Blondet method:
     delta_track = 0            
     temp_p = ROOT.TVector3()
+
+
+    ##Looping over tracks
     for i in range(branchEFlowTrack.GetEntries()):
+      
        track_mom = branchEFlowTrack.At(i).P4()
+       track_E['2D'].Fill(track_mom.P(), track_mom.Eta())
+       
        delta_track += (track_mom.E() - track_mom.Pz())
        temp_p = temp_p + track_mom.Vect()
        #print track_mom.E() , ' ' , track_mom.Pz()
 
+    #excluding electron
     if branchElectron.GetEntries()>0:
         e = branchElectron.At(0).P4()
         delta_track_noel = delta_track - (e.E() - e.Pz())   
 
+    #include photons
     delta_photon = 0
     for i in range(branchEFlowPhoton.GetEntries()):
-       pf_mom = branchEFlowPhoton.At(i).P4()        
+       pf_mom = branchEFlowPhoton.At(i).P4()
+       photon_E['2D'].Fill(pf_mom.P(), pf_mom.Eta())
        delta_photon += (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p + pf_mom.Vect()
 
     delta_neutral = 0
     delta_neutral_noBarrel = 0
     pt_noBarrel = ROOT.TVector3()
-    
+
+    #include neutral hadrons
     for i in range(branchEFlowNeutralHadron.GetEntries()):
        pf_mom = branchEFlowNeutralHadron.At(i).P4()
+       neutral_E['2D'].Fill(pf_mom.P(), pf_mom.Eta())   
        delta_neutral += (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p+ pf_mom.Vect()
        if abs(pf_mom.Eta())>1.0:
@@ -949,9 +964,21 @@ Jet_eta_e.SetTitle("; jet #eta^{gen}; jet E^{gen}")
 c.SaveAs("plots/profile_jetE_eta_%s.png"%(inputFile))
 c.SaveAs("plots/pdf/profile_jetE_eta_%s.pdf"%(inputFile))
 
+c.Clear()
+track_E['2D'].Draw("colz")
+c.SaveAs("plots/track_2Ddistribution%s.png"%(inputFile))
+c.SaveAs("plots/track_2Ddistribution%s.pdf"%(inputFile))
+
+c.Clear()
+photon_E['2D'].Draw("colz")
+c.SaveAs("plots/photon_2Ddistribution%s.png"%(inputFile))
+c.SaveAs("plots/photon_2Ddistribution%s.pdf"%(inputFile))
 
 
-
+c.Clear()
+neutral_E['2D'].Draw("colz")
+c.SaveAs("plots/neutral_2Ddistribution%s.png"%(inputFile))
+c.SaveAs("plots/neutral_2Ddistribution%s.pdf"%(inputFile))  
 
 c.Clear()
 histo['Vratio'].Draw()
