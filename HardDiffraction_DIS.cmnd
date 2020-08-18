@@ -1,0 +1,55 @@
+! 1) Settings used in the main program.
+Main:numberOfEvents = 500         ! number of events to generate
+
+Random:setSeed = on
+Random:seed = 0
+
+! 2) Settings related to output in init(), next() and stat().
+Init:showChangedSettings = on      ! list changed settings
+Init:showChangedParticleData = off ! list changed particle data
+#Next:numberCount = 100             ! print message every n events
+#Next:numberShowInfo = 1            ! print event information n times
+#Next:numberShowProcess = 1         ! print process record n times
+#Next:numberShowEvent = 0           ! print event record n times
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idA = 2212                     ! electron
+Beams:idB = 11                       ! proton
+Beams:eA  = 275                      ! proton energy
+Beams:eB  = 18                       ! electron energy
+Beams:frameType = 2 
+
+#PDF:lepton2gamma=on
+#Photon:ProcessType=0
+#Photon:Q2max=1.0
+#HardQCD:all=on
+#PhotonParton:all=on
+#PhaseSpace:pThatMin=4.0
+#MultipartonInteractions:pT0Ref=3.
+#WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
+WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
+PhaseSpace:Q2Min = 25.0
+#PhaseSpace:Q2Max = 26.0
+SpaceShower:dipoleRecoil=on
+SpaceShower:pTmaxMatch=2
+PDF:lepton=off
+TimeShower:QEDshowerByL=off
+
+
+Diffraction:doHard=on
+Diffraction:sampleType=1
+Diffraction:hardDiffSide=2
+SigmaDiffractive:PomFlux=7
+PDF:PomSet=6
+
+
+#PartonLevel:MPI = off              ! no multiparton interactions
+#PartonLevel:ISR = off              ! no initial-state radiation
+#PartonLevel:FSR = off              ! no final-state radiation
+#HadronLevel:Hadronize = off        ! no hadronization
+#HadronLevel:Decay = off            ! no decays
+
+#Tune:preferLHAPDF = off            ! use internal PDFs when LHAPDF not linked
+#Tune:pp = 6                        ! use Tune 4Cx
+#ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
+#ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
