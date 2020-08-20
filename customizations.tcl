@@ -12,4 +12,7 @@ set PARAM_TRACKSNMIN 2
 set PARAM_D0RES 0.020
 set PARAM_DZRES 0.020
 
+# HCAL constant and stochastic term for region 3.0-4.0
+set HCAL_CONSTANT 0.05
+set HCAL_STOCHASTIC 0.45
 
