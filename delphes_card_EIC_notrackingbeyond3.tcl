@@ -415,8 +415,8 @@ module SimpleCalorimeter HCal {
   set ResolutionFormula {    (eta <= -1.0 && eta>-4.0)                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
                              (eta <= 1.0 && eta>-1.0 )                       * sqrt(energy^2*0.10^2 + energy*1.00^2)+
                               (eta <= 3.0  && eta>1.0 )                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
-                              (eta <= 4.0  && eta>3.0 )                       * sqrt(energy^2*0.05^2 + energy*0.45^2)}
-
+      (eta <= 4.0  && eta>3.0 ) * sqrt(energy^2*[expr{$HCAL_CONSTANT*$HCAL_CONSTANT}] + energy*[expr{$HCAL_STOCHASTIC*$HCAL_STOCHASTIC}])}
+    
 }
 
 
