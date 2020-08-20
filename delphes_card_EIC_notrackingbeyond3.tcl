@@ -348,8 +348,8 @@ module SimpleCalorimeter HCal {
   set IsEcal false
 
   ##Assumes noise 100 MeV per tower. 
-  set EnergyMin 0.4
-  set EnergySignificanceMin 1.0
+  set EnergyMin 0.1
+  set EnergySignificanceMin 0.0
 
   set SmearTowerCenter true
 
