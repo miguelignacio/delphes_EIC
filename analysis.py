@@ -86,13 +86,13 @@ for i in range(1,5):
     track_E['etabin%i'%i]   = ROOT.TH1F("track_E_eta%i"%i, "", 100, 0.1,100.0)
 
 
-neutral_E['2D'] = ROOT.TH2F("neutral_2D", "", 100, 0.1, 100.0, 50,-4.0,4.0)
-photon_E['2D']  =  ROOT.TH2F("photon_2D", "", 100, 0.1, 100.0, 50,-4.0,4.0)   
-track_E['2D']   = ROOT.TH2F("track_2D", "",  100, 0.1, 100.0, 50,-4.0,4.0)
+neutral_E['2D'] = ROOT.TH2F("neutral_2D", "", 1000, 0.1, 100.0, 20,-4.0,4.0)
+photon_E['2D']  =  ROOT.TH2F("photon_2D", "", 1000, 0.1, 100.0, 20,-4.0,4.0)   
+track_E['2D']   = ROOT.TH2F("track_2D", "",  1000, 0.1, 100.0, 20,-4.0,4.0)
 
 #Kinematic
 y_Matrix = ROOT.TH2F("y_Matrix", "inelasticity response matrix, JB method", 10, 0.0,1.0, 10,0.0,1.0)
-x_Matrix = ROOT.TH2F("x_Matrix", "Bjorken x response matrix, JB method", 10, 0.0,1.0, 10,0.0,1.0)
+x_Matrix = ROOT.TH2F("x_Matrix", "Bjorken x response matrix, JB method", 10, 0.0,0.8, 10,0.0,0.8)
 Q2_Matrix = ROOT.TH2F("Q2_Matrix", "Q2 response matrix, JB method", 20, 10,100, 20,10,100) 
 
 
@@ -120,7 +120,7 @@ Nout_Q2_x = ROOT.TH2F("Nout_Q2_x", "", 10, array('d',binsx), 6, array('d',binsQ2
 Nin_Q2_x  = ROOT.TH2F("Nin_Q2_x", "" , 10, array('d',binsx), 6, array('d',binsQ2))
 
 ##E vs Eta
-Jet_eta_e = ROOT.TH2F("Jet_eta_e", "" , 100,-4.0,4.0, 100, 0, 150.0)
+Jet_eta_e = ROOT.TH2F("Jet_eta_e", "" , 100,-4.0,4.0, 100, 0, 250.0)
 
 ### Jet PT and Phi
 minpt = 5
@@ -139,8 +139,8 @@ histo = {}
 distribution = {}
 
 
-ResMatrix['x'] = ROOT.TH2F("ResMatrix_x", "" , 10, 0.0,1.0, 50,-1.0,1.0)
-profile['x']   = ROOT.TProfile("profile_x", "", 10, 0.0,1.0, -1.0,1.0, 's')
+ResMatrix['x'] = ROOT.TH2F("ResMatrix_x", "" , 10, 0.0,0.8, 50,-1.0,1.0)
+profile['x']   = ROOT.TProfile("profile_x", "", 10, 0.0,0.8, -1.0,1.0, 's')
 
 ##JET, phi, phi
 ResMatrix['jetpt'] =    ROOT.TH2F("ResMatrix_jetpt",             "",  nbinspt, minpt, maxpt, 50, -1.0, 1.0)
@@ -149,11 +149,14 @@ ResMatrix['jetphi']  =  ROOT.TH2F("ResMatrix_jetphi" ,           "",  20, 5, 100
 profile['jetphi'] =     ROOT.TProfile("profile_jetphi",          "",  20, 5, 100, -0.3,0.3,"s")
 
 for i in range(1,5):
-    ResMatrix['jete_eta%i'%i] = ROOT.TH2F("ResMatrix_jete_eta%i"%i,        "",  20, 10, 200, 50, -1.0,1.0)
-    profile['jete_eta%i'%i]   = ROOT.TProfile("profile_jete_eta%i"%i,        "",  20, 10, 200, -1.0, 1.0,"s")
+    ResMatrix['jete_eta%i'%i] = ROOT.TH2F("ResMatrix_jete_eta%i"%i,        "",  20, 10, 250, 50, -1.0,1.0)
+    profile['jete_eta%i'%i]   = ROOT.TProfile("profile_jete_eta%i"%i,        "",  20, 10, 250, -1.0, 1.0,"s")
 
-ResMatrix['jete'] = ROOT.TH2F("ResMatrix_jete",        "",  20, 5, 100, 50, -1.0,1.0)
-profile['jete']    = ROOT.TProfile("profile_jete", "", 20, 5, 100, -1.0,1.0,"s")
+
+maxjetenergy = 200
+minjetenergy  = 20
+ResMatrix['jete'] = ROOT.TH2F("ResMatrix_jete",        "",  10, minjetenergy, maxjetenergy, 50, -1.0,1.0)
+profile['jete']    = ROOT.TProfile("profile_jete", "", 10, minjetenergy, maxjetenergy, -1.0,1.0,"s")
     
 ### MET PT and Phi
 ResMatrix['met']       = ROOT.TH2F("ResMatrix_met",              "", nbinspt, minpt, maxpt, 50, -1.0, 1.0)
@@ -176,20 +179,20 @@ profile['ept']       = ROOT.TProfile("profile_ept", "", 30, 10, 40, -.20,0.20,"s
 maxdphires = 0.5
 if(isNC):
     maxdphires = 0.2
-ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dph", "", 20, 5, 100.0, 100, -maxdphires, maxdphires)
-profile['dphi']  = ROOT.TProfile("profile_dphi", "", 20, 5,100.0, -maxdphires,maxdphires,"s")
+ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dph", "", 20, 5, maxjetenergy, 100, -maxdphires, maxdphires)
+profile['dphi']  = ROOT.TProfile("profile_dphi", "", 20, maxjetenergy,100.0, -maxdphires,maxdphires,"s")
 distribution['dphi_reco'] = ROOT.TH2F("distribution_dphi_reco", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())
 distribution['dphi_gen'] = ROOT.TH2F("distribution_dphi_gen", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())     
 
 
-ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 9, 10.0, 100.0, 100, -maxdphires, maxdphires)
-profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 9, 10.0, 100.0, -maxdphires, maxdphires,"s")
-distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "", 9, 10.0, 100.0, 20, 0,1.0)
-distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  9, 10.0, 100.0, 20, 0,1.0)
+ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 9, minjetenergy, maxjetenergy, 100, -maxdphires, maxdphires)
+profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 9, minjetenergy, maxjetenergy, -maxdphires, maxdphires,"s")
+distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "", 9, minjetenergy, maxjetenergy, 20, 0,1.0)
+distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  9, minjetenergy, maxjetenergy, 20, 0,1.0)
 
 
-ResMatrix['qt'] = ROOT.TH2F("ResMatrix_qt", "", 9, 10.0, 100.0, 100, -7, 7)
-profile['qt']   = ROOT.TProfile("profile_qt", "", 9, 10.0, 100.0, -7, 7,"s")
+ResMatrix['qt'] = ROOT.TH2F("ResMatrix_qt", "", 9, minjetenergy, maxjetenergy, 100, -7, 7)
+profile['qt']   = ROOT.TProfile("profile_qt", "", 9, minjetenergy, maxjetenergy, -7, 7,"s")
 
 
 
@@ -457,7 +460,7 @@ for entry in range(0, numberOfEntries):
         if (deltaR>0.3): continue
         #if(abs(genjet.Eta())>3.0): continue    
         genjet = bestGenJetMomentum #branchGenJet.At(0)
-        if(abs(genjet.Eta())>3.0): continue 
+        #if(abs(genjet.Eta())>3.0): continue 
         # Print jet transverse momentum
         #JetMatrix.Fill(genjet.Pt()*ROOT.TMath.CosH(genjet.Eta()), jet.PT*ROOT.TMath.CosH(jet.Eta))
         JetMatrix.Fill(genjet.E(), jet.P4().E())
@@ -964,6 +967,7 @@ Jet_eta_e.SetTitle("; jet #eta^{gen}; jet E^{gen}")
 c.SaveAs("plots/profile_jetE_eta_%s.png"%(inputFile))
 c.SaveAs("plots/pdf/profile_jetE_eta_%s.pdf"%(inputFile))
 
+ROOT.gPad.SetLogx(1)
 c.Clear()
 track_E['2D'].Draw("colz")
 c.SaveAs("plots/track_2Ddistribution%s.png"%(inputFile))
@@ -979,6 +983,8 @@ c.Clear()
 neutral_E['2D'].Draw("colz")
 c.SaveAs("plots/neutral_2Ddistribution%s.png"%(inputFile))
 c.SaveAs("plots/neutral_2Ddistribution%s.pdf"%(inputFile))  
+
+ROOT.gPad.SetLogy(1)
 
 c.Clear()
 histo['Vratio'].Draw()
