@@ -197,7 +197,7 @@ inline float sIP3D(Jet *jet, Track *track)
   if (!IsTaggingTrack(track) || TMath::IsNaN(sip) || !TMath::Finite(sip)) {
     // Tracks far outside the beamspot region should be ignored (Ks, Lambda,
     // etc.); tracks with bad d0, z0 error values, etc. should be ignored.
-    sip = -999.0;
+    sip = -199.0;
   }
 
   return sip;
