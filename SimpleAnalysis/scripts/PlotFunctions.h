@@ -43,6 +43,7 @@ struct plot_config {
   std::vector<float> ylimits;
   bool logy = kFALSE;
   bool logx = kFALSE;
+  TString cuts = "";
 
   int markercolor = kBlack;
   int markerstyle = kDot;
@@ -67,13 +68,13 @@ inline Int_t getHistUID()
 }
 
 
-inline float smart_legend_x(float x_trial, float x_width) 
+inline float smart_legend_x(float x_trial, float x_width)
 {
   float excess = 0.92 - (x_trial + x_width);
   float x_new = x_trial;
 
   if (excess < 0.0) {
-    std::cout << "smart_legend_x(): x width overshoots range - shifting by " << excess << std::endl; 
+    std::cout << "smart_legend_x(): x width overshoots range - shifting by " << excess << std::endl;
     x_new = x_trial + excess;
   }
 
@@ -81,13 +82,13 @@ inline float smart_legend_x(float x_trial, float x_width)
 
 }
 
-inline float smart_legend_y(float y_trial, float y_height) 
+inline float smart_legend_y(float y_trial, float y_height)
 {
   float excess = 0.92 - (y_trial + y_height);
   float y_new = y_trial;
 
   if (excess < 0.0) {
-    std::cout << "smart_legend_y(): y height overshoots range - shifting by " << excess << std::endl; 
+    std::cout << "smart_legend_y(): y height overshoots range - shifting by " << excess << std::endl;
     y_new = y_trial + excess;
   }
 
@@ -122,7 +123,7 @@ inline TLegend* smart_legend(std::string where = "upper right", float legend_wid
     legend_y = smart_legend_y(0.20, legend_height);
   } else {
     std::cout << "You specified a placement of " << where << " that is unknown..." << std::endl;
-    
+
   }
 
   legend = new TLegend(legend_x, legend_y, legend_x + legend_width, legend_y + legend_height);
@@ -143,7 +144,7 @@ inline void set_axis_range(TH1F* hist, float min, float max, std::string which =
     hist->GetYaxis()->SetLimits(min, max);
     hist->GetYaxis()->SetRangeUser(min, max);
   }
-  
+
 }
 
 template <class T> void configure_plot(T* object, plot_config options, std::string which = "" )
@@ -209,27 +210,27 @@ float LookupCrossSection(TString samplename)
 
 
 
-TH1F* GeneratePlot(plot_config draw_config, 
+TH1F* GeneratePlot(plot_config draw_config,
 		   TTree* data,
 		   TString name,
 		   TString x,
 		   TCut selection)
 {
   TH1F* plot = static_cast<TH1F*>(draw_config.htemplate->Clone(Form("%s_%d", name.Data(), getHistUID())));
-  
+
   data->Project(plot->GetName(), x.Data(), selection);
 
   plot->SetLineColor(draw_config.linecolor);
   plot->SetLineStyle(draw_config.linestyle);
-  
+
   plot->SetFillStyle(draw_config.fillstyle);
   plot->SetFillColor(draw_config.fillcolor);
-  
+
   plot->SetMarkerColor(draw_config.markercolor);
   plot->SetMarkerStyle(draw_config.markerstyle);
 
   plot->SetXTitle( draw_config.xtitle );
   plot->SetYTitle( draw_config.ytitle );
-  
+
   return plot;
 }
