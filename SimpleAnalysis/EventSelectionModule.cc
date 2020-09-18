@@ -7,6 +7,7 @@
 
 #include "AnalysisFunctions.cc"
 #include "TreeHandler.h"
+#include "TSystem.h"
 
 #include <iostream>
 #include <iomanip>
@@ -43,6 +44,16 @@ void EventSelectionModule::initialize()
     _jet_k2_pt    = std::vector<float>();
     _jet_k2_sIP3D = std::vector<float>();
 
+    _jet_e1_pt    = std::vector<float>();
+    _jet_e1_sIP3D = std::vector<float>();
+    _jet_e2_pt    = std::vector<float>();
+    _jet_e2_sIP3D = std::vector<float>();
+
+    _jet_mu1_pt    = std::vector<float>();
+    _jet_mu1_sIP3D = std::vector<float>();
+    _jet_mu2_pt    = std::vector<float>();
+    _jet_mu2_sIP3D = std::vector<float>();
+
     _jet_t1_pt    = std::vector<float>();
     _jet_t1_sIP3D = std::vector<float>();
     _jet_t2_pt    = std::vector<float>();
@@ -55,6 +66,13 @@ void EventSelectionModule::initialize()
 
     _jet_etag   = std::vector<int>();
     _jet_mutag  = std::vector<int>();
+
+    _jet_mlp_ktagger = std::vector<float>();
+    _jet_mlp_eltagger = std::vector<float>();
+    _jet_mlp_mutagger = std::vector<float>();
+    _jet_mlp_ip3dtagger = std::vector<float>();
+
+
     _jet_charge = std::vector<float>();
 
     tree_handler->getTree()->Branch("jet_n",        &_jet_n, "jet_n/I");
@@ -70,6 +88,16 @@ void EventSelectionModule::initialize()
     tree_handler->getTree()->Branch("jet_k2_pt",    "std::vector<float>", &_jet_k2_pt);
     tree_handler->getTree()->Branch("jet_k2_sIP3D", "std::vector<float>", &_jet_k2_sIP3D);
 
+    tree_handler->getTree()->Branch("jet_e1_pt",    "std::vector<float>", &_jet_e1_pt);
+    tree_handler->getTree()->Branch("jet_e1_sIP3D", "std::vector<float>", &_jet_e1_sIP3D);
+    tree_handler->getTree()->Branch("jet_e2_pt",    "std::vector<float>", &_jet_e2_pt);
+    tree_handler->getTree()->Branch("jet_e2_sIP3D", "std::vector<float>", &_jet_e2_sIP3D);
+
+    tree_handler->getTree()->Branch("jet_mu1_pt",    "std::vector<float>", &_jet_mu1_pt);
+    tree_handler->getTree()->Branch("jet_mu1_sIP3D", "std::vector<float>", &_jet_mu1_sIP3D);
+    tree_handler->getTree()->Branch("jet_mu2_pt",    "std::vector<float>", &_jet_mu2_pt);
+    tree_handler->getTree()->Branch("jet_mu2_sIP3D", "std::vector<float>", &_jet_mu2_sIP3D);
+
     tree_handler->getTree()->Branch("jet_t1_sIP3D", "std::vector<float>", &_jet_t1_sIP3D);
     tree_handler->getTree()->Branch("jet_t2_sIP3D", "std::vector<float>", &_jet_t2_sIP3D);
     tree_handler->getTree()->Branch("jet_t3_sIP3D", "std::vector<float>", &_jet_t3_sIP3D);
@@ -79,6 +107,12 @@ void EventSelectionModule::initialize()
     tree_handler->getTree()->Branch("jet_t2_pt", "std::vector<float>", &_jet_t2_pt);
     tree_handler->getTree()->Branch("jet_t3_pt", "std::vector<float>", &_jet_t3_pt);
     tree_handler->getTree()->Branch("jet_t4_pt", "std::vector<float>", &_jet_t4_pt);
+
+    tree_handler->getTree()->Branch("jet_mlp_ip3dtagger", "std::vector<float>", &_jet_mlp_ip3dtagger);
+    tree_handler->getTree()->Branch("jet_mlp_ktagger", "std::vector<float>",    &_jet_mlp_ktagger);
+    tree_handler->getTree()->Branch("jet_mlp_eltagger", "std::vector<float>",   &_jet_mlp_eltagger);
+    tree_handler->getTree()->Branch("jet_mlp_mutagger", "std::vector<float>",   &_jet_mlp_mutagger);
+    tree_handler->getTree()->Branch("jet_mlp_globaltagger", "std::vector<float>",   &_jet_mlp_globaltagger);
 
     tree_handler->getTree()->Branch("jet_etag",     "std::vector<int>", &_jet_etag);
     tree_handler->getTree()->Branch("jet_mutag",    "std::vector<int>", &_jet_mutag);
@@ -139,6 +173,116 @@ void EventSelectionModule::initialize()
   // Global variables
   _mpi = TDatabasePDG().GetParticle(211)->Mass();
   _mK  = TDatabasePDG().GetParticle(321)->Mass();
+
+
+  // MVA Algorithms
+  _mva_reader_ip3dtagger = new TMVA::Reader("Silent"); 
+  _mva_reader_ktagger = new TMVA::Reader("Silent"); 
+  _mva_reader_eltagger = new TMVA::Reader("Silent"); 
+  _mva_reader_mutagger = new TMVA::Reader("Silent"); 
+  _mva_reader_globaltagger = new TMVA::Reader("Silent"); 
+
+
+  _mva_inputs_float = std::map<TString, Float_t>();
+  _mva_inputs_int = std::map<TString, Int_t>();
+  _mva_inputs_float["jet_pt"] = 0.0;
+  _mva_inputs_float["jet_eta"] = 0.0;
+  _mva_inputs_int["jet_flavor"] = 0;
+  _mva_inputs_float["met_et"] = 0.0;
+
+
+  _mva_inputs_float["jet_e1_pt"] = 0.0;
+  _mva_inputs_float["jet_e1_sIP3D"] = 0.0;
+  _mva_inputs_float["jet_e2_pt"] = 0.0;
+  _mva_inputs_float["jet_e2_sIP3D"] = 0.0;
+
+  _mva_inputs_float["jet_t1_pt"] = 0.0;
+  _mva_inputs_float["jet_t1_sIP3D"] = 0.0;
+  _mva_inputs_float["jet_t2_pt"] = 0.0;
+  _mva_inputs_float["jet_t2_sIP3D"] = 0.0;
+  _mva_inputs_float["jet_t3_pt"] = 0.0;
+  _mva_inputs_float["jet_t3_sIP3D"] = 0.0;
+  _mva_inputs_float["jet_t4_pt"] = 0.0;
+  _mva_inputs_float["jet_t4_sIP3D"] = 0.0;
+
+  _mva_inputs_float["jet_k1_pt"] = 0.0;
+  _mva_inputs_float["jet_k1_sIP3D"] = 0.0;
+  _mva_inputs_float["jet_k2_pt"] = 0.0;
+  _mva_inputs_float["jet_k2_sIP3D"] = 0.0;
+  
+  _mva_inputs_float["jet_mu1_pt"] = 0.0;
+  _mva_inputs_float["jet_mu1_sIP3D"] = 0.0;
+  _mva_inputs_float["jet_mu2_pt"] = 0.0;
+  _mva_inputs_float["jet_mu2_sIP3D"] = 0.0;
+
+
+  _mva_inputs_float["jet_mlp_ip3dtagger"] = 0.0;
+  _mva_inputs_float["jet_mlp_ktagger"] = 0.0;
+  _mva_inputs_float["jet_mlp_eltagger"] = 0.0;
+  _mva_inputs_float["jet_mlp_mutagger"] = 0.0;
+
+
+  _mva_reader_ip3dtagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_ip3dtagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_ip3dtagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
+  _mva_reader_ip3dtagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+
+  _mva_reader_ktagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_ktagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_ktagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
+  _mva_reader_ktagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+
+  _mva_reader_eltagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_eltagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_eltagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
+  _mva_reader_eltagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+
+  _mva_reader_mutagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_mutagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_mutagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
+  _mva_reader_mutagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+
+  _mva_reader_globaltagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_globaltagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_globaltagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
+  _mva_reader_globaltagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+
+
+  _mva_reader_eltagger->AddVariable("jet_e1_pt", &(_mva_inputs_float["jet_e1_pt"]));
+  _mva_reader_eltagger->AddVariable("jet_e1_sIP3D", &(_mva_inputs_float["jet_e1_sIP3D"]));
+  _mva_reader_eltagger->AddVariable("jet_e2_pt", &(_mva_inputs_float["jet_e2_pt"]));
+  _mva_reader_eltagger->AddVariable("jet_e2_sIP3D", &(_mva_inputs_float["jet_e2_sIP3D"]));
+
+  _mva_reader_ip3dtagger->AddVariable("jet_t1_pt", &(_mva_inputs_float["jet_t1_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t1_sIP3D", &(_mva_inputs_float["jet_t1_sIP3D"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t2_pt", &(_mva_inputs_float["jet_t2_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t2_sIP3D", &(_mva_inputs_float["jet_t2_sIP3D"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t3_pt", &(_mva_inputs_float["jet_t3_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t3_sIP3D", &(_mva_inputs_float["jet_t3_sIP3D"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t4_pt", &(_mva_inputs_float["jet_t4_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t4_sIP3D", &(_mva_inputs_float["jet_t4_sIP3D"]));
+
+  _mva_reader_ktagger->AddVariable("jet_k1_pt", &(_mva_inputs_float["jet_k1_pt"]));
+  _mva_reader_ktagger->AddVariable("jet_k1_sIP3D", &(_mva_inputs_float["jet_k1_sIP3D"]));
+  _mva_reader_ktagger->AddVariable("jet_k2_pt", &(_mva_inputs_float["jet_k2_pt"]));
+  _mva_reader_ktagger->AddVariable("jet_k2_sIP3D", &(_mva_inputs_float["jet_k2_sIP3D"]));
+  
+  _mva_reader_mutagger->AddVariable("jet_mu1_pt", &(_mva_inputs_float["jet_mu1_pt"]));
+  _mva_reader_mutagger->AddVariable("jet_mu1_sIP3D", &(_mva_inputs_float["jet_mu1_sIP3D"]));
+  _mva_reader_mutagger->AddVariable("jet_mu2_pt", &(_mva_inputs_float["jet_mu2_pt"]));
+  _mva_reader_mutagger->AddVariable("jet_mu2_sIP3D", &(_mva_inputs_float["jet_mu2_sIP3D"]));
+
+  _mva_reader_globaltagger->AddVariable("jet_mlp_ip3dtagger", &(_mva_inputs_float["jet_mlp_ip3dtagger"]));
+  _mva_reader_globaltagger->AddVariable("jet_mlp_ktagger",    &(_mva_inputs_float["jet_mlp_ktagger"]));
+  _mva_reader_globaltagger->AddVariable("jet_mlp_eltagger",   &(_mva_inputs_float["jet_mlp_eltagger"]));
+  _mva_reader_globaltagger->AddVariable("jet_mlp_mutagger",   &(_mva_inputs_float["jet_mlp_mutagger"]));
+
+  _mva_reader_ip3dtagger->BookMVA("CharmIP3DTagger", "mva_taggers/TMVAClassification_CharmIP3DTagger.weights.xml");
+  _mva_reader_eltagger->BookMVA("CharmETagger",    "mva_taggers/TMVAClassification_CharmETagger.weights.xml");
+  _mva_reader_ktagger->BookMVA("CharmKTagger",    "mva_taggers/TMVAClassification_CharmKTagger.weights.xml");
+  _mva_reader_mutagger->BookMVA("CharmMuTagger",   "mva_taggers/TMVAClassification_CharmMuTagger.weights.xml");
+  _mva_reader_globaltagger->BookMVA("CharmGlobalTagger", "mva_taggers/TMVAClassification_CharmGlobalTagger.weights.xml");
+
 }
 
 void EventSelectionModule::finalize()
@@ -154,6 +298,22 @@ void EventSelectionModule::finalize()
   }
 
   csvfile.close();
+
+  if (_mva_reader_ip3dtagger) {
+    delete _mva_reader_ip3dtagger;
+  }
+  if (_mva_reader_ktagger) {
+    delete _mva_reader_ktagger;
+  }
+  if (_mva_reader_eltagger) {
+    delete _mva_reader_eltagger;
+  }
+  if (_mva_reader_mutagger) {
+    delete _mva_reader_mutagger;
+  }
+  if (_mva_reader_globaltagger) {
+    delete _mva_reader_globaltagger;
+  }
 }
 
 bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
@@ -219,6 +379,16 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   _jet_k2_pt.clear();
   _jet_k2_sIP3D.clear();
 
+  _jet_e1_pt.clear();
+  _jet_e1_sIP3D.clear();
+  _jet_e2_pt.clear();
+  _jet_e2_sIP3D.clear();
+
+  _jet_mu1_pt.clear();
+  _jet_mu1_sIP3D.clear();
+  _jet_mu2_pt.clear();
+  _jet_mu2_sIP3D.clear();
+
   _jet_t1_sIP3D.clear();
   _jet_t2_sIP3D.clear();
   _jet_t3_sIP3D.clear();
@@ -228,6 +398,13 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   _jet_t2_pt.clear();
   _jet_t3_pt.clear();
   _jet_t4_pt.clear();
+
+
+  _jet_mlp_ktagger.clear();
+  _jet_mlp_eltagger.clear();
+  _jet_mlp_mutagger.clear();
+  _jet_mlp_ip3dtagger.clear();
+  _jet_mlp_globaltagger.clear();
 
 
   _jet_etag.clear();
@@ -285,8 +462,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   {
     auto track = static_cast<Track *>(obj_track);
 
-    if (track->PT < 0.1)
-      continue;
+    if (track->PT < 0.1) continue;
     all_tracks.push_back(track);
   }
 
@@ -301,8 +477,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       auto track1 = all_tracks[i];
       auto track2 = all_tracks[j];
 
-      if (track1->Charge * track2->Charge != -1)
-        continue;
+      if (track1->Charge * track2->Charge != -1) continue;
 
       // Treat the tracks under the charged pion hypothesis
       auto track1P4 = TLorentzVector();
@@ -319,8 +494,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       // TLorentzVector Ks_candidate = track1->P4() + track2->P4();
       TLorentzVector Ks_candidate = track1P4 + track2P4;
 
-      if (TMath::Abs(Ks_candidate.M() - 0.497) > 0.250)
-        continue;
+      if (TMath::Abs(Ks_candidate.M() - 0.497) > 0.250) continue;
 
       // Spatial coincidence requirement
       TVector3 track1_POCA(track1->X, track1->Y, track1->Z);
@@ -347,28 +521,16 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       // To be from a common decay, their displacement significance should be
       // small
 
-      if (intertrack_distance_signif > 1.5)
-        continue;
+      if (intertrack_distance_signif > 1.5) continue;
 
       // build a new Candidate
       Candidate Ks;
       Ks.PID      = 310;
       Ks.Mass     = Ks_candidate.M();
       Ks.Momentum = Ks_candidate;
-      Ks.Position = TLorentzVector(track2_POCA + 0.5 * intertrack_displacement, 0.0); //
-                                                                                      //
-                                                                                      // midpoint
-                                                                                      //
-                                                                                      // between
-                                                                                      //
-                                                                                      // POCA
-                                                                                      //
-                                                                                      // of
-                                                                                      //
-                                                                                      // two
-                                                                                      //
-                                                                                      // tracks
 
+      // midpoint between the pocas of the two tracks
+      Ks.Position = TLorentzVector(track2_POCA + 0.5 * intertrack_displacement, 0.0);
 
       Ks_candidates.push_back(Ks);
     }
@@ -439,7 +601,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       _jet_t1_sIP3D.push_back(sIP3D(jet, jet_tracks[0]));
       _jet_t1_pt.push_back(jet_tracks[0]->PT);
     } else {
-      _jet_t1_sIP3D.push_back(-999.0);
+      _jet_t1_sIP3D.push_back(-199.0);
       _jet_t1_pt.push_back(-1.0);
     }
 
@@ -447,7 +609,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       _jet_t2_sIP3D.push_back(sIP3D(jet, jet_tracks[1]));
       _jet_t2_pt.push_back(jet_tracks[1]->PT);
     } else {
-      _jet_t2_sIP3D.push_back(-999.0);
+      _jet_t2_sIP3D.push_back(-199.0);
       _jet_t2_pt.push_back(-1.0);
     }
 
@@ -455,7 +617,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       _jet_t3_sIP3D.push_back(sIP3D(jet, jet_tracks[2]));
       _jet_t3_pt.push_back(jet_tracks[2]->PT);
     } else {
-      _jet_t3_sIP3D.push_back(-999.0);
+      _jet_t3_sIP3D.push_back(-199.0);
       _jet_t3_pt.push_back(-1.0);
     }
 
@@ -463,9 +625,11 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       _jet_t4_sIP3D.push_back(sIP3D(jet, jet_tracks[3]));
       _jet_t4_pt.push_back(jet_tracks[3]->PT);
     } else {
-      _jet_t4_sIP3D.push_back(-999.0);
+      _jet_t4_sIP3D.push_back(-199.0);
       _jet_t4_pt.push_back(-1.0);
     }
+
+
 
     if (use_electrons) {
       _jet_etag.push_back(Tagged_Electron(jet, std::any_cast<std::vector<Track *> >((*DataStore)["Electrons"]), 3.0, 1.0, 1));
@@ -494,22 +658,28 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       return lhs->PT > rhs->PT;
     });
 
-    if (mrich_kaons.size() > 0) {
-      auto k1 = mrich_kaons[0];
+    auto kaons_list     = std::any_cast<std::vector<Track *> >((*DataStore)["Kaons"]);
+    auto electrons_list = std::any_cast<std::vector<Track *> >((*DataStore)["Electrons"]);
+    auto muons_list     = std::any_cast<std::vector<Track *> >((*DataStore)["Muons"]);
+
+    // if (mrich_kaons.size() > 0) {
+    if (kaons_list.size() > 0) {
+      auto k1 = kaons_list.at(0);
       _jet_k1_pt.push_back(k1->PT);
       _jet_k1_sIP3D.push_back(sIP3D(jet, k1));
     } else {
       _jet_k1_pt.push_back(-1.0);
-      _jet_k1_sIP3D.push_back(-999.0);
+      _jet_k1_sIP3D.push_back(-199.0);
     }
 
-    if (mrich_kaons.size() > 1) {
-      auto k2 = mrich_kaons[1];
+    // if (mrich_kaons.size() > 1) {
+    if (kaons_list.size() > 1) {
+      auto k2 = kaons_list.at(1);
       _jet_k2_pt.push_back(k2->PT);
       _jet_k2_sIP3D.push_back(sIP3D(jet, k2));
     } else {
       _jet_k2_pt.push_back(-1.0);
-      _jet_k2_sIP3D.push_back(-999.0);
+      _jet_k2_sIP3D.push_back(-199.0);
     }
 
     TVector3 Ks_sumpt;
@@ -565,19 +735,100 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
 
     _jet_K_sumpt.push_back(K_sumpt.Perp());
 
+    // Electrons
+    if (electrons_list.size() > 0) {
+      auto e1 = electrons_list.at(0);
+      _jet_e1_pt.push_back(e1->PT);
+      _jet_e1_sIP3D.push_back(sIP3D(jet, e1));
+    } else {
+      _jet_e1_pt.push_back(-1.0);
+      _jet_e1_sIP3D.push_back(-199.0);
+    }
+
+    if (electrons_list.size() > 1) {
+      auto e2 = electrons_list.at(1);
+      _jet_e2_pt.push_back(e2->PT);
+      _jet_e2_sIP3D.push_back(sIP3D(jet, e2));
+    } else {
+      _jet_e2_pt.push_back(-1.0);
+      _jet_e2_sIP3D.push_back(-199.0);
+    }
+
+    // Muons
+    if (muons_list.size() > 0) {
+      auto mu1 = muons_list.at(0);
+      _jet_mu1_pt.push_back(mu1->PT);
+      _jet_mu1_sIP3D.push_back(sIP3D(jet, mu1));
+    } else {
+      _jet_mu1_pt.push_back(-1.0);
+      _jet_mu1_sIP3D.push_back(-199.0);
+    }
+
+    if (muons_list.size() > 1) {
+      auto mu2 = muons_list.at(1);
+      _jet_mu2_pt.push_back(mu2->PT);
+      _jet_mu2_sIP3D.push_back(sIP3D(jet, mu2));
+    } else {
+      _jet_mu2_pt.push_back(-1.0);
+      _jet_mu2_sIP3D.push_back(-199.0);
+    }
+
+    // MLP Tagger Decisions
+    _mva_inputs_int["jet_flavor"] = static_cast<Int_t>(jet->Flavor);
+    _mva_inputs_float["jet_pt"] = jet->PT;
+    _mva_inputs_float["jet_eta"] = jet->Eta;
+    _mva_inputs_float["met_et"] = _met_et;
+
+
+    _mva_inputs_float["jet_t1_pt"] = _jet_t1_pt.back();
+    _mva_inputs_float["jet_t1_sIP3D"] = _jet_t1_sIP3D.back();
+    _mva_inputs_float["jet_t2_pt"] = _jet_t2_pt.back();
+    _mva_inputs_float["jet_t2_sIP3D"] = _jet_t2_sIP3D.back();
+    _mva_inputs_float["jet_t3_pt"] = _jet_t3_pt.back();
+    _mva_inputs_float["jet_t3_sIP3D"] = _jet_t3_sIP3D.back();
+    _mva_inputs_float["jet_t4_pt"] = _jet_t4_pt.back();
+    _mva_inputs_float["jet_t4_sIP3D"] = _jet_t4_sIP3D.back();
+
+    _mva_inputs_float["jet_k1_pt"] = _jet_k1_pt.back();
+    _mva_inputs_float["jet_k2_pt"] = _jet_k2_pt.back();
+    _mva_inputs_float["jet_k1_sIP3D"] = _jet_k1_sIP3D.back();
+    _mva_inputs_float["jet_k2_sIP3D"] = _jet_k2_sIP3D.back();
+
+    _mva_inputs_float["jet_e1_pt"] = _jet_e1_pt.back();
+    _mva_inputs_float["jet_e2_pt"] = _jet_e2_pt.back();
+    _mva_inputs_float["jet_e1_sIP3D"] = _jet_e1_sIP3D.back();
+    _mva_inputs_float["jet_e2_sIP3D"] = _jet_e2_sIP3D.back();
+
+    _mva_inputs_float["jet_mu1_pt"] = _jet_mu1_pt.back();
+    _mva_inputs_float["jet_mu2_pt"] = _jet_mu2_pt.back();
+    _mva_inputs_float["jet_mu1_sIP3D"] = _jet_mu1_sIP3D.back();
+    _mva_inputs_float["jet_mu2_sIP3D"] = _jet_mu2_sIP3D.back();
+
+
+    _jet_mlp_ip3dtagger.push_back(_mva_reader_ip3dtagger->EvaluateMVA("CharmIP3DTagger"));
+    _jet_mlp_ktagger.push_back(_mva_reader_ktagger->EvaluateMVA("CharmKTagger"));
+    _jet_mlp_eltagger.push_back(_mva_reader_eltagger->EvaluateMVA("CharmETagger"));
+    _jet_mlp_mutagger.push_back(_mva_reader_mutagger->EvaluateMVA("CharmMuTagger"));
+    
+    _mva_inputs_float["jet_mlp_ip3dtagger"] = _mva_reader_ip3dtagger->EvaluateMVA("CharmIP3DTagger");
+    _mva_inputs_float["jet_mlp_ktagger"] = _mva_reader_ktagger->EvaluateMVA("CharmKTagger");
+    _mva_inputs_float["jet_mlp_eltagger"] = _mva_reader_eltagger->EvaluateMVA("CharmETagger");
+    _mva_inputs_float["jet_mlp_mutagger"] = _mva_reader_mutagger->EvaluateMVA("CharmMuTagger");
+
+    _jet_mlp_globaltagger.push_back(_mva_reader_globaltagger->EvaluateMVA("CharmGlobalTagger"));
 
     // Calorimeter energy ratios
     _jet_ehadoveremratio.push_back(jet->EhadOverEem);
 
     // Jet charge!
-    float jet_Q = -999.0;
+    float jet_Q = -10.0;
     float kappa = 0.5;
 
     for (auto obj_track : *getEFlowTracks()) {
       auto track = static_cast<Track *>(obj_track);
 
       if (track->P4().DeltaR(jet->P4()) < 0.5) {
-        if (jet_Q == -999.0) {
+        if (jet_Q == -10.0) {
           jet_Q = 0.0;
         }
         jet_Q += track->Charge * TMath::Power(track->PT, kappa);

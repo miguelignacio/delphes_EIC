@@ -6,6 +6,10 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include "TMVA/Factory.h"
+#include "TMVA/DataLoader.h"
+#include "TMVA/Reader.h"
+#include "TMVA/Tools.h"
 
 
 class EventSelectionModule : public Module {
@@ -35,10 +39,21 @@ private:
 
   // kaon information
   std::vector<int>_jet_ktag;
+
   std::vector<float>_jet_k1_pt;
   std::vector<float>_jet_k1_sIP3D;
   std::vector<float>_jet_k2_pt;
   std::vector<float>_jet_k2_sIP3D;
+
+  std::vector<float>_jet_e1_pt;
+  std::vector<float>_jet_e1_sIP3D;
+  std::vector<float>_jet_e2_pt;
+  std::vector<float>_jet_e2_sIP3D;
+
+  std::vector<float>_jet_mu1_pt;
+  std::vector<float>_jet_mu1_sIP3D;
+  std::vector<float>_jet_mu2_pt;
+  std::vector<float>_jet_mu2_sIP3D;
 
   std::vector<float>_jet_t1_sIP3D;
   std::vector<float>_jet_t2_sIP3D;
@@ -65,6 +80,13 @@ private:
   std::vector<float>_jet_K_leading_zhadron;
   std::vector<float>_jet_ehadoveremratio;
 
+  std::vector<float> _jet_mlp_ktagger;
+  std::vector<float> _jet_mlp_eltagger;
+  std::vector<float> _jet_mlp_mutagger;
+  std::vector<float> _jet_mlp_ip3dtagger;
+  std::vector<float> _jet_mlp_globaltagger;
+
+
   float _met_et;
 
   // DIS variables
@@ -84,6 +106,17 @@ private:
 
   // Branch pointers - only initialize once per run
   TClonesArray *_branch_mRICHTracks;
+
+  // High-level multivariate tagging
+  TMVA::Reader* _mva_reader_ip3dtagger;
+  TMVA::Reader* _mva_reader_ktagger;
+  TMVA::Reader* _mva_reader_eltagger;
+  TMVA::Reader* _mva_reader_mutagger;
+  TMVA::Reader* _mva_reader_globaltagger;
+
+  std::map<TString, Float_t> _mva_inputs_float;
+  std::map<TString, Int_t> _mva_inputs_int;
+
 };
 
 #endif // ifndef EVENTSELECTIONMODULE_HH
