@@ -24,7 +24,7 @@ void jetconstituent(const char *inputFile)
 
   Track* track;
   TObject* object;
-  
+  Tower* tower;   
   // Create object of class ExRootTreeReader
   ExRootTreeReader *treeReader = new ExRootTreeReader(&chain);
   Long64_t numberOfEntries = treeReader->GetEntries();
@@ -67,8 +67,8 @@ void jetconstituent(const char *inputFile)
       if(jet->PT<10 or jet->PT>15) continue;
       if(jet->Eta>2.0 or jet->Eta<1.5) continue;
 
-      //cout << "Jet pt: "<<jet->PT << endl;
-      //cout << "Jet eta: " << jet->Eta << endl;
+      cout << "Jet pt: "<<jet->PT << endl;
+      cout << "Jet eta: " << jet->Eta << endl;
       
       //loop over its constituents
       for(int j = 0; j < jet->Constituents.GetEntriesFast(); ++j)
@@ -85,6 +85,11 @@ void jetconstituent(const char *inputFile)
 	      //cout << "    Track pt: " << track->PT << ", eta: " << track->Eta << ", phi: " << track->Phi << endl;
 	      constituent_e_eta->Fill( track->P4().Vect().Mag(), track->Eta);
 	    }
+
+	  else if(object->IsA() == Tower::Class()){
+	    tower = (Tower*) object;
+	    cout << "Tower Energy " << tower->E << " Tower eta" << tower->Eta << endl;
+	  }
 	}
     }
 

@@ -60,8 +60,8 @@ from ROOT import TLatex
 SetAtlasStyle()
 
 
-color = [1,2,6,6,7,8]
-style = [20,21,24,26] 
+color = [1,2,4,6,7,8]
+style = [20,20,20,26] 
 
 def DivideGraphs(den,num): 
     x = ROOT.Double() 
@@ -108,7 +108,9 @@ def plotHists(hists,files, xtitle, ytitle, title, pdfname,ly=False):
 
     multi.Draw("AP")
     ROOT.gStyle.SetErrorX(0.0001);
-    multi.SetMaximum(1.02*multi.GetHistogram().GetMaximum())
+    #multi.SetMaximum(1.02*multi.GetHistogram().GetMaximum())
+    multi.SetMaximum(0.25)
+    multi.SetMinimum(0.0)
     multi.SetTitle(title)
     multi.GetXaxis().SetTitle(xtitle)
     multi.GetYaxis().SetTitle(ytitle)

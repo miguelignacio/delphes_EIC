@@ -269,36 +269,30 @@ module SimpleCalorimeter ECal {
 
   ##BARREL
  # assume 0.0174 x 0.020 resolution in phi,eta in the barrel |eta| < 1.0
-  set PhiBins {}
-  for {set i -180} {$i <= 180} {incr i} {
-    add PhiBins [expr {$i * $pi/180.0}]
-  }
-
- #deta=0.02 units for |eta| <=1.0
-  for {set i -50} {$i < 50} {incr i} {
-        set eta [expr {$i * 0.02}]
-        add EtaPhiBins $eta $PhiBins
-  }
-
-  ##ENDCAP
-  # assume 0.020 x 0.020 resolution in phi,eta in the endcap 1.0<|eta| < 4.0
-  set PhiBins {}
-  for {set i -180} {$i <= 180} {incr i} {
-    add PhiBins [expr {$i * $pi/180.0}]
-  }
-
-  #deta=0.02 units for 1.0 < |eta| <= 4.0
-  #first, from -4.0 to -1.0
-  for {set i 1} {$i <=151} {incr i} {
-        set eta [expr {-4.02 + $i * 0.02}]
-        add EtaPhiBins $eta $PhiBins
+    set PhiBins {}
+    for {set i -30} {$i <=30} {incr i} {
+	add PhiBins [expr {$i * $pi/30.0}]
     }
-  #same for 1.0 to 4.0
-    for  {set i 1} {$i <=151} {incr i} {
-        set eta [expr {0.98 + $i * 0.02}]
-        add EtaPhiBins $eta $PhiBins
+    for {set i -10} {$i <=10} {incr i} {
+	set eta [expr {$i * 0.1}]
+	add EtaPhiBins $eta $PhiBins
     }
 
+
+    ## Coverage is -4.0, -1.0 , and +1.0 to 4.0.
+    set PhiBins {}
+    for {set i -30} {$i <=30} {incr i} {
+	add PhiBins [expr {$i * $pi/30.0}]
+    }
+
+    for {set i 1} {$i <=31} {incr i} {
+	set eta [expr {-4.1 + $i * 0.1}]
+	add EtaPhiBins $eta $PhiBins
+    }
+    for {set i 1} {$i <=31} {incr i} {
+	set eta [expr {0.9 + $i * 0.1 }]
+	add EtaPhiBins $eta $PhiBins
+    }
  
 
   add EnergyFraction {0} {0.0}
@@ -348,7 +342,7 @@ module SimpleCalorimeter HCal {
   set IsEcal false
 
   ##Assumes noise 100 MeV per tower. 
-  set EnergyMin 0.1
+  set EnergyMin 0.5
   set EnergySignificanceMin 0.0
 
   set SmearTowerCenter true
@@ -414,7 +408,7 @@ module SimpleCalorimeter HCal {
   # set HCalResolutionFormula {resolution formula as a function of eta and energy}
   set ResolutionFormula {    (eta <= -1.0 && eta>-4.0)                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
                              (eta <= 1.0 && eta>-1.0 )                       * sqrt(energy^2*0.10^2 + energy*1.00^2)+
-                              (eta <= 3.0  && eta>1.0 )                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
+      (eta <= 3.0  && eta>1.0 )* * sqrt(energy^2*[expr{$HCALENDCAP_CONSTANT*$HCALENDCAP_CONSTANT}] + energy*[expr{$HCALENDCAP_STOCHASTIC*$HCALENDCAP_STOCHASTIC}])                +
       (eta <= 4.0  && eta>3.0 ) * sqrt(energy^2*[expr{$HCAL_CONSTANT*$HCAL_CONSTANT}] + energy*[expr{$HCAL_STOCHASTIC*$HCAL_STOCHASTIC}])}
     
 }
@@ -610,9 +604,9 @@ module FastJetFinder GenJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR 0.8
+  set ParameterR $JETRADIUS
 
-  set JetPTMin 1.0
+  set JetPTMin 3.0
 }
 
 #########################
@@ -639,7 +633,7 @@ module FastJetFinder FastJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR 0.8
+  set ParameterR $JETRADIUS
 
   set ComputeNsubjettiness 1
   set Beta 1.0
@@ -660,7 +654,7 @@ module FastJetFinder FastJetFinder {
   set SymmetryCutSoftDrop 0.1
   set R0SoftDrop 0.8
 
-  set JetPTMin 1.0}
+  set JetPTMin 3.0}
 
 
 

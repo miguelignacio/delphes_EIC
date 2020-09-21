@@ -171,8 +171,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	      auto matchedJetMomentum = genJetMomentum;
 	      matched_index = j;
 	    }
-	}
-          
+	
+	}          
       if(deltaR>0.3) continue;
       //cout << deltaR << endl;
       genjet = (Jet*) branchGenJet->At(matched_index); 

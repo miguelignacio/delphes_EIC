@@ -23,7 +23,7 @@ Beams:frameType = 2
 
 #WeakBosonExchange:ff2ff(t:W) = on ! charged-current DIS
 WeakBosonExchange:ff2ff(t:gmZ) = on ! neutral-current DIS
-PhaseSpace:Q2Min = 1
+PhaseSpace:Q2Min = 25
 PDF:lepton = off
 TimeShower:QEDshowerByL=off 
 SpaceShower:pTmaxMatch=2

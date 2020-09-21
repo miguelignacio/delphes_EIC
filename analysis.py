@@ -153,10 +153,11 @@ for i in range(1,5):
     profile['jete_eta%i'%i]   = ROOT.TProfile("profile_jete_eta%i"%i,        "",  20, 10, 250, -1.0, 1.0,"s")
 
 
-maxjetenergy = 200
-minjetenergy  = 20
-ResMatrix['jete'] = ROOT.TH2F("ResMatrix_jete",        "",  10, minjetenergy, maxjetenergy, 50, -1.0,1.0)
-profile['jete']    = ROOT.TProfile("profile_jete", "", 10, minjetenergy, maxjetenergy, -1.0,1.0,"s")
+maxjetenergy = 150
+minjetenergy  = 50
+binsenergy = 5
+ResMatrix['jete'] = ROOT.TH2F("ResMatrix_jete",        "",  binsenergy, minjetenergy, maxjetenergy, 50, -0.40,0.40)
+profile['jete']    = ROOT.TProfile("profile_jete", "", binsenergy, minjetenergy, maxjetenergy, -0.40,.40,"s")
     
 ### MET PT and Phi
 ResMatrix['met']       = ROOT.TH2F("ResMatrix_met",              "", nbinspt, minpt, maxpt, 50, -1.0, 1.0)
@@ -185,14 +186,14 @@ distribution['dphi_reco'] = ROOT.TH2F("distribution_dphi_reco", "",  6, 10.0, 40
 distribution['dphi_gen'] = ROOT.TH2F("distribution_dphi_gen", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())     
 
 
-ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 9, minjetenergy, maxjetenergy, 100, -maxdphires, maxdphires)
-profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 9, minjetenergy, maxjetenergy, -maxdphires, maxdphires,"s")
+ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 6, minjetenergy, maxjetenergy, 100, -maxdphires, maxdphires)
+profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 6, minjetenergy, maxjetenergy, -maxdphires, maxdphires,"s")
 distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "", 9, minjetenergy, maxjetenergy, 20, 0,1.0)
 distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  9, minjetenergy, maxjetenergy, 20, 0,1.0)
 
 
-ResMatrix['qt'] = ROOT.TH2F("ResMatrix_qt", "", 9, minjetenergy, maxjetenergy, 100, -7, 7)
-profile['qt']   = ROOT.TProfile("profile_qt", "", 9, minjetenergy, maxjetenergy, -7, 7,"s")
+ResMatrix['qt'] = ROOT.TH2F("ResMatrix_qt", "", 6, minjetenergy, maxjetenergy, 100, -7, 7)
+profile['qt']   = ROOT.TProfile("profile_qt", "",6, minjetenergy, maxjetenergy, -7, 7,"s")
 
 
 
@@ -237,7 +238,7 @@ y_Matrix.SetTitle(" y response matrix, JB method; generated y; reconstructed y")
 for entry in range(0, numberOfEntries):
     if entry%10000==0:
         print 'event ' , entry
-    #if entry>5000:
+    #if entry>20000:
     #   break
     # Load selected branches with data from specified event
     treeReader.ReadEntry(entry)
@@ -267,9 +268,15 @@ for entry in range(0, numberOfEntries):
 
 
     ##Looping over tracks
+    for i in range(branchTrack.GetEntries()):
+        track_mom = branchTrack.At(i).P4()
+        #print 'Track energy ' , track_mom.E() , ' Track momentum' , track_mom.P(), 'track eta' , track_mom.Eta() 
+
+    # looping over eflow tracks
     for i in range(branchEFlowTrack.GetEntries()):
       
        track_mom = branchEFlowTrack.At(i).P4()
+       #print 'EFlowTrack energy ' , track_mom.E() , ' EFlowTrack momentum' , track_mom.P(), 'EFlowTrack eta' , track_mom.Eta()
        track_E['2D'].Fill(track_mom.P(), track_mom.Eta())
        
        delta_track += (track_mom.E() - track_mom.Pz())
@@ -296,6 +303,7 @@ for entry in range(0, numberOfEntries):
     #include neutral hadrons
     for i in range(branchEFlowNeutralHadron.GetEntries()):
        pf_mom = branchEFlowNeutralHadron.At(i).P4()
+       #print 'EFlowNeutral energy ' , pf_mom.E() , ' EFlowNeutral momentum' , pf_mom.P(), 'EFlowNeutral eta' , pf_mom.Eta()
        neutral_E['2D'].Fill(pf_mom.P(), pf_mom.Eta())   
        delta_neutral += (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p+ pf_mom.Vect()
@@ -304,7 +312,7 @@ for entry in range(0, numberOfEntries):
            pt_noBarrel = pt_noBarrel + pf_mom.Vect()
     
     delta = delta_track + delta_photon + delta_neutral
-    
+    #print ' ///////////////////'
     #delta_noel = delta_track_noel + delta_photon + delta_neutral
     #delta_noel_noBarrel = delta_track_noel + delta_photon + delta_neutral_noBarrel
     delta_noBarrel = delta_track + delta_photon + delta_neutral_noBarrel
@@ -460,7 +468,7 @@ for entry in range(0, numberOfEntries):
         if (deltaR>0.3): continue
         #if(abs(genjet.Eta())>3.0): continue    
         genjet = bestGenJetMomentum #branchGenJet.At(0)
-        #if(abs(genjet.Eta())>3.0): continue 
+        if(abs(genjet.Eta())<3.0): continue 
         # Print jet transverse momentum
         #JetMatrix.Fill(genjet.Pt()*ROOT.TMath.CosH(genjet.Eta()), jet.PT*ROOT.TMath.CosH(jet.Eta))
         JetMatrix.Fill(genjet.E(), jet.P4().E())
@@ -780,7 +788,8 @@ xtitle['x' ] = 'generated x'
 
 out_tree = ROOT.TFile("resolutions_%s.root"%inputFile,"RECREATE")
 
-for variable in ['qt','qtnormjet','jetphi','jete','jetpt','dphi','met','metphi','x']:
+#for variable in ['qt','qtnormjet','jetphi','jete','jetpt','dphi','met','metphi','x']:
+for variable in ['qt','qtnormjet','jete','dphi']:
     g_sigma = ROOT.TGraph()
     g_rms  = ROOT.TGraph()
     g_multi = ROOT.TMultiGraph()
