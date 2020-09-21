@@ -311,8 +311,8 @@ module SimpleCalorimeter ECal {
   add EnergyFraction {1000035} {0.0}
   add EnergyFraction {1000045} {0.0}
   # energy fractions for K0short and Lambda
-  add EnergyFraction {310} {0.3}
-  add EnergyFraction {3122} {0.3}
+ # add EnergyFraction {310} {0.3}
+ # add EnergyFraction {3122} {0.3}
 
   # set ResolutionFormula {resolution formula as a function of eta and energy}
   # EM - W/ScFi, granularity 2.5 cm x 2.5 cm, 12% stochastic, 2% constant terms, as suggested by Oleg Tsai.
@@ -343,7 +343,7 @@ module SimpleCalorimeter HCal {
 
   ##Assumes noise 100 MeV per tower. 
   set EnergyMin 0.5
-  set EnergySignificanceMin 0.0
+  set EnergySignificanceMin 1.0
 
   set SmearTowerCenter true
 
@@ -399,8 +399,8 @@ module SimpleCalorimeter HCal {
   add EnergyFraction {1000035} {0.0}
   add EnergyFraction {1000045} {0.0}
   # energy fractions for K0short and Lambda
-  add EnergyFraction {310} {0.7}
-  add EnergyFraction {3122} {0.7}
+  #add EnergyFraction {310} {0.7}
+  #add EnergyFraction {3122} {0.7}
 
   ##Resolution in endcaps based on EIC detector handbook 1.2
   ## Resolution midrapidity, as per sPHENIX HCAL
