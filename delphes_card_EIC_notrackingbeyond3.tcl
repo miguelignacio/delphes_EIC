@@ -357,33 +357,33 @@ module SimpleCalorimeter HCal {
   # the list ends with the higher edged of the last tower
 
   # Granularity is not discussed in EIC detector handbook. 
- ## Use 0.2 x 0.2 (real cell size will be smaller)
+ ## Use 0.25 x 0.25 (real cell size will be smaller)
 
     set PhiBins {}
-    for {set i -15} {$i <=15} {incr i} {
-	add PhiBins [expr {$i * $pi/15.0}]
+    for {set i -12} {$i <=12} {incr i} {
+	add PhiBins [expr {$i * $pi/12.0}]
     }
-    for {set i -5} {$i <=5} {incr i} {
-	set eta [expr {$i * 0.2}]
+    for {set i -4} {$i <=4} {incr i} {
+	set eta [expr {$i * 0.25}]
 	add EtaPhiBins $eta $PhiBins
     }
 
     
     ## Coverage is -4.0, -1.0 , and +1.0 to 4.0.
-# Use 0.1x0.1 cells (cell size will be smaller)
+# Use 0.2x0.2 cells (cell size will be smaller)
     
     set PhiBins {}
-    for {set i -30} {$i <=30} {incr i} {
-	add PhiBins [expr {$i * $pi/30.0}]
+    for {set i -15} {$i <=15} {incr i} {
+	add PhiBins [expr {$i * $pi/15.0}]
     }
         
-    for {set i 1} {$i <=31} {incr i} {
-	set eta [expr {-4.1 + $i * 0.1}]
+    for {set i 1} {$i <=16} {incr i} {
+	set eta [expr {-4.2 + $i * 0.2}]
 	add EtaPhiBins $eta $PhiBins
     }
     
-    for {set i 1} {$i <=31} {incr i} {
-	set eta [expr {0.9 + $i * 0.1 }]
+    for {set i 1} {$i <=16} {incr i} {
+	set eta [expr {0.8 + $i * 0.2 }]
 	add EtaPhiBins $eta $PhiBins
     }
 
