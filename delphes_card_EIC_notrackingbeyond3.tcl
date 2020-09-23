@@ -269,6 +269,8 @@ module SimpleCalorimeter ECal {
 
   ##BARREL
  # assume 0.0174 x 0.020 resolution in phi,eta in the barrel |eta| < 1.0
+    #assume 0.1 x 0.1 (real cell size will be smaller, see above)
+    
     set PhiBins {}
     for {set i -30} {$i <=30} {incr i} {
 	add PhiBins [expr {$i * $pi/30.0}]
@@ -280,6 +282,7 @@ module SimpleCalorimeter ECal {
 
 
     ## Coverage is -4.0, -1.0 , and +1.0 to 4.0.
+   ## assume 0.1 x 0.1 (real cell size will be smaller)
     set PhiBins {}
     for {set i -30} {$i <=30} {incr i} {
 	add PhiBins [expr {$i * $pi/30.0}]
@@ -354,19 +357,21 @@ module SimpleCalorimeter HCal {
   # the list ends with the higher edged of the last tower
 
   # Granularity is not discussed in EIC detector handbook. 
- ## Barrel = 0.1x0.1 , following sPHENIX HCAL
+ ## Use 0.2 x 0.2 (real cell size will be smaller)
 
     set PhiBins {}
-    for {set i -30} {$i <=30} {incr i} {
-	add PhiBins [expr {$i * $pi/30.0}]
+    for {set i -15} {$i <=15} {incr i} {
+	add PhiBins [expr {$i * $pi/15.0}]
     }
-    for {set i -10} {$i <=10} {incr i} {
-	set eta [expr {$i * 0.1}]
+    for {set i -5} {$i <=5} {incr i} {
+	set eta [expr {$i * 0.2}]
 	add EtaPhiBins $eta $PhiBins
     }
 
     
-    ## Coverage is -4.0, -1.0 , and +1.0 to 4.0. 
+    ## Coverage is -4.0, -1.0 , and +1.0 to 4.0.
+# Use 0.1x0.1 cells (cell size will be smaller)
+    
     set PhiBins {}
     for {set i -30} {$i <=30} {incr i} {
 	add PhiBins [expr {$i * $pi/30.0}]
