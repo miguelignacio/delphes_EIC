@@ -1,12 +1,18 @@
 # delphes_EIC
 
+## New!
+
+* This code now can bridge the EIC PID group's detector response codes into DELPHES. However, for now to do this you need a special fork of DELPHES3 and a special fork of the PID code. We hope in the future this can be harmonized.
+
+## Instructions
+
 Install Delphes3 following:
-https://github.com/delphes/delphes
+https://github.com/stephensekula/delphes
 
 The detector card contains an EIC detector based on the EIC detector handbook v1.2
 http://www.eicug.org/web/sites/default/files/EIC_HANDBOOK_v1.2.pdf
 
-So far it incorporates tracking, EMCAL and HCAL but lacks implementation of PID (it can be done though, following the LHCb card example)
+So far it incorporates tracking, EMCAL and HCAL. PID systems can be implemented using either the EICPIDDetector class or the IdentificationMap class. See delphes/README_EIC.md for information about how to use the PID code from EIC.
 
 Magnetic field: 1.5 T, Solenoid length: 2.0 m, Tracker radius: 80 cm. 
 
@@ -44,14 +50,16 @@ for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass en
    * Install it, ```make install```,
    * Make sure the work area binary directory is in your PATH: ```PATH=/users/ssekula/scratch/EIC/bin:${PATH}```,
 1. Install Delphes,
-   * https://github.com/delphes/delphes,
+   * https://github.com/stephensekula/delphes,
    * Clone the project and make sure you are on the master branch,
+   * Follow the instructions in README_EIC.md to install the EIC PID code as an external library. Do this BEFORE compiling.
    * Make sure ROOT is available in your path, e.g. ```lsetup \"root 6.18.04-x86_64-centos7-gcc8-opt\"```,
    * Compile with PYTHIA8: ```HAS_PYTHIA8=true PYTHIA8=/users/ssekula/scratch/EIC ./configure --prefix=/users/ssekula/scratch/EIC/```,
    * Build: ```make -j```,
    * Install: ```make install```,
 1. Get the Delphes/EIC code for simulation and analysis of a detector baseline/configuration.,
    * https://github.com/miguelignacio/delphes_EIC,
+      * For the EIC PID code examples, you may need the fork https://github.com/stephensekula/delphes_EIC until the code is harmonized with the original project
    * Clone the repository locally,
    * Follow the instructions to run the example and generate a ROOT file.
 
@@ -83,6 +91,8 @@ Beam energy recommended benchmarking points are (the order is hadron on lepton):
 
 SimpleAnalysis is a basic C++ framework that can operate on the ROOT files produced by Delphes. To compile:
 
+This requires a recent version of gcc to be compiled, as it employs features from C++-14. GCC 8.X or higher should suffice. 
+
 ```
 cd SimpleAnalysis/
 export DELPHES_PATH=<PATH TO DELPHES INSTALLATION>
@@ -102,6 +112,6 @@ This runs on a single Delphes ROOT file and produces a new output file, test.roo
 * MuonPIDModule: same as kaon PID, but for muons
 * TaggingModule: Uses the lists of kaon, muon, and electron candidates provided by the above modules, as well as an implementation of signed-high-impact-parameter track finding, to tag jets.
 
-The output file contains one entry per jet studied with a few basic jet variables. These can be processed using the scripts in ```SimpleAnalysis/scripts``` to make some plots.
+The output file contains one entry per proton-proton collision, with a variety of branches to use. These can be processed using the scripts in ```SimpleAnalysis/scripts``` to make some plots.
 
 
