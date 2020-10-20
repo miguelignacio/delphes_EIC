@@ -45,6 +45,7 @@ for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass en
 1. Install PYTHIA8,
    * http://home.thep.lu.se/~torbjorn/Pythia.html,
    * Download the tarball and unpack it. ,
+   * There is a known BUG in Pythia8.X that affects deep-inelastic scattering (DIS) simulations. To fix this, you need to follow the instructions below on "Patching Pythia8 for DIS". **DO THIS NOW**
    * Configure it for local installation in your work area, e.g. ```./configure --prefix=/users/ssekula/scratch/EIC/ --with-lhapdf6=/scratch/users/ssekula/EIC/```,
    * Build it, ```make -j```,
    * Install it, ```make install```,
@@ -63,6 +64,25 @@ for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass en
    * Clone the repository locally,
    * Follow the instructions to run the example and generate a ROOT file.
 
+## Patching Pythia8 for DIS
+
+* Edit the following file in your Pythia8 source directory: `src/BeamRemnants.cc`
+* Go to the `BeamRemnants::setOneRemnKinematics` method (it will begin around line 960 or so)
+* Find the lines that look as follows:
+
+```
+int iLepScat = isDIS ? (beamOther[0].iPos() + 2) : -1;
+```
+* Add the following lines just below this code:
+```
+if (iLepScat > (event.size()-1)) {
+   // Occasionally, the remnant is missing from the record.
+   // Return false 
+   return false;
+ }
+```
+
+Now compile the Pythia8 code. This will fix the bug.
 
 ## Running Monte Carlo Production
 
