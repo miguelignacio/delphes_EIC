@@ -7,16 +7,18 @@
 ## Instructions
 
 Install Delphes3 following:
-https://github.com/stephensekula/delphes
+https://github.com/stephensekula/delphes (**see below the section on "Setting up the code" for detailed instructions**)
 
-The detector card contains an EIC detector based on the EIC detector handbook v1.2
+The detector card (ending in `.tcl`) contains an EIC detector based on the EIC detector handbook v1.2
 http://www.eicug.org/web/sites/default/files/EIC_HANDBOOK_v1.2.pdf
 
-So far it incorporates tracking, EMCAL and HCAL. PID systems can be implemented using either the EICPIDDetector class or the IdentificationMap class. See delphes/README_EIC.md for information about how to use the PID code from EIC.
+So far it incorporates tracking, EMCAL and HCAL. PID systems can be implemented using either the EICPIDDetector class or the IdentificationMap class. See `delphes/README_EIC.md` in the main DELPHES project linked above for information about how to use the PID code from EIC.
 
-Magnetic field: 1.5 T, Solenoid length: 2.0 m, Tracker radius: 80 cm. 
+* Magnetic field: 1.5 T
+* Solenoid length: 2.0 m
+* Tracker radius: 80 cm
 
-You can run Pythia8 within Delphes. The command file shown here is suitable for DIS at EIC. 
+You can run Pythia8 within Delphes. Again, detailed instructions for patching and installing it are below. The command file (ending in `.cmnd`) shown here is suitable for DIS at EIC. 
 
 Run generation command:
 `./DelphesPythia8 cards/delphes_card_EIC.tcl examples/Pythia8/DIS.cmnd out.root`
@@ -26,8 +28,7 @@ You can see examples of analysis code in the Delphes page above
 Run visualization command:
  `root -l examples/EventDisplay.C'("cards/delphes_card_EIC.tcl","out.root")'`
  
-The two examples shown here are for neutral-current and charged-current event 
-for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass energy). 
+The two examples shown here are for neutral-current and charged-current event for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass energy). 
 
 
 ## Setting up the code
