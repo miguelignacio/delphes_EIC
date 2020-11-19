@@ -30,6 +30,12 @@ private:
   std::vector<float>_charmjet_pt;
   std::vector<float>_charmjet_eta;
 
+  
+  unsigned int _pid_track_n;
+  std::vector<int>_pid_track_pid;
+  std::vector<float>_pid_track_pt;
+  std::vector<float>_pid_track_eta;
+
   unsigned int _jet_n;
   std::vector<float>_jet_pt;
   std::vector<float>_jet_eta;
@@ -106,6 +112,9 @@ private:
 
   // Branch pointers - only initialize once per run
   TClonesArray *_branch_mRICHTracks;
+  TClonesArray *_branch_barrelDircTracks;
+  TClonesArray *_branch_dRICHagTracks;
+  TClonesArray *_branch_dRICHcfTracks;
 
   // High-level multivariate tagging
   TMVA::Reader* _mva_reader_ip3dtagger;
