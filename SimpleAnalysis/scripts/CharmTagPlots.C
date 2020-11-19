@@ -11,6 +11,7 @@
 #include "TLine.h"
 #include "TLatex.h"
 #include "TRatioPlot.h"
+#include "TFile.h"
 
 #include <glob.h>
 #include <iostream>
@@ -138,6 +139,7 @@ void DrawTagEfficiencyPlot(TCanvas *pad, TTree *data, plot_config draw_config, T
 
   pad->Update();
   pad->SaveAs(Form("CharmTagPlot_tagging_efficiency_%s_%s.pdf", data->GetTitle(), xvar.Data()));
+  pad->SaveAs(Form("CharmTagPlot_tagging_efficiency_%s_%s.C", data->GetTitle(), xvar.Data()));
 
   // Cleanup
   if (htemplate != nullptr)
@@ -189,6 +191,7 @@ void DrawTagYieldPlot(TCanvas *pad, TTree *data, plot_config draw_config, TStrin
 
 
   pad->SaveAs(Form("CharmTagPlot_tagging_yield_%s_%s.pdf", data->GetTitle(), xvar.Data()));
+  pad->SaveAs(Form("CharmTagPlot_tagging_yield_%s_%s.C", data->GetTitle(), xvar.Data()));
 
   // Cleanup
   if (htemplate != nullptr)
@@ -262,8 +265,8 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
   TTree *default_data_selected = default_data->CopyTree(main_preselection.GetTitle());
   default_data_selected->SetTitle(input.Data());
 
-  bool do_TagEffPlot    = kTRUE;
-  bool do_TagYieldPlot  = kTRUE;  // kTRUE;
+  bool do_TagEffPlot    = kFALSE;
+  bool do_TagYieldPlot  = kFALSE;  // kTRUE;
   bool do_100fbProjPlot = kTRUE; // kTRUE;
   bool do_Helicity      = kFALSE; // kTRUE;
 
@@ -285,7 +288,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     draw_config.ytitle = "#varepsilon_{tag}";
     draw_config.logy   = kTRUE;
     draw_config.logx   = kFALSE;
-    draw_config.cuts   = "jet_mlp_globaltagger>0.84";
+    draw_config.cuts   = "jet_sip3dtag==1";
   } else if (xvar == "bjorken_x") {
     float xbins[] = { 0.01, 0.043333, 0.076666, 0.1, 0.25, 0.5, 1.0 };
     int   nbins   = sizeof(xbins) / sizeof(xbins[0]) - 1;
@@ -300,7 +303,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     draw_config.ytitle = "#varepsilon_{tag}";
     draw_config.logy   = kTRUE;
     draw_config.logx   = kTRUE;
-    draw_config.cuts   = "jet_mlp_globaltagger>0.84";
+    draw_config.cuts   = "jet_sip3dtag==1";
   } else if (xvar == "jb_x") {
     float xbins[] = { 0.01, 0.043333, 0.076666, 0.1, 0.25, 0.5, 1.0 };
     int   nbins   = sizeof(xbins) / sizeof(xbins[0]) - 1;
@@ -315,7 +318,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     draw_config.ytitle = "#varepsilon_{tag}";
     draw_config.logy   = kTRUE;
     draw_config.logx   = kTRUE;
-    draw_config.cuts   = "jet_mlp_globaltagger>0.84";
+    draw_config.cuts   = "jet_sip3dtag==1";
   } else {
     do_TagEffPlot = kFALSE;
   }
@@ -351,21 +354,21 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
 
     draw_config.xtitle = "Reconstructed Jet p_{T} [GeV]";
     draw_config.ytitle = "#varepsilon_{tag} #times #sigma_{CC-DIS} #times 100fb^{-1}";
-    draw_config.cuts   = "jet_mlp_globaltagger>0.84";
+    draw_config.cuts   = "jet_sip3dtag==1";
   } else if (xvar == "bjorken_x") {
     draw_config.ylimits = std::vector<float>();
     draw_config.ylimits.push_back(0.1);
     draw_config.ylimits.push_back(5000);
     draw_config.xtitle = "Bjorken x";
     draw_config.ytitle = "#varepsilon_{tag} #times #sigma_{CC-DIS} #times 100fb^{-1}";
-    draw_config.cuts   = "jet_mlp_globaltagger>0.84";
+    draw_config.cuts   = "jet_sip3dtag==1";
   } else if (xvar == "jb_x") {
     draw_config.ylimits = std::vector<float>();
     draw_config.ylimits.push_back(0.1);
     draw_config.ylimits.push_back(5000);
     draw_config.xtitle = "Reconstructed x_{JB}";
     draw_config.ytitle = "#varepsilon_{tag} #times #sigma_{CC-DIS} #times 100fb^{-1}";
-    draw_config.cuts   = "jet_mlp_globaltagger>0.84";
+    draw_config.cuts   = "jet_sip3dtag==1";
   } else if (xvar == "jet_mlp_ktagger") {
     draw_config.htemplate = new TH1F(xvar, "", 50, -0.00001, 1.00001);
     draw_config.xlimits   = std::vector<float>();
@@ -496,32 +499,41 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
       }
     }
 
+    std::map<TString, TString> alt_samples;
+    alt_samples["CC_DIS_e10_p275_lha_21Rs2"] = "CT18ZNNLO with enhanced strangeness [R_{s}=0.863]";
+    alt_samples["CC_DIS_e10_p275_CT18ANNLO"] = "CT18ANNLO";
+    //alt_samples["CC_DIS_e10_p275_lha_22Rs2"] = "CT18ZNNLO with intermediate strangeness (22Rs2)";
+    //alt_samples["CC_DIS_e10_p275_lha_22Rs2ver3"] = "R_{s}^{INT}=0.594";
+    //alt_samples["CC_DIS_e10_p275_MMHT2014nnlo68cl"] = "MMHT2014nnlo68cl";
+    //alt_samples["CC_DIS_e10_p275_NNPDF31_nnlo_as_0118"] = "NNPDF31_nnlo_as_0118";
+
+    std::map<TString, Int_t> alt_marker;
+    alt_marker["CC_DIS_e10_p275_lha_21Rs2"] = kOpenDiamond;
+    alt_marker["CC_DIS_e10_p275_CT18ANNLO"] = kOpenCrossX;
+    alt_marker["CC_DIS_e10_p275_lha_22Rs2ver3" ] = kOpenCross;
+
+    std::map<TString, Int_t> alt_color;
+    alt_color["CC_DIS_e10_p275_lha_21Rs2"] = kBlue - 5;
+    alt_color["CC_DIS_e10_p275_CT18ANNLO"] = kViolet - 5;
+    alt_color["CC_DIS_e10_p275_lha_22Rs2ver3" ] = kSpring - 6;
+    
+
+    
+
+
     // Load alternative samples
     auto ccdis_20Rs2_data = new TChain("tree");
     files = fileVector(Form("%s/CC_DIS_e10_p275_lha_20Rs2/%s", dir.Data(), filePattern.Data()));
-
     for (auto file : files)
     {
       ccdis_20Rs2_data->Add(file.c_str());
     }
 
-    auto ccdis_21Rs2_data = new TChain("tree");
-    files = fileVector(Form("%s/CC_DIS_e10_p275_lha_21Rs2/%s", dir.Data(), filePattern.Data()));
-
-    for (auto file : files)
-    {
-      ccdis_21Rs2_data->Add(file.c_str());
-    }
-
+    std::cout << "Running pre-selection on alternative samples." << std::endl;
+    std::cout << "... suppressed strangeness ..." << std::endl;
     TTree *ccdis_20Rs2_data_selected = ccdis_20Rs2_data->CopyTree(main_preselection.GetTitle());
-    TTree *ccdis_21Rs2_data_selected = ccdis_21Rs2_data->CopyTree(main_preselection.GetTitle());
-
     auto ccdis_20Rs2_yield = DifferentialTaggingYield(ccdis_20Rs2_data_selected, draw_config, xvar, "charm");
-    auto ccdis_21Rs2_yield = DifferentialTaggingYield(ccdis_21Rs2_data_selected, draw_config, xvar, "charm");
-
     auto ccdis_20Rs2_yield_100fb = static_cast<TH1F *>(ccdis_20Rs2_yield->Clone("20Rs2_yield_100fb"));
-    auto ccdis_21Rs2_yield_100fb = static_cast<TH1F *>(ccdis_21Rs2_yield->Clone("ccdis_21Rs2_yield_100fb"));
-
 
     for (Int_t i = 1; i <= charm_yield_100fb->GetNbinsX(); i++) {
       // charm_yield_100fb->SetBinError(i,
@@ -537,7 +549,6 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
         ccdis_20Rs2_yield_100fb->SetBinError(i, new_charm_err);
       }
 
-      ccdis_21Rs2_yield_100fb->SetBinError(i, TMath::Sqrt(ccdis_21Rs2_yield_100fb->GetBinContent(i)));
     }
 
     // Generate the error band histogram for the suppressed case
@@ -548,24 +559,8 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
       error_band_100fb->SetBinContent(i, 1.0);
     }
 
-    // Draw the enhanced-suppressed range overlay
-    std::cout << "Draw the Rs range band..." << std::endl;
-    TH1F *range_band_100fb = static_cast<TH1F *>(ccdis_20Rs2_yield_100fb->Clone("range_band_100fb"));
-    range_band_100fb->Scale(-1.0);
-    range_band_100fb->Add(ccdis_21Rs2_yield_100fb);
-    range_band_100fb->Divide(ccdis_20Rs2_yield_100fb);
 
-    for (Int_t i = 1; i <= range_band_100fb->GetNbinsX(); i++) {
-      range_band_100fb->SetBinError(i, 0.0);
-      range_band_100fb->SetBinContent(i, range_band_100fb->GetBinContent(i) + 1.0);
-    }
-    TGraphErrors *range_plot_100fb = new TGraphErrors(range_band_100fb);
-    range_plot_100fb->SetMarkerColor(kBlue - 5);
-    range_plot_100fb->SetLineColor(kBlue - 5);
-    range_plot_100fb->SetMarkerSize(2.0);
-    range_plot_100fb->SetMarkerStyle(kOpenDiamond);
-    range_plot_100fb->SetTitle("CT18ZNNLO with enhanced strangeness [R_{s}=0.863]");
-
+    // Now handle the suppressed-only error band
     error_band_100fb->SetLineColor(kGray);
     error_band_100fb->SetFillColor(kGray);
     error_band_100fb->SetMarkerSize(0.0001);
@@ -581,7 +576,131 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
 
     htemplate->Draw("HIST");
     error_band_100fb->Draw("E2 SAME");
-    range_plot_100fb->Draw("E1 SAME P");
+
+
+    // Legend
+    legend = smart_legend("lower left", 0.75, 0.25);
+    legend->SetFillStyle(0);
+    legend->SetBorderSize(0);
+    legend->AddEntry(error_band_100fb, "Stat. Uncertainty [CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]", "lf");
+
+
+    // Other alternative samples
+
+    Int_t plot_index = 0;
+    for (auto& alt_sample : alt_samples) {
+      auto alt_tree = new TChain("tree");
+      files = fileVector(Form("%s/%s/%s", dir.Data(), alt_sample.first.Data(), filePattern.Data()));
+
+      if (files.size() == 0) {
+	std::cout << "Sample " << alt_sample.first.Data() << " appears to contain no files - check the name of the directory, etc." << std::endl;
+	exit(0);
+      }
+
+      for (auto file : files)
+	{
+	  // Check file first
+	  TFile* testfile = TFile::Open(file.c_str());
+	  if (testfile != nullptr) {
+	    alt_tree->Add(file.c_str());
+	    delete testfile;
+	  } else {
+	    std::cout << "File " << file.c_str() << " is damaged!" << std::endl;
+	  }
+	}
+
+      std::cout << "Generated events in sample " << alt_sample.first.Data() << ": " << alt_tree->GetEntries() << std::endl;
+
+      TTree* alt_selected = alt_tree->CopyTree(main_preselection.GetTitle());
+      auto yield = DifferentialTaggingYield(alt_selected, draw_config, xvar, "charm");
+
+      delete alt_selected;
+
+      auto yield_100fb = static_cast<TH1F *>(yield->Clone(alt_sample.second));
+      
+
+      for (Int_t i = 1; i <= charm_yield_100fb->GetNbinsX(); i++) {
+	yield_100fb->SetBinError(i, TMath::Sqrt(yield_100fb->GetBinContent(i)));
+      }
+      
+      // Draw the enhanced-suppressed range overlay
+      std::cout << "Draw " << alt_sample.second << std::endl;
+      TH1F *range_band_100fb = static_cast<TH1F *>(ccdis_20Rs2_yield_100fb->Clone(Form("range plot %s", alt_sample.second.Data())));
+      range_band_100fb->Scale(-1.0);
+      range_band_100fb->Add(yield_100fb);
+      range_band_100fb->Divide(ccdis_20Rs2_yield_100fb);
+      
+      for (Int_t i = 1; i <= range_band_100fb->GetNbinsX(); i++) {
+	range_band_100fb->SetBinError(i, 0.0);
+	range_band_100fb->SetBinContent(i, range_band_100fb->GetBinContent(i) + 1.0);
+      }
+      TGraphErrors *range_plot_100fb = new TGraphErrors(range_band_100fb);
+      range_plot_100fb->SetName(Form("range_plot_100fb_%d", plot_index));
+      range_plot_100fb->SetMarkerColor(alt_color[alt_sample.first]);
+      range_plot_100fb->SetLineColor(alt_color[alt_sample.first]);
+      range_plot_100fb->SetMarkerSize(2.0);
+      range_plot_100fb->SetMarkerStyle(alt_marker[alt_sample.first]);
+      range_plot_100fb->SetTitle(alt_sample.second.Data());
+
+      range_plot_100fb->Draw("E1 SAME P");
+      legend->AddEntry(range_plot_100fb, alt_sample.second.Data(),                              "lp");
+
+      plot_index++;
+    }
+
+
+    // auto ccdis_21Rs2_data = new TChain("tree");
+    // files = fileVector(Form("%s/CC_DIS_e10_p275_lha_21Rs2/%s", dir.Data(), filePattern.Data()));
+
+    // for (auto file : files)
+    // {
+    //   ccdis_21Rs2_data->Add(file.c_str());
+    // }
+
+    // auto ccdis_CT18ANNLO_data = new TChain("tree");
+    // files = fileVector(Form("%s/CC_DIS_e10_p275_CT18ANNLO/%s", dir.Data(), filePattern.Data()));
+
+    // for (auto file : files)
+    // {
+    //   ccdis_CT18ANNLO_data->Add(file.c_str());
+    // }
+
+
+    // std::cout << "... enhanced strangeness ..." << std::endl;
+    // TTree *ccdis_21Rs2_data_selected = ccdis_21Rs2_data->CopyTree(main_preselection.GetTitle());
+    // std::cout << "... CT18ANNLO ..." << std::endl;
+    // TTree *ccdis_CT18ANNLO_data_selected = ccdis_CT18ANNLO_data->CopyTree(main_preselection.GetTitle());
+
+    // auto ccdis_21Rs2_yield = DifferentialTaggingYield(ccdis_21Rs2_data_selected, draw_config, xvar, "charm");
+    // auto ccdis_CT18ANNLO_yield = DifferentialTaggingYield(ccdis_CT18ANNLO_data_selected, draw_config, xvar, "charm");
+
+    // auto ccdis_21Rs2_yield_100fb = static_cast<TH1F *>(ccdis_21Rs2_yield->Clone("ccdis_21Rs2_yield_100fb"));
+    // auto ccdis_CT18ANNLO_yield_100fb = static_cast<TH1F *>(ccdis_CT18ANNLO_yield->Clone("ccdis_CT18ANNLO_yield_100fb"));
+
+
+
+
+    // // Draw the CT18ANNLO-suppressed range overlay
+    // std::cout << "Draw the Rs range band for CT18ANNLO vs. Suppressed Strangeness..." << std::endl;
+    // TH1F *range_CT18ANNLO_band_100fb = static_cast<TH1F *>(ccdis_20Rs2_yield_100fb->Clone("range_CT18ANNLO_band_100fb"));
+    // range_CT18ANNLO_band_100fb->Scale(-1.0);
+    // range_CT18ANNLO_band_100fb->Add(ccdis_CT18ANNLO_yield_100fb);
+    // range_CT18ANNLO_band_100fb->Divide(ccdis_20Rs2_yield_100fb);
+
+    // for (Int_t i = 1; i <= range_CT18ANNLO_band_100fb->GetNbinsX(); i++) {
+    //   range_CT18ANNLO_band_100fb->SetBinError(i, 0.0);
+    //   range_CT18ANNLO_band_100fb->SetBinContent(i, range_CT18ANNLO_band_100fb->GetBinContent(i) + 1.0);
+    // }
+    // TGraphErrors *range_CT18ANNLO_plot_100fb = new TGraphErrors(range_CT18ANNLO_band_100fb);
+    // range_CT18ANNLO_plot_100fb->SetMarkerColor(kGreen - 5);
+    // range_CT18ANNLO_plot_100fb->SetLineColor(kGreen - 5);
+    // range_CT18ANNLO_plot_100fb->SetMarkerSize(2.0);
+    // range_CT18ANNLO_plot_100fb->SetMarkerStyle(kOpenTriangleUp);
+    // range_CT18ANNLO_plot_100fb->SetTitle("CT18ANNLO");
+
+
+    // range_plot_100fb->Draw("E1 SAME P");
+    // range_CT18ANNLO_plot_100fb->Draw("E1 SAME P");
 
     TLine OneLine(draw_config.xlimits[0], 1.0, draw_config.xlimits[1], 1.0);
     OneLine.SetLineWidth(2);
@@ -599,17 +718,12 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
 
     pad->SetGrid(1, 1);
 
-    // Legend
-    legend = smart_legend("lower left", 0.75, 0.25);
-    legend->SetFillStyle(0);
-    legend->SetBorderSize(0);
-    legend->AddEntry(error_band_100fb, "Stat. Uncertainty [CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]", "lf");
-    legend->AddEntry(range_plot_100fb, "CT18ZNNLO with enhanced strangeness [R_{s}=0.863]",                              "lp");
     legend->Draw();
 
     pad->Update();
 
     pad->SaveAs(Form("CharmTagPlot_tagging_yield_100fb_%s_%s.pdf", input.Data(), xvar.Data()));
+    pad->SaveAs(Form("CharmTagPlot_tagging_yield_100fb_%s_%s.C", input.Data(), xvar.Data()));
 
 
     if (htemplate != nullptr)
@@ -702,6 +816,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     pad->Update();
 
     pad->SaveAs(Form("CharmTagPlot_dA_strange_helicity_100fb_%s_%s.pdf", input.Data(), xvar.Data()));
+    pad->SaveAs(Form("CharmTagPlot_dA_strange_helicity_100fb_%s_%s.C", input.Data(), xvar.Data()));
   }
 
 
@@ -836,6 +951,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
 
     pad->Update();
     pad->SaveAs(Form("CharmTagPlot_differential_xs_%s_%s.pdf", delphes_data->GetTitle(), xvar.Data()));
+    pad->SaveAs(Form("CharmTagPlot_differential_xs_%s_%s.C", delphes_data->GetTitle(), xvar.Data()));
 
     // Cleanup
     if (htemplate != nullptr)
