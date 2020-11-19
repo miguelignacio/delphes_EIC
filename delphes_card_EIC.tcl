@@ -70,6 +70,8 @@ set ExecutionPath {
   barrelDircPID
   CF4RICHPID
   TofBarrelPID
+  dualRICHagPID
+  dualRICHcfPID
 
   TreeWriter
 }
@@ -1527,6 +1529,8 @@ module EICPIDDetector barrelDircPID {
   set QuantumEfficiency 0 
   set TrackResolution 0.5
   set TimeResolution 0.1
+  set EtaLow -1.0
+  set EtaHigh 1.0
 
 
   add Hypotheses {321} {211}
@@ -1543,7 +1547,8 @@ module EICPIDDetector mRICHPID {
   set PixelSize 3.0
   set TrackResolution 0.00175
   set TimeResolution 1.0
-
+  set EtaLow -4.0
+  set EtaHigh -1.0
 
   add Hypotheses {321} {211}
 }
@@ -1581,6 +1586,32 @@ module EICPIDDetector TofBarrelPID {
   add Hypotheses {321} {211}
 }
 
+module EICPIDDetector dualRICHagPID {
+  set InputArray HCal/eflowTracks
+  set OutputArray tracks
+
+  ##
+  ## TOF Barrel Detector Settings 
+  ##
+  set DetectorName dualRICH_aerogel
+
+
+  add Hypotheses {321} {211}
+}
+
+module EICPIDDetector dualRICHcfPID {
+  set InputArray HCal/eflowTracks
+  set OutputArray tracks
+
+  ##
+  ## TOF Barrel Detector Settings 
+  ##
+  set DetectorName dualRICH_C2F6
+
+
+  add Hypotheses {321} {211}
+}
+
 
 ##################
 # ROOT tree writer
@@ -1605,6 +1636,9 @@ module TreeWriter TreeWriter {
   add Branch CF4RICHPID/tracks CF4RICHTrack Track
   add Branch barrelDircPID/tracks barrelDircTrack Track
   add Branch TofBarrelPID/tracks tofBarrelTrack Track
+  add Branch dualRICHagPID/tracks dRICHagTrack Track
+  add Branch dualRICHcfPID/tracks dRICHcfTrack Track
+
 
   add Branch GenJetFinder/jets GenJet Jet
   add Branch GenMissingET/momentum GenMissingET MissingET
