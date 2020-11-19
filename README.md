@@ -59,7 +59,6 @@ for beam energies of 10 GeV electron on 100 GeV proton (63 GeV center-of-mass en
    * Install: ```make install```,
 1. Get the Delphes/EIC code for simulation and analysis of a detector baseline/configuration.,
    * https://github.com/miguelignacio/delphes_EIC,
-      * For the EIC PID code examples, you may need the fork https://github.com/stephensekula/delphes_EIC until the code is harmonized with the original project
    * Clone the repository locally,
    * Follow the instructions to run the example and generate a ROOT file.
 
