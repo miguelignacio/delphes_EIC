@@ -606,7 +606,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   for (int itrk = 0; itrk < _branch_dRICHagTracks->GetEntries(); itrk++) {
     Track *track_ag = (Track *)_branch_dRICHagTracks->At(itrk);
 
-    if (track_ag->Eta  < 1.48 || 3.91 < track_ag->Eta)
+    if (track_ag->Eta  < 1.0 || 4.0 < track_ag->Eta)
       continue;
 
 
