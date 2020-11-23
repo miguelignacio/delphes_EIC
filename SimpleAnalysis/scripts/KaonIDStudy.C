@@ -66,8 +66,10 @@ void              KaonIDStudy(TString dir, TString input, TString trackname = "b
     etaMax       = 2.0;
   } else if (trackname == "dRICHTrack") {
     // dualRICH, aerogel-based
-    etaMin       = 1.48;
-    etaMax       = 3.91;
+    etaMin       = 1.00;
+    etaMax       = 4.00;
+    //etaMin       = 1.48;
+    //etaMax       = 3.91;
     xmax         = 75.0;
   }
   cut_fiducial = new TCut(Form("%0.1f < pid_track_eta && pid_track_eta < %0.1f && pid_track_pt>0.1", etaMin, etaMax));
