@@ -609,7 +609,7 @@ module FastJetFinder GenJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR $JETRADIUS
+  set ParameterR 1.0
 
   set JetPTMin 3.0
 }
@@ -638,7 +638,7 @@ module FastJetFinder FastJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR $JETRADIUS
+  set ParameterR 1.0
 
   set ComputeNsubjettiness 1
   set Beta 1.0
