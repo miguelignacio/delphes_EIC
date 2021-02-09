@@ -2,6 +2,7 @@
 # EIC detector model                                                                                                                                                                                     
 # based on parameters from EIC detector matrix from EIC yellow report https://physdiv.jlab.org/DetectorMatrix/
 # as well as on assumptions on calorimeter granularity and tracking efficiency (not specified in handbook).
+# Berkeley all-silicon tracker 1.4 T. Taken from slides from Rey Cruz-Torres https://indico.bnl.gov/event/7913/ 
 # email: miguel.arratia@ucr.edu
 #######################################################################################################################
 
@@ -86,21 +87,20 @@ module ParticlePropagator ParticlePropagator {
 #
 
 #From EIC YR detector matrix:
-#Minimum pT for B = 3 T:
-#150 MeV/c for -3.0 < eta < -2.5
-#220 MeV/c for -2.5 < eta < -2.0
-#160 MeV/c for -2.0 < eta < -1.5
-#300 MeV/c for -1.5 < eta < -1.0
-#(For B = 3T: minimum pT = 400 MeV/c with 90% acceptance (similar for pi and K))
+#Minimum pT for B = 1.5 T:
+#100 MeV/c for -3.0 < eta < -2.5
+#130 MeV/c for -2.5 < eta < -2.0
+#70 MeV/c for -2.0 < eta < -1.5
+#150 MeV/c for -1.5 < eta < -1.0
 
 set CommonTrackingEfficiency {
 
-    (abs(eta) <= 1.0) * (pt > 0.400)                     * (1.0) +
-    (abs(eta) > 1.0 && abs(eta) <= 1.5) * (pt > 0.300)   * (1.0) +
-    (abs(eta) > 1.5 && abs(eta) <= 2.0) * (pt > 0.160)   * (1.0) +
-    (abs(eta) > 2.0 && abs(eta) <= 2.5) * (pt > 0.220)   * (1.0) +
-    (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.150)   * (1.0) +
-    (abs(eta) > 3.5 && abs(eta) <= 4.0) * (pt > 0.150)   * (1.0) +
+    (abs(eta) <= 1.0) * (pt > 0.200)                     * (1.0) +
+    (abs(eta) > 1.0 && abs(eta) <= 1.5) * (pt > 0.150)   * (1.0) +
+    (abs(eta) > 1.5 && abs(eta) <= 2.0) * (pt > 0.070)   * (1.0) +
+    (abs(eta) > 2.0 && abs(eta) <= 2.5) * (pt > 0.130)   * (1.0) +
+    (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.100)   * (1.0) +
+    (abs(eta) > 3.5 && abs(eta) <= 4.0) * (pt > 0.100)   * (1.0) +
 
     (abs(eta) > 4.0)                                                  * (0.00)+
     0.0    
