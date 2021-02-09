@@ -2,6 +2,7 @@
 # EIC detector model                                                                                                                                                                                     
 # based on parameters from EIC detector matrix from EIC yellow report https://physdiv.jlab.org/DetectorMatrix/
 # as well as on assumptions on calorimeter granularity and tracking efficiency (not specified in handbook).
+#Berkeley all-silicon tracker 3.0 T. Taken from slides from Rey Cruz-Torres https://indico.bnl.gov/event/7913/ 
 # email: miguel.arratia@ucr.edu
 #######################################################################################################################
 
