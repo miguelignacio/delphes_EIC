@@ -1,9 +1,8 @@
 ######################################################################################################################                                
 # EIC detector model                                                                                                                                                                                     
-# Author: Miguel Arratia                                 
-# email:miguel.arratia@ucr.edu
-# based on parameters from EIC detector matrix v2 XXX. 
-# as well as on assumptions on calorimeter granularity and tracking efficiency (not specified in handbook). 
+# based on parameters from EIC detector matrix from EIC yellow report https://physdiv.jlab.org/DetectorMatrix/
+# as well as on assumptions on calorimeter granularity and tracking efficiency (not specified in handbook).
+# email: miguel.arratia@ucr.edu
 #######################################################################################################################
 
 
@@ -76,17 +75,14 @@ set ExecutionPath {
 
 module ParticlePropagator ParticlePropagator {
     set InputArray Delphes/stableParticles
-    
     set OutputArray stableParticles
     set ChargedHadronOutputArray chargedHadrons
     set ElectronOutputArray electrons
     set MuonOutputArray muons
-    
     # radius of the magnetic field coverage, in m
     set Radius 0.8
     # half-length of the magnetic field coverage, in m
     set HalfLength 1.00
-    
     # magnetic field
     set Bz 3.0
 }
@@ -95,23 +91,31 @@ module ParticlePropagator ParticlePropagator {
 ####################################
 # Common Tracking Efficiency Model
 ####################################
-#(leaving structure to show how tracking dependent on pt and eta can be incorporated)
+#Dummy efficiency (100%). Leaving structure to show how tracking dependent on pt and eta can be incorporated)
+#
+
+#Minimum pT for B = 3 T:
+#150 MeV/c for -3.0 < eta < -2.5
+#220 MeV/c for -2.5 < eta < -2.0
+#160 MeV/c for -2.0 < eta < -1.5
+#300 MeV/c for -1.5 < eta < -1.0
+#(For B = 3T: minimum pT = 400 MeV/c with 90% acceptance (similar for pi and K))
 
 set CommonTrackingEfficiency {
-    (pt <= 0.1)                                                       * (0.00) +
-    (abs(eta) <= 1.5) * (pt > 0.1   && pt <= 1.0)                     * (1.0) +
-    (abs(eta) <= 1.5) * (pt > 1.0)                                    * (1.0) +
-    (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 0.1   && pt <= 1.0)   * (1.0) +
-    (abs(eta) > 1.5 && abs(eta) <= 2.5) * (pt > 1.0)                  * (1.0) +
-    (abs(eta) > 2.5 && abs(eta) <= 3.0) * (pt > 0.1   && pt <= 1.0)   * (1.0) +
-    (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 1.0)                  * (1.0) +
-    (abs(eta) > 3.5)                                                  * (0.00)
+
+    (abs(eta) <= 1.0) * (pt > 0.400)                     * (1.0) +
+    (abs(eta) > 1.0 && abs(eta) <= 1.5) * (pt > 0.300)   * (1.0) +
+    (abs(eta) > 1.5 && abs(eta) <= 2.0) * (pt > 0.160)   * (1.0) +
+    (abs(eta) > 2.0 && abs(eta) <= 2.5) * (pt > 0.220)   * (1.0) +
+    (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.150)   * (1.0) +
+    (abs(eta) > 3.5)                                                  * (0.00)+
+    0.0    
 }
 
 set CommonTrackingResolution {
-    (abs(eta) <= 1.0) * (pt > 0.1) * sqrt((0.005)^2 + (pt*cosh(eta))^2*(0.0002)^2) +
-    (abs(eta) > 1.0 && abs(eta) <= 2.5) * (pt > 0.1) * sqrt((0.01)^2 + (pt*cosh(eta))^2*(0.0002)^2) +
-    (abs(eta) > 2.5 && abs(eta) <= 3.5) * (pt > 0.1) * sqrt((0.02)^2 + (pt*cosh(eta))^2*(0.0010)^2) +
+    (abs(eta) <= 1.0)                        * sqrt((5e-3)^2 + (pt*cosh(eta))^2*(2e-4)^2) +
+    (abs(eta) > 1.0 && abs(eta) <= 2.5)      * sqrt((1e-2)^2 + (pt*cosh(eta))^2*(2e-4)^2) +
+    (abs(eta) > 2.5 && abs(eta) <= 3.5)      * sqrt((2e-2)^2 + (pt*cosh(eta))^2*(1e-3)^2) +
     (abs(eta) > 3.5)                                                  * (0.00)
 }
 
@@ -201,17 +205,15 @@ module TrackSmearing TrackSmearing {
 #  set BeamSpotInputArray BeamSpotFilter/beamSpotParticle
   set OutputArray tracks
 #  set ApplyToPileUp true
-
   # magnetic field
   set Bz 3.0
-
   set PResolutionFormula { 0.0 }
   set CtgThetaResolutionFormula { 0.0 }
   set PhiResolutionFormula { 0.0 }
-  set D0ResolutionFormula "( abs(eta) <= 2.5 && abs(eta)>1.0 ) * ( pt > 0.1 ) * (0.010 + 0.040) +
-                           ( abs(eta) <= 1.0 ) * ( pt > 0.1 ) * (0.005 + 0.030)"
-  set DZResolutionFormula "( abs(eta) <= 2.5 && abs(eta)>1.0 ) * ( pt > 0.1 ) * (0.020 + 0.100) +
-                             ( abs(eta) <= 1.0 ) * ( pt > 0.1 ) * (0.005 + 0.030)"
+  set D0ResolutionFormula "( abs(eta) <= 2.5 && abs(eta)>1.0 ) * (sqrt( (0.010)^2 + (0.040/pt)^2)) +
+                             ( abs(eta) <= 1.0 ) *                 (sqrt( (0.005)^2 + (0.030/pt)^2))"
+  set DZResolutionFormula "( abs(eta) <= 2.5 && abs(eta)>1.0 ) *   (sqrt( (0.020)^2 + (0.100/pt)^2)) + 
+                             ( abs(eta) <= 1.0 )               *   (sqrt( (0.005)^2 + (0.030/pt)^2)) "
     
 }
 
@@ -229,7 +231,10 @@ module SimpleCalorimeter ECal {
   set EFlowTowerOutputArray eflowPhotons
 
   set IsEcal true
-  set EnergyMin 0.02  
+  set EnergyMin 0.050
+  #does not seem possible to set minimum dependent on eta as spec in the YR.  
+  
+		  
   set EnergySignificanceMin 1.0
 
   set SmearTowerCenter true
@@ -242,7 +247,7 @@ module SimpleCalorimeter ECal {
 
   # Granularity is not discussed in EIC detector handbook. 
   ##BARREL
-  #assume 0.1 x 0.1 (real cell size will be smaller, see above)
+  #assume 0.1 x 0.1 (real cell size will be smaller, so this is to represent some cluster)
     
     set PhiBins {}
     for {set i -30} {$i <=30} {incr i} {
@@ -254,7 +259,7 @@ module SimpleCalorimeter ECal {
     }
 
     ## Coverage is -3.5, -1.0 , and +1.0 to 3.5.
-   ## assume 0.1 x 0.1 (real cell size will be smaller)
+   ## assume 0.1 x 0.1 (real cell size will be smaller, so this is to represent some cluster)
     set PhiBins {}
     for {set i -30} {$i <=30} {incr i} {
 	add PhiBins [expr {$i * $pi/30.0}]
@@ -363,8 +368,8 @@ module SimpleCalorimeter HCal {
 
   # set HCalResolutionFormula {resolution formula as a function of eta and energy}
   set ResolutionFormula {    (eta <= -1.0 && eta>-3.5)                       * sqrt(energy^2*0.10^2 + energy*0.50^2)+
-      (eta <= 1.0 && eta>-1.0 )                       * sqrt(energy^2*0.10^2 + energy*1.00^2)+
-      (eta <= 3.5 && eta>1.0 )                       * sqrt(energy^2*0.10^2 + energy*0.50^2)
+                             (eta <= 1.0 && eta>-1.0 )                       * sqrt(energy^2*0.10^2 + energy*1.00^2)+
+                             (eta <= 3.5 && eta>1.0 )                       * sqrt(energy^2*0.10^2 + energy*0.50^2)
   }
     
 }
@@ -556,7 +561,7 @@ module FastJetFinder GenJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR 1.0
+  set ParameterR 0.50
 
   set JetPTMin 3.0
 }
@@ -585,7 +590,7 @@ module FastJetFinder FastJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR 1.0
+  set ParameterR .50
 
   set ComputeNsubjettiness 1
   set Beta 1.0
@@ -675,40 +680,23 @@ module UniqueObjectFinder UniqueObjectFinder {
 module TrackCountingBTagging TrackCountingBTagging {
     set JetInputArray JetEnergyScale/jets
     set TrackInputArray HCal/eflowTracks
-    
     set BitNumber 0
-    
     # maximum distance between jet and track
     set DeltaR 0.5
-    
     # minimum pt of tracks
-    set TrackPtMin $PARAM_TRACKPTMIN
-    #set TrackPtMin 1.0
-    
+    set TrackPtMin 1.0
     # maximum transverse impact parameter (in mm)
-    set TrackIPMax $PARAM_TRACKIPMAX
-    #set TrackIPMax 3
-    
+    set TrackIPMax 3
     # minimum ip significance for the track to be counted
-    set SigMin $PARAM_TRACKSIGMIN
-    #set SigMin 2.0
+    set SigMin 2.0
     set Use3D true
     # alternate setting for 2D IP (default)
     #  set SigMin 1.3
     #  set Use3D false
-    
     # minimum number of tracks (high efficiency n=2, high purity n=3)
     #set Ntracks 3
-    set Ntracks $PARAM_TRACKSNMIN
+    
 }
-
-##################
-# PID Systems
-##################
-
-# mRICH
-
-
 
 
 ##################
@@ -729,8 +717,6 @@ module TreeWriter TreeWriter {
   add Branch HCal/eflowTracks EFlowTrack Track
   add Branch ECal/eflowPhotons EFlowPhoton Tower
   add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
-
-  #add Branch mRICHPID/tracks mRICHTrack Track
 
   add Branch GenJetFinder/jets GenJet Jet
   add Branch GenMissingET/momentum GenMissingET MissingET
