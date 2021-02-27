@@ -21,29 +21,22 @@ class ExRootResult;
 
 struct TestPlots
 {
-  TH1 *fElectronDeltaPT;
-  TH1 *fElectronDeltaEta;
-  TH1 *fJetDeltaPT;
-  TH1 *hjt;
-  TH1 *hphi;
-  TH1 *hz;
-  TH1 *hr;
- 
+    
+  TH2 *res_z_10_20;
+  TH2 *res_z_20_40;
+  TH2 *res_z_40_60;
+  TH2 *res_z_60_80;
 
-  TH1 *Dz_15_20;
+
+  TProfile* profile_z_10_20;
+  TProfile* profile_z_20_40;
+  TProfile* profile_z_40_60;
+  TProfile* profile_z_60_80;
   
-  TH1 *asym;
-  TH1 *asym_smeared;
-  
-  TH1 *res_dphi_04_06;
-  TH1 *res_dphi_01_02;  
-  TH2 *res_dphi_z_10_20;
-  TH2 *res_dphi_z_20_40;
-  TH2 *res_dphi_z_40_60;
-  TH2 *res_dphi_z_60_80;
-
-
-
+  TProfile* profile_p_10_20;
+  TProfile* profile_p_20_40;
+  TProfile* profile_p_40_60;
+  TProfile* profile_p_60_80;
 };
 
 //------------------------------------------------------------------------------
@@ -53,38 +46,31 @@ void BookHistograms(ExRootResult *result, TestPlots *plots)
   TLegend *legend;
   TPaveText *comment;
 
-  plots->fElectronDeltaPT = result->AddHist1D(
-    "electron_delta_pt", "(p_{T}^{particle} - p_{T}^{electron})/p_{T}^{particle}",
-    "(p_{T}^{particle} - p_{T}^{electron})/p_{T}^{particle}", "number of electrons",
-    100, -0.1, 0.1);
+  plots->res_z_10_20 = result->AddHist2D("res_z_10_20", "Collins Angle resolution, 10 <E_{jet}< 20 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}", 10, 0.0, 1.0,  100,-1,1);
+  plots->res_z_20_40 = result->AddHist2D("res_z_20_40", "Collins Angle resolution, 20 <E_{jet}< 40 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}", 10,0.0,1.0, 100,-1,1);
+  plots->res_z_40_60 = result->AddHist2D("res_z_40_60", "Collins Angle resolution, 40 <E_{jet}< 60 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}", 10,0.0,1.0, 100,-1,1);
+  plots->res_z_60_80 = result->AddHist2D("res_z_60_80", "Collins Angle resolution, 60 <E_{jet}< 80 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}", 10,0.0,1.0, 100,-1,1);      
+  plots->profile_z_10_20 = result->AddProfile("profile_z_10_20", "z resolution, 10 <E_{jet}< 20 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}",
+						   10,0.0,1.0, -1.0,1.0);
 
-  plots->fElectronDeltaEta = result->AddHist1D(
-    "electron_delta_eta", "(#eta^{particle} - #eta^{electron})/#eta^{particle}",
-    "(#eta^{particle} - #eta^{electron})/#eta^{particle}", "number of electrons",
-    100, -0.1, 0.1);
+  plots->profile_z_20_40 = result->AddProfile("profile_z_20_40", "z resolution, 20 <E_{jet}< 40 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}",
+					      10,0.0,1.0, -1.0,1.0);
+  plots->profile_z_40_60 = result->AddProfile("profile_z_40_60", "z resolution, 40 <E_{jet}< 60 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}",
+					      10,0.0,1.0, -1.0,1.0);
 
-  plots->fJetDeltaPT = result->AddHist1D(
-    "jet_delta_pt", "(p_{T}^{jet} - p_{T}^{constituents})/p_{T}^{jet}",
-    "(p_{T}^{jet} - p_{T}^{constituents})/p_{T}^{jet}", "number of jets",
-    100, -1.0e-1, 1.0e-1);
-
-  //plots->Dz_15_20 = result->AddHist1D("Dz_15_20", "", "Dz", "entries", 20,0,1.0);
-  plots->Dz_15_20 = result->AddHist1D("Dz_15_20", "", "Dz " , "entries",10,0,1.0);   
-  plots->hjt  = result->AddHist1D("jt", "", "jt " , "entries",50,0,3.0);
-  plots->hz   = result->AddHist1D("z", ""," z " , "entries",50,0,1.0);
-  plots->hphi = result->AddHist1D("phi", "", "phi " , "entries",180,-6.0,9.0);
-  plots->hr   = result->AddHist1D("r", "" , "z", "entries", 50, 0,1.0);
-  plots->asym = result->AddHist1D("asym", "Generated asymmetry", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "entries" , 13,-TMath::Pi(),TMath::Pi());
-  plots->asym_smeared = result->AddHist1D("asym_smeared", "Reconstructed asymmetry", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "entries",  13,-TMath::Pi(),TMath::Pi());
+  plots->profile_z_60_80 = result->AddProfile("profile_z_60_80", "z resolution, 60 <E_{jet}< 80 GeV", "generated z", "(z^{reco}-z^{gen})/z^{gen}",                                                                                                               10,0.0,1.0, -1.0,1.0);
   
-  double mindphi = TMath::Pi()/2.0;
-  plots->res_dphi_04_06 = result->AddHist1D("dphi_res_04_06", "Collins Angle resolution, 40 < E_{jet} < 60 GeV and 0.4<z<0.6", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "entries", 100,-TMath::Pi(),TMath::Pi());
-  plots->res_dphi_01_02 = result->AddHist1D("dphi_res_01_02", "Collins Angle resolution, 40 < E_{jet} < 60 GeV and 0.1<z<0.2", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "entries", 100,-TMath::Pi(),TMath::Pi());
+  plots->profile_p_10_20 = result->AddProfile("profile_p_10_20", "Momentum resolution 10 <E_{jet}< 20 GeV", "generated p", "(p^{reco}-p^{gen})/p^{gen}",
+					     50,0.0,50.0, -1.0,1.0);
+  plots->profile_p_20_40 = result->AddProfile("profile_p_20_40", "Momentum resolution 20 <E_{jet}< 40 GeV", "generated p", "(p^{reco}-p^{gen})/p^{gen}",
+					      50,0.0,50.0, -1.0,1.0);
+  plots->profile_p_40_60 = result->AddProfile("profile_p_40_60", "Momentum resolution 40 <E_{jet}< 60 GeV", "generated p", "(p^{reco}-p^{gen})/p^{gen}",
+					      50,0.0,50.0, -1.0,1.0);
+  plots->profile_p_60_80 = result->AddProfile("profile_p_60_80", "Momentum resolution 60 <E_{jet}< 80 GeV", "generated p", "(p^{reco}-p^{gen})/p^{gen}",
+					      50,0.0,50.0, -1.0,1.0);
+  //  TProfile *AddProfile(const char *name, const char *title,  const char *xlabel, const char *ylabel,    Int_t nxbins, Axis_t xmin, Axis_t xmax,    Int_t logx = 0, Int_t logy = 0);
   
-  plots->res_dphi_z_10_20 = result->AddHist2D("dphi_res_z_10_20", "Collins Angle resolution, 10 <E_{jet}< 20 GeV", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "generated z", 51, -mindphi,mindphi, 10,0.0,1.0);
-  plots->res_dphi_z_20_40 = result->AddHist2D("dphi_res_z_20_40", "Collins Angle resolution, 20 <E_{jet}< 40 GeV", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "generated z", 51,-mindphi, mindphi, 10,0.0,1.0); 
-  plots->res_dphi_z_40_60 = result->AddHist2D("dphi_res_z_40_60", "Collins Angle resolution, 40 <E_{jet}< 60 GeV", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "generated z", 51, -mindphi, mindphi, 10,0.0,1.0); 
-  plots->res_dphi_z_60_80 = result->AddHist2D("dphi_res_z_60_80", "Collins Angle resolution, 60 <E_{jet}< 80 GeV", "#phi_{C}^{gen}-#phi_{C}^{reco} [rad]", "generated z", 51, -mindphi, mindphi, 10,0.0,1.0); 
+  
 }
 
 //------------------------------------------------------------------------------
@@ -100,7 +86,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
   TClonesArray *branchGenJet = treeReader->UseBranch("GenJet");
 
   Long64_t allEntries = treeReader->GetEntries();
-
+  
   cout << "** Chain contains " << allEntries << " events" << endl;
 
   GenParticle *particle;
@@ -128,6 +114,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
   TF1 *f1 = new TF1("f1","1+0.05*sin(x)",-TMath::Pi(),TMath::Pi());
   int njets = 0;
   for(entry = 0; entry < allEntries; ++entry)
+  // for(entry = 0; entry < 1000; ++entry)   
   {
     // Load selected branches with data from specified event
     treeReader->ReadEntry(entry);
@@ -138,8 +125,6 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
       electron = (Electron*) branchElectron->At(i);
       particle = (GenParticle*) electron->Particle.GetObject();
 
-      plots->fElectronDeltaPT->Fill((particle->PT - electron->PT)/particle->PT);
-      plots->fElectronDeltaEta->Fill((particle->Eta - electron->Eta)/particle->Eta);
     }
 
   
@@ -148,7 +133,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
     for(int i = 0; i < branchJet->GetEntriesFast(); ++i)
     {
       jet = (Jet*) branchJet->At(i);
-      if(jet->PT<10.0) continue;
+      if(jet->PT<5.0) continue;
       
       float deltaR = 999;
       
@@ -171,8 +156,8 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	      auto matchedJetMomentum = genJetMomentum;
 	      matched_index = j;
 	    }
-	
-	}          
+	}
+          
       if(deltaR>0.3) continue;
       //cout << deltaR << endl;
       genjet = (Jet*) branchGenJet->At(matched_index); 
@@ -198,6 +183,7 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
           //cout << "    Track pt: " << track->PT << ", eta: " << track->Eta << ", phi: " << track->Phi << endl;
           momentum += track->P4();
 	  if(abs(track->PID)!=211) continue; //if not a charged pion, continue
+	  //cout << " track charge " << track->Charge << " PID " << track->PID<<endl;
 	  double pxh, pyh, pzh, cross;
          
 	  pxh = track->P4().Px();
@@ -211,20 +197,10 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	  pzj = jet->P4().Pz();
           double p = TMath::Sqrt(pxj*pxj + pyj*pyj + pzj*pzj);
 
-	  //cout << jet->P4().Vect().Mag() << endl;
-	  //cout << track->P4().Vect().Mag() << endl;
-	  
-	  //cout << " " << endl;
 	  TVector3 crossproduct = jet->P4().Vect().Unit().Cross(track->P4().Vect().Unit());
-          //cout << "Cross product " << crossproduct.Mag() << endl;
-	  //cout << "angle " << TMath::ASin(crossproduct.Mag()) << endl;  
-	  
 	  double sin = crossproduct.Mag()/(jet->P4().Vect().Mag());
 	    
 	  double z = jet->P4().Vect().Dot( track->P4().Vect() )/(jet->P4().P()*jet->P4().P());
-          //if( !(z>0.4 and z<0.6)) continue;
-
-
           double r = TMath::Sqrt( pow(jet->P4().Phi() - track->P4().Phi(),2.0) + pow(jet->P4().Eta() - track->P4().Eta(),2.0));
 	  TVector3 zaxis(0,0,1);
           TVector3 N = zaxis.Cross(jet->P4().Vect());
@@ -232,26 +208,14 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	  N = N.Unit();
 	  S = S.Unit();
 	  TVector3 jt  = track->P4().Vect().Dot(N)*N + track->P4().Vect().Dot(S)*S;
-	  //if(jet->PT<15 and jet->PT>10){
-	  //  plots->Dz_15_20->Fill(z);
-	  // }
           double angle = track->P4().Vect().Dot(N)/track->P4().Vect().Dot(S);	  
           double phi_h = TMath::ATan(angle); 
-	  //cout << "asd" << jt.Unit().Dot(jet->P4().Vect()) << endl;
-	  //double phi_h = TMath::ACos(jt.Unit().Dot(N.Unit()));
-	  //std::cout << jet->P4().Vect().Cross(  track->P4().Vect() ) / (ptrack*p)  << endl;
-          //double phi_h = TMath::ASin(jet->P4().Vect().Cross(  track->P4().Vect() ) / (ptrack*p));
-          //cout<< sin << endl;
-	    // double phi_h =crossproduct.Mag();// TMath::ASin(sin);
-	  
-	  plots->hphi->Fill(phi_h);
-	  plots->hz->Fill(z);
-	  plots->hjt->Fill(jt.Mag());
-	  plots->hr->Fill(r);     
 	  
           //track truth
 	  auto gentrack = (GenParticle*) track->Particle.GetObject();
-
+          double p_truth = gentrack->P4().P();
+	  double p_reco  = track->P4().P();
+	  
           TVector3 gen_crossproduct = genjet->P4().Vect().Cross(gentrack->P4().Vect());
 	  double genz = genjet->P4().Vect().Dot( gentrack->P4().Vect() )/(genjet->P4().P()*genjet->P4().P());
 	  //if( !(genz>0.4 and genz<0.6)) continue;
@@ -263,7 +227,9 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	  TVector3 genjt  = gentrack->P4().Vect().Dot(genN)*genN + gentrack->P4().Vect().Dot(genS)*genS;
 	  double genphi_h = TMath::ATan(gentrack->P4().Vect().Dot(genN)/gentrack->P4().Vect().Dot(genS)); 
 
-          double dphi = TVector2::Phi_mpi_pi(genphi_h-phi_h);
+	  
+     
+	  double dphi = TVector2::Phi_mpi_pi(genphi_h-phi_h);
 	  if(dphi> TMath::Pi()/2.0){
 	    dphi = dphi- TMath::Pi();
 	  }
@@ -272,36 +238,30 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
 	  }
 	 
        
-	  if(genjet->PT>10 and genjet->PT>10){                                                                                                                                                                                  plots->Dz_15_20->Fill(genz);
-	  }      
+	  
 
 	  if(genjet->P4().E()>10 and genjet->P4().E()<20){
-	      plots->res_dphi_z_10_20->Fill(dphi, genz);
+	    plots->res_z_10_20->Fill(genz,(z-genz)/genz);
+	    plots->profile_z_10_20->Fill(genz,(z-genz)/genz);
+	    plots->profile_p_10_20->Fill(p_truth, (p_reco-p_truth)/p_truth);
 	  }
 	  else if(genjet->P4().E()>20 and genjet->P4().E()<40){
-	    plots->res_dphi_z_20_40->Fill(dphi, genz);
+	    plots->res_z_20_40->Fill(genz, (z-genz)/genz);
+	    plots->profile_z_20_40->Fill(genz,(z-genz)/genz);      
+	    plots->profile_p_20_40->Fill(p_truth, (p_reco-p_truth)/p_truth);   
 	  }
 	  else if(genjet->P4().E()>40 and genjet->P4().E()<60){
-	    plots->res_dphi_z_40_60->Fill(dphi, genz);
-	    if(genz>0.4 and genz<0.6 ){
-	      plots->res_dphi_04_06->Fill(dphi);
-	    }
-	    else if(genz>0.1 and genz<0.2 ){
-	      plots->res_dphi_01_02->Fill(dphi);
-	      double x = f1->GetRandom();
-	      //cout << x << endl;
-	      plots->asym->Fill(x);
-	      plots->asym_smeared->Fill(x+dphi);
-	    }
+	    plots->res_z_40_60->Fill(genz, (z-genz)/genz);
+	    plots->profile_z_40_60->Fill(genz,(z-genz)/genz);      
+	    plots->profile_p_40_60->Fill(p_truth, (p_reco-p_truth)/p_truth);   
 	  }
 	  else if(genjet->P4().E()>60 and genjet->P4().E()<80){
-	    plots->res_dphi_z_60_80->Fill(dphi, genz);                                                                                                                                                 
+	    plots->res_z_60_80->Fill(genz, (z-genz)/genz);
+	    plots->profile_z_60_80->Fill(genz,(z-genz)/genz);      
+	    plots->profile_p_60_80->Fill(p_truth, (p_reco-p_truth)/p_truth);   
 	  }  
 	                
-	  // cout << "track" << track->P4().Px() <<  " " << particle->P4().Px() <<endl;
-          //cout << "jet " << jet->P4().Px() << " " << genjet->P4().Px() << endl; 
-	  //cout << " angle " << phi_h << std::endl;
-	  //cout << " r " << r << " jt " << jt << " z " << z << " " << jet->P4().P() <<  " " << jet->PT << endl;
+
         }
         else if(object->IsA() == Tower::Class())
         {
@@ -312,12 +272,12 @@ void AnalyseEvents(ExRootTreeReader *treeReader, TestPlots *plots)
       }//end loop over constituents
 
       
-      plots->fJetDeltaPT->Fill((jet->PT - momentum.Pt())/jet->PT);
+
     }//loop over jets
     
   }//loop over entries
-  std::cout << "NUMBER OF JETS "<< njets << std::endl;                                                                                                                                                               if(njets>0){
-    plots->Dz_15_20->Scale(1.0/njets);                                                                                                                                                                                 }                                
+
+
 }
 
 //------------------------------------------------------------------------------
@@ -329,7 +289,7 @@ void PrintHistograms(ExRootResult *result, TestPlots *plots)
 
 //------------------------------------------------------------------------------
 
-void Collins(const char *inputFile)
+void zhadron(const char *inputFile)
 {
   gSystem->Load("libDelphes");
 
@@ -347,7 +307,7 @@ void Collins(const char *inputFile)
 
   PrintHistograms(result, plots);
 
-  result->Write("results.root");
+  result->Write("zh_results.root");
 
   cout << "** Exiting..." << endl;
 

@@ -1,0 +1,26 @@
+! 1) Settings used in the main program.
+Main:numberOfEvents = 100000         ! number of events to generate
+
+Random:setSeed = on
+Random:seed = 2
+
+! 3) Beam parameter settings. Values below agree with default ones.
+Beams:idA = 2212                     ! electron
+Beams:idB = 11                       ! proton
+Beams:eA  = 275                      ! proton energy
+Beams:eB  = 10                       ! electron energy
+Beams:frameType = 2 
+
+PDF:lepton2gamma=on
+Photon:ProcessType=0
+Photon:Q2max=1.0
+HardQCD:all=on
+PhotonParton:all=on
+PhaseSpace:pThatMin=5.0
+MultipartonInteractions:pT0Ref=3.
+
+Diffraction:doHard=on
+Diffraction:sampleType=1
+Diffraction:hardDiffSide=2
+SigmaDiffractive:PomFlux=7
+PDF:PomSet=6

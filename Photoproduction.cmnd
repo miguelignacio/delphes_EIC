@@ -1,36 +1,44 @@
+ // Set it up to generate dijets at EIC.
+Beams:frametype = 2    // Beams with different energies
+Beams:idA = 2212       // p+ at 275 GeV
+Beams:eA = 275
+Beams:idB = 11        // e+ at 18 GeV
+Beams:eB = 18
+
+
+PDF:lepton2gamma = on  // Allow for photon-from lepton
+Photon:ProcessType = 0 // Allow all photon processes
+Photon:Q2max = 1.   // Maximal Q2
+HardQCD:all = on       // All dijet MEs
+PhotonParton:all = on  // All dijet MEs with photons
+PhaseSpace:pThatMin = 4.            // Minimal pT cut
+MultipartonInteractions:pT0Ref = 3. // Tuned ep value
+
+  // Setup of diffractive framework.
+#Diffraction:doHard = on
+#Diffraction:sampleType = 3 //see option in Pythia  Generate an exclusive diffractive sample, MPI-unchecked.
+#Diffraction:hardDiffSide = 2 // Diff. on photon side  Check for diffraction on side B only. (option b)
+#SigmaDiffractive:PomFlux = 7 // H1 Fit B LO
+#PDF:PomSet = 6               // H1 Fit B LO
+
+
+
+
+
+
+
+// Simplify printout.
+Init:showChangedSettings = off
+Init:showChangedParticleData = off
+Init:showMultipartonInteractions = off
+Next:numberShowInfo = 0
+Next:numberShowProcess = 0
+Next:numberShowEvent = 0
+Next:showScaleAndVertex = off
+		
+
 ! 1) Settings used in the main program.
-Main:numberOfEvents = 100000         ! number of events to generate
-Main:timesAllowErrors = 100          ! how many aborts before run stops
+Main:numberOfEvents = 1000000        ! number of events to generate
 
 Random:setSeed = on
-Random:seed = 0
-
-! 2) Settings related to output in init(), next() and stat().
-Init:showChangedSettings = on      ! list changed settings
-Init:showChangedParticleData = off ! list changed particle data
-Next:numberCount = 100             ! print message every n events
-Next:numberShowInfo = 1            ! print event information n times
-Next:numberShowProcess = 1         ! print process record n times
-Next:numberShowEvent = 0           ! print event record n times
-
-! 3) Beam parameter settings. Values below agree with default ones.
-Beams:idA = 2212                     ! electron
-Beams:idB = 11                       ! proton
-Beams:eA  = 275                      ! proton energy
-Beams:eB  = 10                       ! electron energy
-PDF:lepton2gamma=on
-PDF:lepton2gammaSet=1
-Beams:frameType = 2 
-
-! 4) Settings for the hard-process generation.
-
-HardQCD:all=on
-PhotonParton:all=on
-#Photon:ProcessType=0
-MultipartonInteractions:pT0Ref=3.00
-PhaseSpace:pTHatMin=10.0
-PartonLevel:MPI = off
-
-
-ParticleDecays:limitTau0 = on      ! set long-lived particle stable ...
-ParticleDecays:tau0Max = 10        ! ... if c*tau0 > 10 mm
+Random:seed = 2

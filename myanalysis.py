@@ -81,18 +81,16 @@ neutral_E = {}
 photon_E  = {}
 track_E   = {}
 for i in range(1,5):
-    neutral_E['etabin%i'%i] = ROOT.TH1F("neutral_E_eta%i"%i, "", 100, 0.1, 100.0)
-    photon_E['etabin%i'%i]  = ROOT.TH1F("photon_E_eta%i"%i , "" , 100, 0.1,100.0)
-    track_E['etabin%i'%i]   = ROOT.TH1F("track_E_eta%i"%i, "", 100, 0.1,100.0)
+    neutral_E['etabin%i'%i] = ROOT.TH1F("neutral_E_eta%i"%i, "", 100, 0.0, 100.0)
+    photon_E['etabin%i'%i]  = ROOT.TH1F("photon_E_eta%i"%i , "" , 100, 0.0,100.0)
+    track_E['etabin%i'%i]   = ROOT.TH1F("track_E_eta%i"%i, "", 100, 0.0,100.0)
 
-
-neutral_E['2D'] = ROOT.TH2F("neutral_2D", "", 1000, 0.1, 100.0, 20,-4.0,4.0)
-photon_E['2D']  =  ROOT.TH2F("photon_2D", "", 1000, 0.1, 100.0, 20,-4.0,4.0)   
-track_E['2D']   = ROOT.TH2F("track_2D", "",  1000, 0.1, 100.0, 20,-4.0,4.0)
-
+h_MET = ROOT.TH1F("h_MET","", 100,-10.0,50.0);
+h_MET_truth = ROOT.TH1F("h_MET_truth","", 100, -10.0,50.0)
+    
 #Kinematic
 y_Matrix = ROOT.TH2F("y_Matrix", "inelasticity response matrix, JB method", 10, 0.0,1.0, 10,0.0,1.0)
-x_Matrix = ROOT.TH2F("x_Matrix", "Bjorken x response matrix, JB method", 10, 0.0,0.8, 10,0.0,0.8)
+x_Matrix = ROOT.TH2F("x_Matrix", "Bjorken x response matrix, JB method", 10, 0.0,1.0, 10,0.0,1.0)
 Q2_Matrix = ROOT.TH2F("Q2_Matrix", "Q2 response matrix, JB method", 20, 10,100, 20,10,100) 
 
 
@@ -105,6 +103,22 @@ Nin_met_x  = ROOT.TH2F("Nin_met_x", "" , 6, 10.0, 40.0, 5, 0.0, 1.0)
 Ngen_y_x = ROOT.TH2F("Ngen_y_x", "", 5,0.0,1.0, 5, 0.0, 1.0)
 Nout_y_x = ROOT.TH2F("Nout_y_x", "", 5,0.0,1.0, 5, 0.0, 1.0)
 Nin_y_x  = ROOT.TH2F("Nin_y_x", "" , 5,0.0,1.0, 5, 0.0, 1.0)
+
+
+## qT/jetpT vs jet pT
+Ngen_qtnorm_jetpt = ROOT.TH2F("Ngen_qtnorm_jetpt", "", 4,0.0,0.40, 5, 5, 30)
+Nout_qtnorm_jetpt = ROOT.TH2F("Nout_qtnorm_jetpt", "", 4,0.0,0.40, 5, 5, 30)   
+Nin_qtnorm_jetpt = ROOT.TH2F("Nin_qtnorm_jetpt", "",   4,0.0,0.40, 5, 5, 30)   
+
+
+Ngen_qtnorm_electron = ROOT.TH2F("Ngen_qtnorm_electron", "", 4,0.0,0.40, 5, 5, 30)
+Nout_qtnorm_electron = ROOT.TH2F("Nout_qtnorm_electron", "", 4,0.0,0.40, 5, 5, 30)
+Nin_qtnorm_electron = ROOT.TH2F("Nin_qtnorm_electron", "",   4,0.0,0.40, 5, 5, 30)
+
+Ngen_qt_jetpt = ROOT.TH2F("Ngen_qt_jetpt", "", 5,0.0,5.0, 5, 5, 30)
+Nout_qt_jetpt = ROOT.TH2F("Nout_qt_jetpt", "", 5,0.0,5.0, 5, 5, 30)
+Nin_qt_jetpt = ROOT.TH2F("Nin_qt_jetpt", "", 5,0.0,5.0, 5, 5, 30)
+
 
 ## Q2 vs x
 
@@ -120,7 +134,7 @@ Nout_Q2_x = ROOT.TH2F("Nout_Q2_x", "", 10, array('d',binsx), 6, array('d',binsQ2
 Nin_Q2_x  = ROOT.TH2F("Nin_Q2_x", "" , 10, array('d',binsx), 6, array('d',binsQ2))
 
 ##E vs Eta
-Jet_eta_e = ROOT.TH2F("Jet_eta_e", "" , 100,-4.0,4.0, 100, 0, 250.0)
+Jet_eta_e = ROOT.TH2F("Jet_eta_e", "" , 100,-4.0,4.0, 100, 0, 150.0)
 
 ### Jet PT and Phi
 minpt = 5
@@ -139,8 +153,8 @@ histo = {}
 distribution = {}
 
 
-ResMatrix['x'] = ROOT.TH2F("ResMatrix_x", "" , 10, 0.0,0.8, 50,-1.0,1.0)
-profile['x']   = ROOT.TProfile("profile_x", "", 10, 0.0,0.8, -1.0,1.0, 's')
+ResMatrix['x'] = ROOT.TH2F("ResMatrix_x", "" , 10, 0.0,1.0, 50,-1.0,1.0)
+profile['x']   = ROOT.TProfile("profile_x", "", 10, 0.0,1.0, -1.0,1.0, 's')
 
 ##JET, phi, phi
 ResMatrix['jetpt'] =    ROOT.TH2F("ResMatrix_jetpt",             "",  nbinspt, minpt, maxpt, 50, -1.0, 1.0)
@@ -149,15 +163,11 @@ ResMatrix['jetphi']  =  ROOT.TH2F("ResMatrix_jetphi" ,           "",  20, 5, 100
 profile['jetphi'] =     ROOT.TProfile("profile_jetphi",          "",  20, 5, 100, -0.3,0.3,"s")
 
 for i in range(1,5):
-    ResMatrix['jete_eta%i'%i] = ROOT.TH2F("ResMatrix_jete_eta%i"%i,        "",  20, 10, 250, 50, -1.0,1.0)
-    profile['jete_eta%i'%i]   = ROOT.TProfile("profile_jete_eta%i"%i,        "",  20, 10, 250, -1.0, 1.0,"s")
+    ResMatrix['jete_eta%i'%i] = ROOT.TH2F("ResMatrix_jete_eta%i"%i,        "",  20, 10, 200, 50, -1.0,1.0)
+    profile['jete_eta%i'%i]   = ROOT.TProfile("profile_jete_eta%i"%i,        "",  20, 10, 200, -1.0, 1.0,"s")
 
-
-maxjetenergy = 150
-minjetenergy  = 50
-binsenergy = 5
-ResMatrix['jete'] = ROOT.TH2F("ResMatrix_jete",        "",  binsenergy, minjetenergy, maxjetenergy, 50, -0.40,0.40)
-profile['jete']    = ROOT.TProfile("profile_jete", "", binsenergy, minjetenergy, maxjetenergy, -0.40,.40,"s")
+ResMatrix['jete'] = ROOT.TH2F("ResMatrix_jete",        "",  20, 5, 100, 50, -1.0,1.0)
+profile['jete']    = ROOT.TProfile("profile_jete", "", 20, 5, 100, -1.0,1.0,"s")
     
 ### MET PT and Phi
 ResMatrix['met']       = ROOT.TH2F("ResMatrix_met",              "", nbinspt, minpt, maxpt, 50, -1.0, 1.0)
@@ -180,20 +190,34 @@ profile['ept']       = ROOT.TProfile("profile_ept", "", 30, 10, 40, -.20,0.20,"s
 maxdphires = 0.5
 if(isNC):
     maxdphires = 0.2
-ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dph", "", 20, 5, maxjetenergy, 100, -maxdphires, maxdphires)
-profile['dphi']  = ROOT.TProfile("profile_dphi", "", 20, maxjetenergy,100.0, -maxdphires,maxdphires,"s")
+ResMatrix['dphi'] = ROOT.TH2F("ResMatrix_dphi", "", 20, 5, 100.0, 100, -maxdphires, maxdphires)
+profile['dphi']  = ROOT.TProfile("profile_dphi", "", 20, 5,100.0, -maxdphires,maxdphires,"s")
 distribution['dphi_reco'] = ROOT.TH2F("distribution_dphi_reco", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())
 distribution['dphi_gen'] = ROOT.TH2F("distribution_dphi_gen", "",  6, 10.0, 40.0, 20, 2.8, ROOT.TMath.Pi())     
 
+maxdphires = 1.0
+## Sivers angle
+ResMatrix['SiversAngle'] = ROOT.TH2F("ResMatrix_SiversAngle", "", 20, 5, 100.0, 100, -maxdphires, maxdphires)
+profile['SiversAngle']  = ROOT.TProfile("profile_SiversAngle", "", 20, 5,100.0, -maxdphires,maxdphires,"s")
+distribution['SiversAngle_reco'] = ROOT.TH2F("distribution_SiversAngle_reco", "",  20, 5.0, 100.0, 20, -ROOT.TMath.Pi(), ROOT.TMath.Pi())
+distribution['SiversAngle_gen'] = ROOT.TH2F("distribution_SiversAngle_gen", "",  20, 5.0, 100.0, 20, -ROOT.TMath.Pi(), ROOT.TMath.Pi())
 
-ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 6, minjetenergy, maxjetenergy, 100, -maxdphires, maxdphires)
-profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 6, minjetenergy, maxjetenergy, -maxdphires, maxdphires,"s")
-distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "", 9, minjetenergy, maxjetenergy, 20, 0,1.0)
-distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  9, minjetenergy, maxjetenergy, 20, 0,1.0)
 
 
-ResMatrix['qt'] = ROOT.TH2F("ResMatrix_qt", "", 6, minjetenergy, maxjetenergy, 100, -7, 7)
-profile['qt']   = ROOT.TProfile("profile_qt", "",6, minjetenergy, maxjetenergy, -7, 7,"s")
+ResMatrix['qtnormjet'] = ROOT.TH2F("ResMatrix_qtnormjet", "", 9, 10.0, 100.0, 100, -maxdphires, maxdphires)
+profile['qtnormjet']   = ROOT.TProfile("profile_qtnormjet", "", 9, 10.0, 100.0, -maxdphires, maxdphires,"s")
+distribution['qtnormjet_reco'] = ROOT.TH2F("distribution_qtnormjet_reco", "", 9, 10.0, 100.0, 20, 0,1.0)
+distribution['qtnormjet_gen'] = ROOT.TH2F("distribution_qtnormjet_gen", "",  9, 10.0, 100.0, 20, 0,1.0)
+
+
+ResMatrix['qtnormelectron'] = ROOT.TH2F("ResMatrix_qtnormelectron", "", 9, 10.0, 100.0, 100, -maxdphires, maxdphires)
+profile['qtnormelectron']   = ROOT.TProfile("profile_qtnormelectron", "", 9, 10.0, 100.0, -maxdphires, maxdphires,"s")
+distribution['qtnormelectron_reco'] = ROOT.TH2F("distribution_qtnormelectron_reco", "", 9, 10.0, 100.0, 20, 0,1.0)
+distribution['qtnormelectron_gen'] = ROOT.TH2F("distribution_qtnormelectron_gen", "",  9, 10.0, 100.0, 20, 0,1.0)
+
+
+ResMatrix['qt'] = ROOT.TH2F("ResMatrix_qt", "", 9, 10.0, 100.0, 100, -7, 7)
+profile['qt']   = ROOT.TProfile("profile_qt", "", 9, 10.0, 100.0, -7, 7,"s")
 
 
 
@@ -221,14 +245,14 @@ ROOT.gStyle.SetPalette(112)
 c = ROOT.TCanvas("c", "c", 800,600)
 
 JetMatrix.SetTitle("; generated E_{jet} [GeV]; reconstructed E_{jet} [GeV]")
-METMatrix.SetTitle("; generated MET [GeV]; reconstructed MET [GeV]")
+METMatrix.SetTitle("; generated E_{T}^{miss} [GeV]; reconstructed E_{T}^{miss} [GeV]")
 
 
 
 ResMatrix['x'].SetTitle("Response Matrix for x; x_{gen}  ; (x_{reco}-x_{gen})/x_{gen}")
 ResMatrix['jetpt'].SetTitle("Jet response matrix; p_{T}^{gen} [GeV]; (p_{T}^{reco}-p_{T}^{gen})/p_{T}^{gen}")
-ResMatrix['met'].SetTitle("Met response matrix; MET_{T}^{gen} [GeV]; (MET^{reco}-MET^{gen})/MET^{gen}")          
-ResMatrix['metphi'].SetTitle(" MET_{T}^{gen} [GeV]; (MET^{reco}-MET^{gen})/MET^{gen}")
+ResMatrix['met'].SetTitle("Met response matrix; E_{T}^{miss,gen} [GeV]; (E_{T}^{miss,reco}-E_{T]^{miss,gen})/E_{T}^{miss,gen}")          
+ResMatrix['metphi'].SetTitle(" MET_{T}^{gen} [GeV];  ; ");
 
 Q2_Matrix.SetTitle(" Q^{2} response matrix, JB method ; generated Q^{2} [GeV^{2}]; reconstructed Q^{2} [GeV^{2}]")
 x_Matrix.SetTitle(" x response matrix, JB method; generated x; reconstructed x ")
@@ -238,7 +262,7 @@ y_Matrix.SetTitle(" y response matrix, JB method; generated y; reconstructed y")
 for entry in range(0, numberOfEntries):
     if entry%10000==0:
         print 'event ' , entry
-    #if entry>20000:
+    #if entry>1000:
     #   break
     # Load selected branches with data from specified event
     treeReader.ReadEntry(entry)
@@ -265,46 +289,28 @@ for entry in range(0, numberOfEntries):
     #Jacquet Blondet method:
     delta_track = 0            
     temp_p = ROOT.TVector3()
-
-
-    ##Looping over tracks
-    for i in range(branchTrack.GetEntries()):
-        track_mom = branchTrack.At(i).P4()
-        #print 'Track energy ' , track_mom.E() , ' Track momentum' , track_mom.P(), 'track eta' , track_mom.Eta() 
-
-    # looping over eflow tracks
     for i in range(branchEFlowTrack.GetEntries()):
-      
        track_mom = branchEFlowTrack.At(i).P4()
-       #print 'EFlowTrack energy ' , track_mom.E() , ' EFlowTrack momentum' , track_mom.P(), 'EFlowTrack eta' , track_mom.Eta()
-       track_E['2D'].Fill(track_mom.P(), track_mom.Eta())
-       
        delta_track += (track_mom.E() - track_mom.Pz())
        temp_p = temp_p + track_mom.Vect()
        #print track_mom.E() , ' ' , track_mom.Pz()
 
-    #excluding electron
     if branchElectron.GetEntries()>0:
         e = branchElectron.At(0).P4()
         delta_track_noel = delta_track - (e.E() - e.Pz())   
 
-    #include photons
     delta_photon = 0
     for i in range(branchEFlowPhoton.GetEntries()):
-       pf_mom = branchEFlowPhoton.At(i).P4()
-       photon_E['2D'].Fill(pf_mom.P(), pf_mom.Eta())
+       pf_mom = branchEFlowPhoton.At(i).P4()        
        delta_photon += (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p + pf_mom.Vect()
 
     delta_neutral = 0
     delta_neutral_noBarrel = 0
     pt_noBarrel = ROOT.TVector3()
-
-    #include neutral hadrons
+    
     for i in range(branchEFlowNeutralHadron.GetEntries()):
        pf_mom = branchEFlowNeutralHadron.At(i).P4()
-       #print 'EFlowNeutral energy ' , pf_mom.E() , ' EFlowNeutral momentum' , pf_mom.P(), 'EFlowNeutral eta' , pf_mom.Eta()
-       neutral_E['2D'].Fill(pf_mom.P(), pf_mom.Eta())   
        delta_neutral += (pf_mom.E() - pf_mom.Pz())
        temp_p = temp_p+ pf_mom.Vect()
        if abs(pf_mom.Eta())>1.0:
@@ -312,7 +318,7 @@ for entry in range(0, numberOfEntries):
            pt_noBarrel = pt_noBarrel + pf_mom.Vect()
     
     delta = delta_track + delta_photon + delta_neutral
-    #print ' ///////////////////'
+    
     #delta_noel = delta_track_noel + delta_photon + delta_neutral
     #delta_noel_noBarrel = delta_track_noel + delta_photon + delta_neutral_noBarrel
     delta_noBarrel = delta_track + delta_photon + delta_neutral_noBarrel
@@ -468,7 +474,7 @@ for entry in range(0, numberOfEntries):
         if (deltaR>0.3): continue
         #if(abs(genjet.Eta())>3.0): continue    
         genjet = bestGenJetMomentum #branchGenJet.At(0)
-        if(abs(genjet.Eta())<3.0): continue 
+        if(abs(genjet.Eta())>3.0): continue 
         # Print jet transverse momentum
         #JetMatrix.Fill(genjet.Pt()*ROOT.TMath.CosH(genjet.Eta()), jet.PT*ROOT.TMath.CosH(jet.Eta))
         JetMatrix.Fill(genjet.E(), jet.P4().E())
@@ -500,11 +506,14 @@ for entry in range(0, numberOfEntries):
         ResMatrix['jete'].Fill(genjet.E(), (jet.P4().E()-genjet.E())/genjet.E())
         profile['jete'].Fill(genjet.E(), (jet.P4().E()-genjet.E())/genjet.E())
 
+     
+
+        
     ##Met response matrix
     if branchMet.GetEntries() > 0:
         met = branchMet.At(0)
         genmet = branchGenMet.At(0)
-        if(genmet.MET==0): continue
+        #if(genmet.MET==0): continue
         #print 'MET', met.MET
         #print 'pt all ' , ptmiss_all.Perp()
         #print 'pt no barrel HCAL ', (ptmiss_all-ptmiss_noBarrel).Perp()
@@ -512,8 +521,10 @@ for entry in range(0, numberOfEntries):
         #print pt_all.Phi() , ' ' , met.Phi
         #print (-1.0*ptmiss_all).Phi() , ' ' , met.Phi
         #print 'GenMET', genmet.MET
-        if branchGenMet.GetEntries()>0:
+        h_MET.Fill(met.MET)
+        if branchGenMet.GetEntries()>0 and isCC:
             METMatrix.Fill(genmet.MET, met.MET)
+            h_MET_truth.Fill(genmet.MET)
             res = (pt_all.Perp()-genmet.MET)/genmet.MET
             profile['met'].Fill(genmet.MET,res)
             ResMatrix['met'].Fill(genmet.MET, res)
@@ -551,7 +562,7 @@ for entry in range(0, numberOfEntries):
         lepton_pt = lepton.Pt()
         genlepton_pt = lepton.Pt() 
         leptonOK = True
-    ## dphi  
+    ## dphi/qT resolutions  
     if leptonOK and branchJet.GetEntries() > 0 and branchGenJet.GetEntries()>0:
         #jet = branchJet.At(0)
         #genjet = branchGenJet.At(0)
@@ -570,10 +581,20 @@ for entry in range(0, numberOfEntries):
 
         qT_reco = ROOT.TVector2(jet.P4().Px() + lepton.Px(), jet.P4().Py() + lepton.Py() ).Mod()
         #qT_reco = qT_reco.Mod()/ROOT.TMath.Sqrt(Q2)
-      
+        SiversAngle_reco = ROOT.TVector2(jet.P4().Px() + lepton.Px(), jet.P4().Py() + lepton.Py() ).Phi()
+        SiversAngle_reco = ROOT.TVector2.Phi_mpi_pi(SiversAngle_reco)
+        
         qT_truth = ROOT.TVector2(genjet.Px() + genlepton.Px(), genjet.Py() + genlepton.Py() ).Mod()
         #qT_truth = qT_truth.Mod()/ROOT.TMath.Sqrt(Q2)   
 
+        SiversAngle_truth = ROOT.TVector2(genjet.Px() + genlepton.Px(), genjet.Py() + genlepton.Py() ).Phi()  
+        SiversAngle_truth = ROOT.TVector2.Phi_mpi_pi(SiversAngle_truth)
+        
+        ResMatrix['SiversAngle'].Fill(genjet.E(), SiversAngle_reco-SiversAngle_truth)
+        profile['SiversAngle'].Fill(genjet.E(), SiversAngle_reco-SiversAngle_truth)
+        distribution['SiversAngle_gen'].Fill(genjet.E(), SiversAngle_truth)
+        distribution['SiversAngle_reco'].Fill(genjet.E(), SiversAngle_reco)
+        
         ResMatrix['dphi'].Fill(genjet.E(), dphi_reco-dphi_gen)
         profile['dphi'].Fill(genjet.E(), dphi_reco-dphi_gen)
         distribution['dphi_gen'].Fill(genjet.E(), dphi_gen)
@@ -592,9 +613,41 @@ for entry in range(0, numberOfEntries):
         distribution['qtnormjet_reco'].Fill(genjet.E(), qT_reco/jet.PT)
         distribution['qtnormjet_gen'].Fill(genjet.E(), qT_truth/genjet.Pt())
 
+       #normalized by the electron pT
+        ResMatrix['qtnormelectron'].Fill(genjet.E(), qT_reco/lepton.Pt() -qT_truth/genlepton.Pt())
+        profile['qtnormelectron'].Fill(genjet.E(), qT_reco/lepton.Pt() -qT_truth/genlepton.Pt())
+        distribution['qtnormelectron_reco'].Fill(genjet.E(), qT_reco/lepton.Pt())
+        distribution['qtnormelectron_gen'].Fill(genjet.E(), qT_truth/genlepton.Pt())
+        
         ResMatrix['qt'].Fill(genjet.E(), qT_reco-qT_truth)
         profile['qt'].Fill(genjet.E(),  qT_reco-qT_truth)
-        
+
+        ##qT vs jet pt purity plots
+        ##Fill purity histograms qT/jetpt-jetpt
+        genbin  = Ngen_qtnorm_jetpt.FindBin(qT_truth/genjet.Pt(), genlepton.Pt())
+        recobin = Ngen_qtnorm_jetpt.FindBin(qT_reco/jet.PT, lepton.Pt())
+        Ngen_qtnorm_jetpt.Fill(qT_truth/genjet.Pt(), genlepton.Pt())
+        #print genbin
+        #print recobin
+        if(genbin!=recobin):
+            Nout_qtnorm_jetpt.Fill(qT_truth/genjet.Pt() , genlepton.Pt()) ### In a given generator bin, how many left out.
+            Nin_qtnorm_jetpt.Fill(qT_reco/jet.PT, lepton.Pt())
+
+        #qt without normalization    
+        genbin  = Ngen_qt_jetpt.FindBin(qT_truth, genlepton.Pt())
+        recobin = Ngen_qt_jetpt.FindBin(qT_reco, lepton.Pt())
+        Ngen_qt_jetpt.Fill(qT_truth, genlepton.Pt())
+        if(genbin!=recobin):
+            Nout_qt_jetpt.Fill(qT_truth, genlepton.Pt()) ### In a given generator bin, how many left out.
+            Nin_qt_jetpt.Fill(qT_reco, lepton.Pt())
+
+        #qt normalized by the electron pT
+        genbin  = Ngen_qtnorm_electron.FindBin(qT_truth/genlepton.Pt(), genlepton.Pt())
+        recobin = Ngen_qtnorm_electron.FindBin(qT_reco/lepton.Pt(), lepton.Pt())
+        Ngen_qtnorm_electron.Fill(qT_truth/genlepton.Pt(), genlepton.Pt())
+        if(genbin!=recobin):
+            Nout_qtnorm_electron.Fill(qT_truth/genlepton.Pt(), genlepton.Pt()) ### In a given generator bin, how many left out.
+            Nin_qtnorm_electron.Fill(qT_reco/lepton.Pt(), lepton.Pt())
 ###Colors
 for key in profile:
     profile[key].SetLineColor(2)
@@ -606,7 +659,9 @@ for key in profile:
 #for key in neutral_E.keys():
 #    neutral_E[key].SetLineColor(2)
 
-#for key in neutral_E.keys():                                                                                                                                                                                     #     photon_E[key].SetLineColor(4)
+#for key in neutral_E.keys():
+#     photon_E[key].SetLineColor(4)
+
 
 #for i in range(1,5):
 #    neutral_E['etabin%i'%i].Draw()
@@ -616,7 +671,7 @@ for key in profile:
 #    c.SaveAs("plots/Spectrum_etabin%i_%s.png"%(i,inputFile))
 #    c.SaveAs("plots/Spectrum_etabin%i_%s.pdf"%(i,inputFile))
 
-ROOT.gPad.SetLogy(0)
+#ROOT.gPad.SetLogy(0)
 
 
 c.Clear()
@@ -671,14 +726,14 @@ for i in range(1,4):
 
 #input("Press enter to continue...")
 c.Clear()
-ResMatrix['met'].SetTitle("; generated MET; (MET^{reco} - MET^{gen})/MET^{gen}")
+ResMatrix['met'].SetTitle("; E_{T}^{miss,gen}; (E_{T}^{miss,reco} - E_{T}^{miss,gen})/E_{T}^{miss,gen}")
 ResMatrix['met'].Draw("colz")
 profile['met'].Draw("same")
 c.SaveAs("plots/MET_profile%s.png"%inputFile)
 c.SaveAs("plots/pdf/MET_profile%s.pdf"%inputFile)
 
 c.Clear()
-ResMatrix['metphi'].SetTitle("; generated MET; MET #phi^{reco} - MET #phi^{gen} [rad]")
+ResMatrix['metphi'].SetTitle("; E_{T}^{miss,gen}; E_{T}^{miss} #phi^{reco} - E_{T}^{miss} #phi^{gen} [rad]")
 ResMatrix['metphi'].Draw("colz")
 profile['metphi'].Draw("same")
 c.SaveAs("plots/METphi_%s_profile.png"%inputFile)
@@ -687,14 +742,14 @@ c.SaveAs("plots/pdf/METphi_%s_profile.pdf"%inputFile)
 
 ##no barrel hcal
 c.Clear()
-ResMatrix['met_nobarrelHCAL'].SetTitle("; generated MET; (MET^{reco} - MET^{gen})/MET^{gen}")
+ResMatrix['met_nobarrelHCAL'].SetTitle("; E_{T}^{miss,gen}; (E_{T}^{miss,reco} - E_{T}^{miss,gen})/E_{T}^{miss,gen}")          
 ResMatrix['met_nobarrelHCAL'].Draw("colz")
 profile['met_nobarrelHCAL'].Draw("same")
 #c.SaveAs("plots/profile_METnobarrelHCAL_%s.png"%inputFile)
 #c.SaveAs("plots/profile_METnobarrelHCAL_%s.pdf"%inputFile)
 
 c.Clear()
-ResMatrix['metphi_nobarrelHCAL'].SetTitle("; generated MET; MET #phi^{reco} - MET #phi^{gen} [rad]")
+ResMatrix['metphi_nobarrelHCAL'].SetTitle("; E_{T}^{miss,gen}; E_{T}^{miss} #phi^{reco} - E_{T}^{miss} #phi^{gen} [rad]")   
 ResMatrix['metphi_nobarrelHCAL'].Draw("colz")
 profile['metphi_nobarrelHCAL'].Draw("same")
 #c.SaveAs("plots/profile_METphi_nobarrelHCAL_%s.png"%inputFile)
@@ -712,7 +767,7 @@ c.SaveAs("plots/pdf/jetphi_%s_profile.pdf"%inputFile)
 
 c.Clear()
 if(isCC):
-    ResMatrix['dphi'].SetTitle("; generated MET; #Delta #phi_{reco} - #Delta #phi_{gen}")
+    ResMatrix['dphi'].SetTitle("; generated E_{T}^{miss}; #Delta #phi_{reco} - #Delta #phi_{gen}")
 elif(isNC):
     ResMatrix['dphi'].SetTitle("; jet E^{gen} [GeV]; #Delta #phi_{reco} - #Delta #phi_{gen}")
     
@@ -721,12 +776,26 @@ profile['dphi'].Draw("same")
 c.SaveAs("plots/dphi_%s_profile.png"%inputFile)
 c.SaveAs("plots/pdf/dphi_%s_profile.pdf"%inputFile) 
 
+ResMatrix['SiversAngle'].Draw("colz")
+profile['SiversAngle'].Draw("same")
+c.SaveAs("plots/SiversAngle_%s_profile.png"%inputFile)
+c.SaveAs("plots/pdf/SiversAngle_%s_profile.pdf"%inputFile)
+
 
 c.Clear()
 ResMatrix['qtnormjet'].Draw("colz")
 profile['qtnormjet'].Draw("same")
 c.SaveAs("plots/profile_qtnormjet_%s.png"%inputFile)
 c.SaveAs("plots/pdf/profile_qtnormjet_%s.pdf"%inputFile)
+
+
+c.Clear()
+ResMatrix['qtnormelectron'].Draw("colz")
+profile['qtnormelectron'].Draw("same")
+c.SaveAs("plots/profile_qtnormelectron_%s.png"%inputFile)
+c.SaveAs("plots/pdf/profile_qtnormelectron_%s.pdf"%inputFile)
+
+
 
 c.Clear()
 ResMatrix['qt'].Draw("colz")
@@ -766,9 +835,11 @@ if isCC:
 ytitle = {}
 ytitle['qt'] = " #Delta q_{T} (GeV)"
 ytitle['qtnormjet'] = " q_{T}/p_{T}^{jet} resolution "
+ytitle['qtnormelectron'] = " q_{T}/p_{T}^{electron} resolution "
 ytitle['jetphi'  ]  = " #phi^{jet} resolution (radians)"
 ytitle['jete']  = " Relative energy resolution "
 ytitle['dphi']  = " #Delta #phi resolution (radians)"
+ytitle['SiversAngle'] = "#Delta Sivers Angle (radians)"
 ytitle['met']   = ' Relative MET resolution '
 ytitle['metphi']  = 'MET #phi resolution (radians)'
 ytitle['jetpt']  = 'Relative p_{T} resolution' 
@@ -777,9 +848,11 @@ ytitle['x'] = 'Relative x resolution'
 xtitle = {}
 xtitle['jete'] = 'generated jet energy [GeV]'
 xtitle['dphi'] = 'generated jet energy [GeV]'
+xtitle['SiversAngle'] = 'generated lepton pT [GeV]'
 xtitle['jetphi'] = 'generated jet energy [GeV]'
 xtitle['qt'] = 'generated jet energy [GeV]'
 xtitle['qtnormjet'] = 'generated jet energy [GeV]'
+xtitle['qtnormelectron'] = 'generated jet energy [GeV]'
 xtitle['met']  = 'Generated MET'
 xtitle['metphi'] = 'Generated MET'
 xtitle['jetpt']  = 'generated jet p_{T} [GeV]'
@@ -788,8 +861,7 @@ xtitle['x' ] = 'generated x'
 
 out_tree = ROOT.TFile("resolutions_%s.root"%inputFile,"RECREATE")
 
-#for variable in ['qt','qtnormjet','jetphi','jete','jetpt','dphi','met','metphi','x']:
-for variable in ['qt','qtnormjet','jete','dphi']:
+for variable in ['qt','qtnormjet','qtnormelectron','jetphi','jete','jetpt','dphi','SiversAngle','met','metphi','x']:
     g_sigma = ROOT.TGraph()
     g_rms  = ROOT.TGraph()
     g_multi = ROOT.TMultiGraph()
@@ -799,6 +871,7 @@ for variable in ['qt','qtnormjet','jete','dphi']:
         x= ResMatrix[variable].GetXaxis().GetBinCenter(i)
         h =ResMatrix[variable].ProjectionY("h",i,i)
         h.Draw()
+        h.SetTitle(" ; %s; %s" %(xtitle[variable], ytitle[variable])) 
         h.Fit("gaus")
         f = h.GetFunction("gaus")
         
@@ -810,10 +883,10 @@ for variable in ['qt','qtnormjet','jete','dphi']:
         f.Draw("same")
         
         g_sigma.SetPoint(i-1, x, f.GetParameter(2))
-        g_rms.SetPoint(i-1, x, h.GetRMS())
+        g_rms.SetPoint(i-1, x, h.GetStdDev())
 
-        DrawText (0.6 ,0.80 , "#sigma = %2.2f"%(f.GetParameter(2)), 2)
-        DrawText (0.6 ,0.74 , "Stdv =%2.2f"%(h.GetRMS()),1)
+        DrawText (0.6 ,0.80 , "#sigma = %2.2f, #mu=%2.2f"%(f.GetParameter(2), f.GetParameter(1)), 2)
+        DrawText (0.6 ,0.74 , "Stdv =%2.2f"%(h.GetStdDev()),1)
         minimo = ResMatrix[variable].GetXaxis().GetBinLowEdge(i)
         maximo = minimo + ResMatrix[variable].GetXaxis().GetBinWidth(i)
         DrawText (0.6 ,0.69 , "%2.2f-%2.2f GeV"%(minimo,maximo),1) 
@@ -863,19 +936,33 @@ out_tree.Close()
     
 ##Reco vs truth distributions
     
-#for i in range(distribution['dphi_reco'].GetNbinsX()):
-#    c.Clear()
-#    hgen = distribution['dphi_gen'].ProjectionY("h",i,i).Clone('hgen')
-#    hgen.SetTitle("; | #phi_{lepton} -#phi_{jet} | [rad] ; 1/#sigma d\sigma/d#Delta#phi")
-#    hreco  = distribution['dphi_reco'].ProjectionY("h",i,i).Clone('hreco')
-#    hgen.SetLineColor(4)    
-#    hgen.DrawNormalized()
-#    #hgen.SetTitle("; | #phi_{lepton} -#phi_{jet} | [rad] ; 1/#sigma d\sigma/d#Delta#phi")
-#    hreco.SetLineColor(2)
-#    hreco.DrawNormalized("same")
-#    hreco.SetLineColor(2)
-#    c.SaveAs("plots/projection_dphirecogen_%s_%i.png"%(inputFile,i))
+for i in range(distribution['dphi_reco'].GetNbinsX()):
+    c.Clear()
+    hgen = distribution['dphi_gen'].ProjectionY("h",i,i).Clone('hgen')
+    hgen.SetTitle("; | #phi_{lepton} -#phi_{jet} | [rad] ; 1/#sigma d\sigma/d#Delta#phi")
+    hreco  = distribution['dphi_reco'].ProjectionY("h",i,i).Clone('hreco')
+    hgen.SetLineColor(4)    
+    hgen.DrawNormalized()
+    #hgen.SetTitle("; | #phi_{lepton} -#phi_{jet} | [rad] ; 1/#sigma d\sigma/d#Delta#phi")
+    hreco.SetLineColor(2)
+    hreco.DrawNormalized("same")
+    hreco.SetLineColor(2)
+    c.SaveAs("plots/projection_dphirecogen_%s_%i.png"%(inputFile,i))
 
+for i in range(distribution['SiversAngle_reco'].GetNbinsX()):
+    c.Clear()
+    hgen = distribution['SiversAngle_gen'].ProjectionY("h",i,i).Clone('hgen')
+    hgen.SetTitle("; SiversAngle [rad] ; 1/#sigma d\sigma")
+    hreco  = distribution['SiversAngle_reco'].ProjectionY("h",i,i).Clone('hreco')
+    hgen.SetMinimum(0)
+    hreco.SetMinimum(0)
+    hgen.SetLineColor(4)
+    hgen.DrawNormalized()
+    hreco.SetLineColor(2)
+    hreco.DrawNormalized("same")
+    hreco.SetLineColor(2)
+    c.SaveAs("plots/projection_SiversAnglerecogen_%s_%i.png"%(inputFile,i))      
+    
 #for i in range(distribution['qtnormjet_reco'].GetNbinsX()):
 #    c.Clear()
 #    hgen = distribution['qtnormjet_gen'].ProjectionY("h",i,i).Clone('hgen')
@@ -956,6 +1043,67 @@ purity.SetTitle("Purity; reco MET; reco x_{JB}")
 c.SaveAs("plots/purity_met_x%s.png"%(inputFile))
 c.SaveAs("plots/pdf/purity_met_x%s.pdf"%(inputFile))
 
+##normalized by jet pt
+purity_num = Ngen_qtnorm_jetpt.Clone("purity_num")
+purity_den = Ngen_qtnorm_jetpt.Clone("purity_den")
+purity_num.Add(Nout_qtnorm_jetpt,-1)
+purity_den.Add(Nout_qtnorm_jetpt,-1)
+purity_den.Add(Nin_qtnorm_jetpt)
+purity = purity_num.Clone("purity")
+purity.Divide(purity_den)
+
+purity.SetMaximum(1.0)
+purity.SetMinimum(0.0)
+purity.Draw("colz")
+                                  
+                                  
+purity.SetTitle("Purity; qT/jetpt; jetpt")
+c.SaveAs("plots/purity_qtnorm_jetpt_%s.png"%(inputFile))
+c.SaveAs("plots/pdf/purity_qtnorm_jetpt_%s.pdf"%(inputFile))
+
+
+##now for normalized with electrons
+
+purity_num = Ngen_qtnorm_electron.Clone("purity_num")
+purity_den = Ngen_qtnorm_electron.Clone("purity_den")
+purity_num.Add(Nout_qtnorm_electron,-1)
+purity_den.Add(Nout_qtnorm_electron,-1)
+purity_den.Add(Nin_qtnorm_electron)
+purity = purity_num.Clone("purity")
+purity.Divide(purity_den)
+
+purity.SetMaximum(1.0)
+purity.SetMinimum(0.0)
+purity.Draw("colz")
+
+
+purity.SetTitle("Purity; qT/electron; jetelectron")
+c.SaveAs("plots/purity_qtnorm_electron_%s.png"%(inputFile))
+c.SaveAs("plots/pdf/purity_qtnorm_electron_%s.pdf"%(inputFile))
+
+
+##solely for qT
+
+Ngen_qt_jetpt.Draw("colz")
+ROOT.gPad.SetLogz(1)
+c.SaveAs("plots/truth_qt_jetpt_%s.png"%(inputFile))
+ROOT.gPad.SetLogz(0)
+
+purity_num = Ngen_qt_jetpt.Clone("purity_num")
+purity_den = Ngen_qt_jetpt.Clone("purity_den")
+purity_num.Add(Nout_qt_jetpt,-1)
+purity_den.Add(Nout_qt_jetpt,-1)
+purity_den.Add(Nin_qt_jetpt)
+purity = purity_num.Clone("purity")
+purity.Divide(purity_den)
+
+purity.SetMaximum(1.0)
+purity.SetMinimum(0.0)
+purity.Draw("colz")
+
+purity.SetTitle("Purity; qT; jetpt")
+c.SaveAs("plots/purity_qt_jetpt_%s.png"%(inputFile))
+c.SaveAs("plots/pdf/purity_qt_jetpt_%s.pdf"%(inputFile))
 
 
 
@@ -976,24 +1124,9 @@ Jet_eta_e.SetTitle("; jet #eta^{gen}; jet E^{gen}")
 c.SaveAs("plots/profile_jetE_eta_%s.png"%(inputFile))
 c.SaveAs("plots/pdf/profile_jetE_eta_%s.pdf"%(inputFile))
 
-ROOT.gPad.SetLogx(1)
-c.Clear()
-track_E['2D'].Draw("colz")
-c.SaveAs("plots/track_2Ddistribution%s.png"%(inputFile))
-c.SaveAs("plots/track_2Ddistribution%s.pdf"%(inputFile))
-
-c.Clear()
-photon_E['2D'].Draw("colz")
-c.SaveAs("plots/photon_2Ddistribution%s.png"%(inputFile))
-c.SaveAs("plots/photon_2Ddistribution%s.pdf"%(inputFile))
 
 
-c.Clear()
-neutral_E['2D'].Draw("colz")
-c.SaveAs("plots/neutral_2Ddistribution%s.png"%(inputFile))
-c.SaveAs("plots/neutral_2Ddistribution%s.pdf"%(inputFile))  
 
-ROOT.gPad.SetLogy(1)
 
 c.Clear()
 histo['Vratio'].Draw()
@@ -1058,3 +1191,13 @@ if(isCC):
     c.SaveAs("plots/purity_Q2_x_%s.png"%(inputFile))
     c.SaveAs("plots/pdf/purity_Q2_x_%s.pdf"%(inputFile))
 
+
+##MET distribution at truth and reconstructed level
+c.Clear()
+ROOT.gPad.SetLogy(1) 
+ROOT.gPad.SetLogx(0)
+h_MET.Draw()
+h_MET_truth.SetLineColor(2)
+h_MET_truth.Draw("same")
+c.SaveAs("plots/METdistribution_%s.png"%(inputFile))
+c.SaveAs("plots/METdistribution_%s.pdf"%(inputFile)) 
