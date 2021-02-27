@@ -65,6 +65,10 @@ set ExecutionPath {
 
   TrackCountingBTagging
 
+  mRICH
+  barrelDirc
+  dualRICH_aerogel
+  dualRICH_C2F6
 
   TreeWriter
 }
@@ -698,6 +702,20 @@ module TrackCountingBTagging TrackCountingBTagging {
     
 }
 
+##################
+# PID Efficiency Maps
+##################
+
+# mRICH in backward region
+source mRICH.tcl
+# barrelDirc in barrel region
+source barrelDirc.tcl
+# mRICH (two systems) in forward region
+source dRICH_aerogel.tcl
+source dRICH_c2f6.tcl
+
+
+
 
 ##################
 # ROOT tree writer
@@ -717,6 +735,11 @@ module TreeWriter TreeWriter {
   add Branch HCal/eflowTracks EFlowTrack Track
   add Branch ECal/eflowPhotons EFlowPhoton Tower
   add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
+
+  add Branch mRICH/tracks mRICHTrack Track
+  add Branch barrelDirc/tracks barrelDircTrack Track
+  add Branch dualRICH_aerogel/tracks dRICHagTrack Track
+  add Branch dualRICH_C2F6/tracks dRICHcfTrack Track
 
   add Branch GenJetFinder/jets GenJet Jet
   add Branch GenMissingET/momentum GenMissingET MissingET
