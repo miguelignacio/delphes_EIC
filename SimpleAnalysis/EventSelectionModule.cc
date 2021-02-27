@@ -24,10 +24,10 @@ EventSelectionModule::~EventSelectionModule()
 void EventSelectionModule::initialize()
 {
   // Get the pointer to the mRICH tracks
-  _branch_mRICHTracks = getData()->UseBranch("mRICHTrack");
+  _branch_mRICHTracks      = getData()->UseBranch("mRICHTrack");
   _branch_barrelDircTracks = getData()->UseBranch("barrelDircTrack");
-  _branch_dRICHagTracks = getData()->UseBranch("dRICHagTrack");
-  _branch_dRICHcfTracks = getData()->UseBranch("dRICHcfTrack");
+  _branch_dRICHagTracks    = getData()->UseBranch("dRICHagTrack");
+  _branch_dRICHcfTracks    = getData()->UseBranch("dRICHcfTrack");
 
 
   // Tree handler initialization
@@ -44,8 +44,10 @@ void EventSelectionModule::initialize()
     _jet_ktag     = std::vector<int>();
     _jet_k1_pt    = std::vector<float>();
     _jet_k1_sIP3D = std::vector<float>();
+    _jet_k1_pid   = std::vector<int>();
     _jet_k2_pt    = std::vector<float>();
     _jet_k2_sIP3D = std::vector<float>();
+    _jet_k2_pid   = std::vector<int>();
 
     _jet_e1_pt    = std::vector<float>();
     _jet_e1_sIP3D = std::vector<float>();
@@ -67,12 +69,12 @@ void EventSelectionModule::initialize()
     _jet_t4_sIP3D = std::vector<float>();
 
 
-    _jet_etag   = std::vector<int>();
-    _jet_mutag  = std::vector<int>();
+    _jet_etag  = std::vector<int>();
+    _jet_mutag = std::vector<int>();
 
-    _jet_mlp_ktagger = std::vector<float>();
-    _jet_mlp_eltagger = std::vector<float>();
-    _jet_mlp_mutagger = std::vector<float>();
+    _jet_mlp_ktagger    = std::vector<float>();
+    _jet_mlp_eltagger   = std::vector<float>();
+    _jet_mlp_mutagger   = std::vector<float>();
     _jet_mlp_ip3dtagger = std::vector<float>();
 
 
@@ -88,8 +90,10 @@ void EventSelectionModule::initialize()
 
     tree_handler->getTree()->Branch("jet_ktag",     "std::vector<int>", &_jet_ktag);
     tree_handler->getTree()->Branch("jet_k1_pt",    "std::vector<float>", &_jet_k1_pt);
+    tree_handler->getTree()->Branch("jet_k1_pid",    "std::vector<int>", &_jet_k1_pid);
     tree_handler->getTree()->Branch("jet_k1_sIP3D", "std::vector<float>", &_jet_k1_sIP3D);
     tree_handler->getTree()->Branch("jet_k2_pt",    "std::vector<float>", &_jet_k2_pt);
+    tree_handler->getTree()->Branch("jet_k2_pid",    "std::vector<int>", &_jet_k2_pid);
     tree_handler->getTree()->Branch("jet_k2_sIP3D", "std::vector<float>", &_jet_k2_sIP3D);
 
     tree_handler->getTree()->Branch("jet_e1_pt",    "std::vector<float>", &_jet_e1_pt);
@@ -166,18 +170,23 @@ void EventSelectionModule::initialize()
     tree_handler->getTree()->Branch("jb_Q2", &_jb_Q2, "jb_Q2/F");
 
     // pid tracks
-    _pid_track_n = 0;
-    _pid_track_pid = std::vector<int>();
-    _pid_track_eta = std::vector<float>();
-    _pid_track_pt = std::vector<float>();
+    _pid_track_n         = 0;
+    _pid_track_jetmother = std::vector<int>();
+    _pid_track_jet_pt    = std::vector<float>();
+    _pid_track_jet_eta   = std::vector<float>();
+    _pid_track_true_pid  = std::vector<int>();
+    _pid_track_reco_pid  = std::vector<int>();
+    _pid_track_eta       = std::vector<float>();
+    _pid_track_pt        = std::vector<float>();
 
     tree_handler->getTree()->Branch("pid_track_n", &_pid_track_n, "pid_track_n/I");
-    tree_handler->getTree()->Branch("pid_track_pid", "std::vector<int>", &_pid_track_pid);
+    tree_handler->getTree()->Branch("pid_track_true_pid", "std::vector<int>", &_pid_track_true_pid);
+    tree_handler->getTree()->Branch("pid_track_reco_pid", "std::vector<int>", &_pid_track_reco_pid);
     tree_handler->getTree()->Branch("pid_track_pt", "std::vector<float>", &_pid_track_pt);
     tree_handler->getTree()->Branch("pid_track_eta", "std::vector<float>", &_pid_track_eta);
-
-
-
+    tree_handler->getTree()->Branch("pid_track_jetmother", "std::vector<int>", &_pid_track_jetmother);
+    tree_handler->getTree()->Branch("pid_track_jet_pt", "std::vector<float>", &_pid_track_jet_pt);
+    tree_handler->getTree()->Branch("pid_track_jet_eta", "std::vector<float>", &_pid_track_jet_eta);
   }
 
 
@@ -194,100 +203,102 @@ void EventSelectionModule::initialize()
 
 
   // MVA Algorithms
-  _mva_reader_ip3dtagger = new TMVA::Reader("Silent"); 
-  _mva_reader_ktagger = new TMVA::Reader("Silent"); 
-  _mva_reader_eltagger = new TMVA::Reader("Silent"); 
-  _mva_reader_mutagger = new TMVA::Reader("Silent"); 
-  _mva_reader_globaltagger = new TMVA::Reader("Silent"); 
+  _mva_reader_ip3dtagger   = new TMVA::Reader("Silent");
+  _mva_reader_ktagger      = new TMVA::Reader("Silent");
+  _mva_reader_eltagger     = new TMVA::Reader("Silent");
+  _mva_reader_mutagger     = new TMVA::Reader("Silent");
+  _mva_reader_globaltagger = new TMVA::Reader("Silent");
 
 
-  _mva_inputs_float = std::map<TString, Float_t>();
-  _mva_inputs_int = std::map<TString, Int_t>();
-  _mva_inputs_float["jet_pt"] = 0.0;
-  _mva_inputs_float["jet_eta"] = 0.0;
+  _mva_inputs_float             = std::map<TString, Float_t>();
+  _mva_inputs_int               = std::map<TString, Int_t>();
+  _mva_inputs_float["jet_pt"]   = 0.0;
+  _mva_inputs_float["jet_eta"]  = 0.0;
   _mva_inputs_int["jet_flavor"] = 0;
-  _mva_inputs_float["met_et"] = 0.0;
+  _mva_inputs_float["met_et"]   = 0.0;
 
 
-  _mva_inputs_float["jet_e1_pt"] = 0.0;
+  _mva_inputs_float["jet_e1_pt"]    = 0.0;
   _mva_inputs_float["jet_e1_sIP3D"] = 0.0;
-  _mva_inputs_float["jet_e2_pt"] = 0.0;
+  _mva_inputs_float["jet_e2_pt"]    = 0.0;
   _mva_inputs_float["jet_e2_sIP3D"] = 0.0;
 
-  _mva_inputs_float["jet_t1_pt"] = 0.0;
+  _mva_inputs_float["jet_t1_pt"]    = 0.0;
   _mva_inputs_float["jet_t1_sIP3D"] = 0.0;
-  _mva_inputs_float["jet_t2_pt"] = 0.0;
+  _mva_inputs_float["jet_t2_pt"]    = 0.0;
   _mva_inputs_float["jet_t2_sIP3D"] = 0.0;
-  _mva_inputs_float["jet_t3_pt"] = 0.0;
+  _mva_inputs_float["jet_t3_pt"]    = 0.0;
   _mva_inputs_float["jet_t3_sIP3D"] = 0.0;
-  _mva_inputs_float["jet_t4_pt"] = 0.0;
+  _mva_inputs_float["jet_t4_pt"]    = 0.0;
   _mva_inputs_float["jet_t4_sIP3D"] = 0.0;
 
-  _mva_inputs_float["jet_k1_pt"] = 0.0;
+  _mva_inputs_float["jet_k1_pt"]    = 0.0;
   _mva_inputs_float["jet_k1_sIP3D"] = 0.0;
-  _mva_inputs_float["jet_k2_pt"] = 0.0;
+  _mva_inputs_float["jet_k1_pid"]   = 0;
+  _mva_inputs_float["jet_k2_pt"]    = 0.0;
   _mva_inputs_float["jet_k2_sIP3D"] = 0.0;
-  
-  _mva_inputs_float["jet_mu1_pt"] = 0.0;
+  _mva_inputs_float["jet_k2_pid"]   = 0;
+
+  _mva_inputs_float["jet_mu1_pt"]    = 0.0;
   _mva_inputs_float["jet_mu1_sIP3D"] = 0.0;
-  _mva_inputs_float["jet_mu2_pt"] = 0.0;
+  _mva_inputs_float["jet_mu2_pt"]    = 0.0;
   _mva_inputs_float["jet_mu2_sIP3D"] = 0.0;
 
 
   _mva_inputs_float["jet_mlp_ip3dtagger"] = 0.0;
-  _mva_inputs_float["jet_mlp_ktagger"] = 0.0;
-  _mva_inputs_float["jet_mlp_eltagger"] = 0.0;
-  _mva_inputs_float["jet_mlp_mutagger"] = 0.0;
+  _mva_inputs_float["jet_mlp_ktagger"]    = 0.0;
+  _mva_inputs_float["jet_mlp_eltagger"]   = 0.0;
+  _mva_inputs_float["jet_mlp_mutagger"]   = 0.0;
 
 
-  _mva_reader_ip3dtagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
-  _mva_reader_ip3dtagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_ip3dtagger->AddSpectator("jet_pt",     &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_ip3dtagger->AddSpectator("jet_eta",    &(_mva_inputs_float["jet_eta"]));
   _mva_reader_ip3dtagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
-  _mva_reader_ip3dtagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+  _mva_reader_ip3dtagger->AddSpectator("met_et",     &(_mva_inputs_float["met_et"]));
 
-  _mva_reader_ktagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
-  _mva_reader_ktagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_ktagger->AddSpectator("jet_pt",     &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_ktagger->AddSpectator("jet_eta",    &(_mva_inputs_float["jet_eta"]));
   _mva_reader_ktagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
-  _mva_reader_ktagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+  _mva_reader_ktagger->AddSpectator("met_et",     &(_mva_inputs_float["met_et"]));
 
-  _mva_reader_eltagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
-  _mva_reader_eltagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_eltagger->AddSpectator("jet_pt",     &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_eltagger->AddSpectator("jet_eta",    &(_mva_inputs_float["jet_eta"]));
   _mva_reader_eltagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
-  _mva_reader_eltagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+  _mva_reader_eltagger->AddSpectator("met_et",     &(_mva_inputs_float["met_et"]));
 
-  _mva_reader_mutagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
-  _mva_reader_mutagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_mutagger->AddSpectator("jet_pt",     &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_mutagger->AddSpectator("jet_eta",    &(_mva_inputs_float["jet_eta"]));
   _mva_reader_mutagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
-  _mva_reader_mutagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+  _mva_reader_mutagger->AddSpectator("met_et",     &(_mva_inputs_float["met_et"]));
 
-  _mva_reader_globaltagger->AddSpectator("jet_pt", &(_mva_inputs_float["jet_pt"]));
-  _mva_reader_globaltagger->AddSpectator("jet_eta", &(_mva_inputs_float["jet_eta"]));
+  _mva_reader_globaltagger->AddSpectator("jet_pt",     &(_mva_inputs_float["jet_pt"]));
+  _mva_reader_globaltagger->AddSpectator("jet_eta",    &(_mva_inputs_float["jet_eta"]));
   _mva_reader_globaltagger->AddSpectator("jet_flavor", &(_mva_inputs_int["jet_flavor"]));
-  _mva_reader_globaltagger->AddSpectator("met_et", &(_mva_inputs_float["met_et"]));
+  _mva_reader_globaltagger->AddSpectator("met_et",     &(_mva_inputs_float["met_et"]));
 
 
-  _mva_reader_eltagger->AddVariable("jet_e1_pt", &(_mva_inputs_float["jet_e1_pt"]));
+  _mva_reader_eltagger->AddVariable("jet_e1_pt",    &(_mva_inputs_float["jet_e1_pt"]));
   _mva_reader_eltagger->AddVariable("jet_e1_sIP3D", &(_mva_inputs_float["jet_e1_sIP3D"]));
-  _mva_reader_eltagger->AddVariable("jet_e2_pt", &(_mva_inputs_float["jet_e2_pt"]));
+  _mva_reader_eltagger->AddVariable("jet_e2_pt",    &(_mva_inputs_float["jet_e2_pt"]));
   _mva_reader_eltagger->AddVariable("jet_e2_sIP3D", &(_mva_inputs_float["jet_e2_sIP3D"]));
 
-  _mva_reader_ip3dtagger->AddVariable("jet_t1_pt", &(_mva_inputs_float["jet_t1_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t1_pt",    &(_mva_inputs_float["jet_t1_pt"]));
   _mva_reader_ip3dtagger->AddVariable("jet_t1_sIP3D", &(_mva_inputs_float["jet_t1_sIP3D"]));
-  _mva_reader_ip3dtagger->AddVariable("jet_t2_pt", &(_mva_inputs_float["jet_t2_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t2_pt",    &(_mva_inputs_float["jet_t2_pt"]));
   _mva_reader_ip3dtagger->AddVariable("jet_t2_sIP3D", &(_mva_inputs_float["jet_t2_sIP3D"]));
-  _mva_reader_ip3dtagger->AddVariable("jet_t3_pt", &(_mva_inputs_float["jet_t3_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t3_pt",    &(_mva_inputs_float["jet_t3_pt"]));
   _mva_reader_ip3dtagger->AddVariable("jet_t3_sIP3D", &(_mva_inputs_float["jet_t3_sIP3D"]));
-  _mva_reader_ip3dtagger->AddVariable("jet_t4_pt", &(_mva_inputs_float["jet_t4_pt"]));
+  _mva_reader_ip3dtagger->AddVariable("jet_t4_pt",    &(_mva_inputs_float["jet_t4_pt"]));
   _mva_reader_ip3dtagger->AddVariable("jet_t4_sIP3D", &(_mva_inputs_float["jet_t4_sIP3D"]));
 
-  _mva_reader_ktagger->AddVariable("jet_k1_pt", &(_mva_inputs_float["jet_k1_pt"]));
+  _mva_reader_ktagger->AddVariable("jet_k1_pt",    &(_mva_inputs_float["jet_k1_pt"]));
   _mva_reader_ktagger->AddVariable("jet_k1_sIP3D", &(_mva_inputs_float["jet_k1_sIP3D"]));
-  _mva_reader_ktagger->AddVariable("jet_k2_pt", &(_mva_inputs_float["jet_k2_pt"]));
+  _mva_reader_ktagger->AddVariable("jet_k2_pt",    &(_mva_inputs_float["jet_k2_pt"]));
   _mva_reader_ktagger->AddVariable("jet_k2_sIP3D", &(_mva_inputs_float["jet_k2_sIP3D"]));
-  
-  _mva_reader_mutagger->AddVariable("jet_mu1_pt", &(_mva_inputs_float["jet_mu1_pt"]));
+
+  _mva_reader_mutagger->AddVariable("jet_mu1_pt",    &(_mva_inputs_float["jet_mu1_pt"]));
   _mva_reader_mutagger->AddVariable("jet_mu1_sIP3D", &(_mva_inputs_float["jet_mu1_sIP3D"]));
-  _mva_reader_mutagger->AddVariable("jet_mu2_pt", &(_mva_inputs_float["jet_mu2_pt"]));
+  _mva_reader_mutagger->AddVariable("jet_mu2_pt",    &(_mva_inputs_float["jet_mu2_pt"]));
   _mva_reader_mutagger->AddVariable("jet_mu2_sIP3D", &(_mva_inputs_float["jet_mu2_sIP3D"]));
 
   _mva_reader_globaltagger->AddVariable("jet_mlp_ip3dtagger", &(_mva_inputs_float["jet_mlp_ip3dtagger"]));
@@ -296,11 +307,10 @@ void EventSelectionModule::initialize()
   _mva_reader_globaltagger->AddVariable("jet_mlp_mutagger",   &(_mva_inputs_float["jet_mlp_mutagger"]));
 
   _mva_reader_ip3dtagger->BookMVA("CharmIP3DTagger", "mva_taggers/TMVAClassification_CharmIP3DTagger.weights.xml");
-  _mva_reader_eltagger->BookMVA("CharmETagger",    "mva_taggers/TMVAClassification_CharmETagger.weights.xml");
-  _mva_reader_ktagger->BookMVA("CharmKTagger",    "mva_taggers/TMVAClassification_CharmKTagger.weights.xml");
-  _mva_reader_mutagger->BookMVA("CharmMuTagger",   "mva_taggers/TMVAClassification_CharmMuTagger.weights.xml");
+  _mva_reader_eltagger->BookMVA("CharmETagger", "mva_taggers/TMVAClassification_CharmETagger.weights.xml");
+  _mva_reader_ktagger->BookMVA("CharmKTagger", "mva_taggers/TMVAClassification_CharmKTagger.weights.xml");
+  _mva_reader_mutagger->BookMVA("CharmMuTagger", "mva_taggers/TMVAClassification_CharmMuTagger.weights.xml");
   _mva_reader_globaltagger->BookMVA("CharmGlobalTagger", "mva_taggers/TMVAClassification_CharmGlobalTagger.weights.xml");
-
 }
 
 void EventSelectionModule::finalize()
@@ -320,15 +330,19 @@ void EventSelectionModule::finalize()
   if (_mva_reader_ip3dtagger) {
     delete _mva_reader_ip3dtagger;
   }
+
   if (_mva_reader_ktagger) {
     delete _mva_reader_ktagger;
   }
+
   if (_mva_reader_eltagger) {
     delete _mva_reader_eltagger;
   }
+
   if (_mva_reader_mutagger) {
     delete _mva_reader_mutagger;
   }
+
   if (_mva_reader_globaltagger) {
     delete _mva_reader_globaltagger;
   }
@@ -358,7 +372,11 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   _charmjet_eta.clear();
   _charmjet_n = _charmjet_pt.size();
 
-  _pid_track_pid.clear();
+  _pid_track_jetmother.clear();
+  _pid_track_jet_pt.clear();
+  _pid_track_jet_eta.clear();
+  _pid_track_true_pid.clear();
+  _pid_track_reco_pid.clear();
   _pid_track_pt.clear();
   _pid_track_eta.clear();
   _pid_track_n = _pid_track_pt.size();
@@ -399,8 +417,10 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   _jet_sip3dtag.clear();
   _jet_ktag.clear();
   _jet_k1_pt.clear();
+  _jet_k1_pid.clear();
   _jet_k1_sIP3D.clear();
   _jet_k2_pt.clear();
+  _jet_k2_pid.clear();
   _jet_k2_sIP3D.clear();
 
   _jet_e1_pt.clear();
@@ -563,17 +583,18 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
 
   // Get Kaons from the EIC Detector PID Systems
   std::vector<Track *> kaon_candidates;
-  std::vector<Track> pid_candidates;
+  std::vector<Track>   pid_candidates;
 
-  // The mRICH and barrel DIRC are physicall distinct systems covering different eta ranges
-  // The dRICH system has two components - an aerogel detector for low-momentum performance
+  // The mRICH and barrel DIRC are physicall distinct systems covering different
+  // eta ranges
+  // The dRICH system has two components - an aerogel detector for low-momentum
+  // performance
   // and a CF6 system for high-momentum performance.
 
   for (int itrk = 0; itrk < _branch_mRICHTracks->GetEntries(); itrk++) {
     Track *track = (Track *)_branch_mRICHTracks->At(itrk);
 
-    if (track->Eta  < -4.0 || -1.0 < track->Eta)
-      continue;
+    if ((track->Eta  < -4.0) || (-1.0 < track->Eta)) continue;
 
     pid_candidates.push_back(*track);
 
@@ -589,15 +610,14 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   for (int itrk = 0; itrk < _branch_barrelDircTracks->GetEntries(); itrk++) {
     Track *track = (Track *)_branch_barrelDircTracks->At(itrk);
 
-    if (track->Eta  < -1.0 || 1.0 < track->Eta)
-      continue;
+    if ((track->Eta  < -1.0) || (1.0 < track->Eta)) continue;
 
     pid_candidates.push_back(*track);
 
     Int_t pid_flag = track->PID;
     Int_t true_pid = (pid_flag & 0xffff0000) >> 16;
     Int_t reco_pid = (pid_flag & 0xffff);
-    
+
     if (TMath::Abs(reco_pid) == 321) {
       kaon_candidates.push_back(track);
     }
@@ -606,8 +626,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   for (int itrk = 0; itrk < _branch_dRICHagTracks->GetEntries(); itrk++) {
     Track *track_ag = (Track *)_branch_dRICHagTracks->At(itrk);
 
-    if (track_ag->Eta  < 1.0 || 4.0 < track_ag->Eta)
-      continue;
+    if ((track_ag->Eta  < 1.0) || (4.0 < track_ag->Eta)) continue;
 
 
     Int_t ag_pid = (track_ag->PID & 0xffff);
@@ -618,29 +637,54 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
 
     for (int jtrk = 0; jtrk < _branch_dRICHcfTracks->GetEntries(); jtrk++) {
       Track *track_cf = (Track *)_branch_dRICHcfTracks->At(jtrk);
-      
+
       // see if this CF6 candidate matches to the aerogel track
       if (track_ag->P4().DeltaR(track_cf->P4()) < 0.001) {
-	Int_t cf_flag = track_cf->PID;
-	Int_t true_cf = (cf_flag & 0xffff0000) >> 16;
-	Int_t reco_cf = (cf_flag & 0xffff);
-	if (TMath::Abs(reco_ag) == 321 || TMath::Abs(reco_cf) == 321) {
-	  kaon_candidates.push_back(track_cf);
-	  reco_cf == 321;
-	}
-	
+        Int_t cf_flag = track_cf->PID;
+        Int_t true_cf = (cf_flag & 0xffff0000) >> 16;
+        Int_t reco_cf = (cf_flag & 0xffff);
 
-	Track drich_track = *track_ag;
-	drich_track.PID = reco_cf + (true_cf << 16);
-	pid_candidates.push_back(drich_track);
+        if ((TMath::Abs(reco_ag) == 321) || (TMath::Abs(reco_cf) == 321)) {
+          kaon_candidates.push_back(track_cf);
+          reco_cf == 321;
+        }
 
+
+        Track drich_track = *track_ag;
+        drich_track.PID = reco_cf + (true_cf << 16);
+        pid_candidates.push_back(drich_track);
       }
     }
   }
 
   _pid_track_n = pid_candidates.size();
+
   for (auto pid_candidate : pid_candidates) {
-    _pid_track_pid.push_back(pid_candidate.PID);
+    // try to identify the jet that might contain this track and save its
+    // mother's identity (e.g. 1, 4, 5, etc.)
+    float jet_min_dR     = 1e9;
+    int   jet_mother_id  = 0;
+    float jet_mother_pt  = 0;
+    float jet_mother_eta = 1e6;
+
+    for (int ijet = 0; ijet < getJets()->GetEntries(); ijet++)
+    {
+      // Take first jet
+      Jet  *jet     = (Jet *)getJets()->At(ijet);
+      float this_dR = jet->P4().DeltaR(pid_candidate.P4());
+
+      if ((this_dR < 1.0) && (this_dR < jet_min_dR)) {
+        jet_min_dR     = this_dR;
+        jet_mother_id  = jet->Flavor;
+        jet_mother_pt  = jet->PT;
+        jet_mother_eta = jet->Eta;
+      }
+    }
+    _pid_track_jetmother.push_back(jet_mother_id);
+    _pid_track_jet_pt.push_back(jet_mother_pt);
+    _pid_track_jet_eta.push_back(jet_mother_eta);
+    _pid_track_true_pid.push_back(pid_candidate.PID & 0xffff);
+    _pid_track_reco_pid.push_back((pid_candidate.PID & 0xffff0000) >> 16);
     _pid_track_pt.push_back(pid_candidate.PT);
     _pid_track_eta.push_back(pid_candidate.Eta);
   }
@@ -728,7 +772,6 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     }
 
 
-
     if (use_electrons) {
       _jet_etag.push_back(Tagged_Electron(jet, std::any_cast<std::vector<Track *> >((*DataStore)["Electrons"]), 3.0, 1.0, 1));
     } else {
@@ -756,7 +799,8 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       return lhs->PT > rhs->PT;
     });
 
-    // auto kaons_list     = std::any_cast<std::vector<Track *> >((*DataStore)["Kaons"]);
+    // auto kaons_list     = std::any_cast<std::vector<Track *>
+    // >((*DataStore)["Kaons"]);
     auto kaons_list     = kaon_candidates;
     auto electrons_list = std::any_cast<std::vector<Track *> >((*DataStore)["Electrons"]);
     auto muons_list     = std::any_cast<std::vector<Track *> >((*DataStore)["Muons"]);
@@ -766,9 +810,11 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       auto k1 = kaons_list.at(0);
       _jet_k1_pt.push_back(k1->PT);
       _jet_k1_sIP3D.push_back(sIP3D(jet, k1));
+      _jet_k1_pid.push_back(k1->PID);
     } else {
       _jet_k1_pt.push_back(-1.0);
       _jet_k1_sIP3D.push_back(-199.0);
+      _jet_k1_pid.push_back(0);
     }
 
     // if (kaon_candidates.size() > 1) {
@@ -776,9 +822,11 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       auto k2 = kaons_list.at(1);
       _jet_k2_pt.push_back(k2->PT);
       _jet_k2_sIP3D.push_back(sIP3D(jet, k2));
+      _jet_k2_pid.push_back(k2->PID);
     } else {
       _jet_k2_pt.push_back(-1.0);
       _jet_k2_sIP3D.push_back(-199.0);
+      _jet_k2_pid.push_back(0);
     }
 
     TVector3 Ks_sumpt;
@@ -874,32 +922,32 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
 
     // MLP Tagger Decisions
     _mva_inputs_int["jet_flavor"] = static_cast<Int_t>(jet->Flavor);
-    _mva_inputs_float["jet_pt"] = jet->PT;
-    _mva_inputs_float["jet_eta"] = jet->Eta;
-    _mva_inputs_float["met_et"] = _met_et;
+    _mva_inputs_float["jet_pt"]   = jet->PT;
+    _mva_inputs_float["jet_eta"]  = jet->Eta;
+    _mva_inputs_float["met_et"]   = _met_et;
 
 
-    _mva_inputs_float["jet_t1_pt"] = _jet_t1_pt.back();
+    _mva_inputs_float["jet_t1_pt"]    = _jet_t1_pt.back();
     _mva_inputs_float["jet_t1_sIP3D"] = _jet_t1_sIP3D.back();
-    _mva_inputs_float["jet_t2_pt"] = _jet_t2_pt.back();
+    _mva_inputs_float["jet_t2_pt"]    = _jet_t2_pt.back();
     _mva_inputs_float["jet_t2_sIP3D"] = _jet_t2_sIP3D.back();
-    _mva_inputs_float["jet_t3_pt"] = _jet_t3_pt.back();
+    _mva_inputs_float["jet_t3_pt"]    = _jet_t3_pt.back();
     _mva_inputs_float["jet_t3_sIP3D"] = _jet_t3_sIP3D.back();
-    _mva_inputs_float["jet_t4_pt"] = _jet_t4_pt.back();
+    _mva_inputs_float["jet_t4_pt"]    = _jet_t4_pt.back();
     _mva_inputs_float["jet_t4_sIP3D"] = _jet_t4_sIP3D.back();
 
-    _mva_inputs_float["jet_k1_pt"] = _jet_k1_pt.back();
-    _mva_inputs_float["jet_k2_pt"] = _jet_k2_pt.back();
+    _mva_inputs_float["jet_k1_pt"]    = _jet_k1_pt.back();
+    _mva_inputs_float["jet_k2_pt"]    = _jet_k2_pt.back();
     _mva_inputs_float["jet_k1_sIP3D"] = _jet_k1_sIP3D.back();
     _mva_inputs_float["jet_k2_sIP3D"] = _jet_k2_sIP3D.back();
 
-    _mva_inputs_float["jet_e1_pt"] = _jet_e1_pt.back();
-    _mva_inputs_float["jet_e2_pt"] = _jet_e2_pt.back();
+    _mva_inputs_float["jet_e1_pt"]    = _jet_e1_pt.back();
+    _mva_inputs_float["jet_e2_pt"]    = _jet_e2_pt.back();
     _mva_inputs_float["jet_e1_sIP3D"] = _jet_e1_sIP3D.back();
     _mva_inputs_float["jet_e2_sIP3D"] = _jet_e2_sIP3D.back();
 
-    _mva_inputs_float["jet_mu1_pt"] = _jet_mu1_pt.back();
-    _mva_inputs_float["jet_mu2_pt"] = _jet_mu2_pt.back();
+    _mva_inputs_float["jet_mu1_pt"]    = _jet_mu1_pt.back();
+    _mva_inputs_float["jet_mu2_pt"]    = _jet_mu2_pt.back();
     _mva_inputs_float["jet_mu1_sIP3D"] = _jet_mu1_sIP3D.back();
     _mva_inputs_float["jet_mu2_sIP3D"] = _jet_mu2_sIP3D.back();
 
@@ -908,11 +956,11 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     _jet_mlp_ktagger.push_back(_mva_reader_ktagger->EvaluateMVA("CharmKTagger"));
     _jet_mlp_eltagger.push_back(_mva_reader_eltagger->EvaluateMVA("CharmETagger"));
     _jet_mlp_mutagger.push_back(_mva_reader_mutagger->EvaluateMVA("CharmMuTagger"));
-    
+
     _mva_inputs_float["jet_mlp_ip3dtagger"] = _mva_reader_ip3dtagger->EvaluateMVA("CharmIP3DTagger");
-    _mva_inputs_float["jet_mlp_ktagger"] = _mva_reader_ktagger->EvaluateMVA("CharmKTagger");
-    _mva_inputs_float["jet_mlp_eltagger"] = _mva_reader_eltagger->EvaluateMVA("CharmETagger");
-    _mva_inputs_float["jet_mlp_mutagger"] = _mva_reader_mutagger->EvaluateMVA("CharmMuTagger");
+    _mva_inputs_float["jet_mlp_ktagger"]    = _mva_reader_ktagger->EvaluateMVA("CharmKTagger");
+    _mva_inputs_float["jet_mlp_eltagger"]   = _mva_reader_eltagger->EvaluateMVA("CharmETagger");
+    _mva_inputs_float["jet_mlp_mutagger"]   = _mva_reader_mutagger->EvaluateMVA("CharmMuTagger");
 
     _jet_mlp_globaltagger.push_back(_mva_reader_globaltagger->EvaluateMVA("CharmGlobalTagger"));
 

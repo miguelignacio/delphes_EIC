@@ -120,6 +120,7 @@ else:
     if not os.path.exists(taskdir):
         os.makedirs(taskdir)
 
-    #subprocess.call("ln -s %s %s/" % (root_file, taskdir), shell=True);
+    # Copy or Link needed files to working directory
+    subprocess.call("cp -a mva_taggers %s/" % (taskdir), shell=True);
     # Execute the study
     subprocess.call('cd {0[taskdir]}; SimpleAnalysis.exe --input_dir {0[root_file]} --output_file out.root --module_sequence "{0[modules]}"'.format({'taskdir': taskdir, 'root_file': root_file, 'modules': args.modules}), shell=True)

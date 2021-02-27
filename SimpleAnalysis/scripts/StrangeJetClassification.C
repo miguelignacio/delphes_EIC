@@ -52,14 +52,14 @@ void StrangeJetClassification(TString dir, TString input, TString filePattern = 
   auto background_train = default_data->CopyTree("(jet_flavor<3||jet_flavor==21)", "", TMath::Floor(default_data->GetEntries()/1.0));
   std::cout << "Background Tree (Training): " << background_train->GetEntries() << std::endl;
 
-  auto u_background_train = default_data->CopyTree("(jet_flavor==2)", "", TMath::Floor(default_data->GetEntries()/1.0));
-  std::cout << "u Background Tree (Training): " << u_background_train->GetEntries() << std::endl;
+  // auto u_background_train = default_data->CopyTree("(jet_flavor==2)", "", TMath::Floor(default_data->GetEntries()/1.0));
+  // std::cout << "u Background Tree (Training): " << u_background_train->GetEntries() << std::endl;
 
-  auto d_background_train = default_data->CopyTree("(jet_flavor==1)", "", TMath::Floor(default_data->GetEntries()/1.0));
-  std::cout << "d Background Tree (Training): " << d_background_train->GetEntries() << std::endl;
+  // auto d_background_train = default_data->CopyTree("(jet_flavor==1)", "", TMath::Floor(default_data->GetEntries()/1.0));
+  // std::cout << "d Background Tree (Training): " << d_background_train->GetEntries() << std::endl;
 
-  auto g_background_train = default_data->CopyTree("(jet_flavor==21)", "", TMath::Floor(default_data->GetEntries()/1.0));
-  std::cout << "g Background Tree (Training): " << g_background_train->GetEntries() << std::endl;
+  // auto g_background_train = default_data->CopyTree("(jet_flavor==21)", "", TMath::Floor(default_data->GetEntries()/1.0));
+  // std::cout << "g Background Tree (Training): " << g_background_train->GetEntries() << std::endl;
 
   // Create the TMVA tools
   TMVA::Tools::Instance();
@@ -72,8 +72,8 @@ void StrangeJetClassification(TString dir, TString input, TString filePattern = 
 
   TMVA::DataLoader loader("dataset");
 
-  loader.AddSpectator("jet_pt");
-  loader.AddSpectator("jet_eta");
+  loader.AddVariable("jet_pt");
+  loader.AddVariable("jet_eta");
   loader.AddVariable("jet_nconstituents");
   loader.AddVariable("jet_Ks_leading_zhadron");
   loader.AddVariable("jet_K_leading_zhadron");
@@ -89,12 +89,14 @@ void StrangeJetClassification(TString dir, TString input, TString filePattern = 
   // loader.AddTree( u_background_train, "up jets" );
   // loader.AddTree( d_background_train, "down jets" );
   // loader.AddTree( g_background_train, "gluon jets" );
-  loader.PrepareTrainingAndTestTree(TCut("jet_pt>5.0 && jet_flavor==3"), TCut("jet_pt>5.0 && (jet_flavor<3||jet_flavor==21)"),
-   				    "nTrain_Signal=10000:nTrain_Background=100000:SplitMode=Random:NormMode=NumEvents:!V" );
+
+  loader.PrepareTrainingAndTestTree(TCut("jet_pt>5.0 && TMath::Abs(jet_eta) < 3.0 && jet_flavor==3"), 
+				    TCut("jet_pt>5.0 && TMath::Abs(jet_eta) < 3.0 && (jet_flavor<3||jet_flavor==21)"),
+   				    "nTrain_Signal=50000:nTrain_Background=100000:nTest_Signal=50000:nTest_Background=100000:SplitMode=Random:NormMode=NumEvents:!V" );
 
   // Declare the classification method(s)
   factory.BookMethod(&loader,TMVA::Types::kBDT, "BDT",
-		     "!V:NTrees=500:MinNodeSize=2.5%:MaxDepth=2:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
+		     "!V:NTrees=1000:MinNodeSize=2.5%:MaxDepth=4:BoostType=AdaBoost:AdaBoostBeta=0.5:UseBaggedBoost:BaggedSampleFraction=0.5:SeparationType=GiniIndex:nCuts=20" );
 
   // Train
   factory.TrainAllMethods();

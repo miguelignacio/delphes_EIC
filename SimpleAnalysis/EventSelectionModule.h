@@ -30,11 +30,15 @@ private:
   std::vector<float>_charmjet_pt;
   std::vector<float>_charmjet_eta;
 
-  
+
   unsigned int _pid_track_n;
-  std::vector<int>_pid_track_pid;
+  std::vector<int>_pid_track_true_pid;
+  std::vector<int>_pid_track_reco_pid;
   std::vector<float>_pid_track_pt;
   std::vector<float>_pid_track_eta;
+  std::vector<int>_pid_track_jetmother;
+  std::vector<float>_pid_track_jet_eta;
+  std::vector<float>_pid_track_jet_pt;
 
   unsigned int _jet_n;
   std::vector<float>_jet_pt;
@@ -48,8 +52,10 @@ private:
 
   std::vector<float>_jet_k1_pt;
   std::vector<float>_jet_k1_sIP3D;
+  std::vector<int>_jet_k1_pid;
   std::vector<float>_jet_k2_pt;
   std::vector<float>_jet_k2_sIP3D;
+  std::vector<int>_jet_k2_pid;
 
   std::vector<float>_jet_e1_pt;
   std::vector<float>_jet_e1_sIP3D;
@@ -86,11 +92,11 @@ private:
   std::vector<float>_jet_K_leading_zhadron;
   std::vector<float>_jet_ehadoveremratio;
 
-  std::vector<float> _jet_mlp_ktagger;
-  std::vector<float> _jet_mlp_eltagger;
-  std::vector<float> _jet_mlp_mutagger;
-  std::vector<float> _jet_mlp_ip3dtagger;
-  std::vector<float> _jet_mlp_globaltagger;
+  std::vector<float>_jet_mlp_ktagger;
+  std::vector<float>_jet_mlp_eltagger;
+  std::vector<float>_jet_mlp_mutagger;
+  std::vector<float>_jet_mlp_ip3dtagger;
+  std::vector<float>_jet_mlp_globaltagger;
 
 
   float _met_et;
@@ -117,15 +123,14 @@ private:
   TClonesArray *_branch_dRICHcfTracks;
 
   // High-level multivariate tagging
-  TMVA::Reader* _mva_reader_ip3dtagger;
-  TMVA::Reader* _mva_reader_ktagger;
-  TMVA::Reader* _mva_reader_eltagger;
-  TMVA::Reader* _mva_reader_mutagger;
-  TMVA::Reader* _mva_reader_globaltagger;
+  TMVA::Reader *_mva_reader_ip3dtagger;
+  TMVA::Reader *_mva_reader_ktagger;
+  TMVA::Reader *_mva_reader_eltagger;
+  TMVA::Reader *_mva_reader_mutagger;
+  TMVA::Reader *_mva_reader_globaltagger;
 
-  std::map<TString, Float_t> _mva_inputs_float;
-  std::map<TString, Int_t> _mva_inputs_int;
-
+  std::map<TString, Float_t>_mva_inputs_float;
+  std::map<TString, Int_t>_mva_inputs_int;
 };
 
 #endif // ifndef EVENTSELECTIONMODULE_HH
