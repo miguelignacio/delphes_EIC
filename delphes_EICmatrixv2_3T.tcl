@@ -718,9 +718,9 @@ module TrackCountingBTagging TrackCountingBTagging {
 # EXAMPLE:
 #
 # Electrons need to be separable from pions at the level of 3 sigma for 1.0 <= eta <= 3.5. Thus S = 3.
-# That means s = 3/sqrt(2) = 1.414. Thus p(e->e) = 1 - ROOT::Math::gaussian_pdf(1.414) = 0.853. 
-# Conversely, p(pi -> e) = 1 - ROOT::Math::normal_cdf(1.414) = 0.079. Once can also compute from this
-# p(e->pi) = 1 - p(e->e) (assuming a 2-species model for PID) and p(pi->pi) = 1 - p(pi->e).
+# That means s = 3/sqrt(2) = 2.121. Thus p(e->e) = 1 - ROOT::Math::gaussian_pdf(2.121) = 0.958. 
+# Conversely, p(pi -> e) = 1 - ROOT::Math::normal_cdf(2.121) = 0.017. Once can also compute from this
+# p(e->pi) = 1 - ROOT::Math::normal_cdf(2.121) (assuming a 2-species model for PID) and p(pi->pi) = 0.958 (integral of gaussian within s)
 #
 
 module IdentificationMap PIDSystems { 
@@ -732,64 +732,115 @@ module IdentificationMap PIDSystems {
     add EfficiencyFormula {-11} {-11} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (0.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
 							(-3.5 <= eta && eta < 1.0) * (1.00) +
-							(1.0 <= eta && eta <= 3.5) * (0.85323734)) }
+							(1.0 <= eta && eta <= 3.5) * (0.95795179)) }
     
     add EfficiencyFormula {211} {-11} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (0.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
 							(-3.5 <= eta && eta < 1.0) * (1e-4) +
-							(1.0 <= eta && eta <= 3.5) * (0.078649604)) }
+							(1.0 <= eta && eta <= 3.5) * (0.016947427)) }
     
     add EfficiencyFormula {-11} {211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (1.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
 							(-3.5 <= eta && eta < 1.0) * (0.00) +
-							(1.0 <= eta && eta <= 3.5) * (0.14676266)) }
+							(1.0 <= eta && eta <= 3.5) * (0.016947427)) }
     
     add EfficiencyFormula {211} {211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (1.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
 							(-3.5 <= eta && eta < 1.0) * (0.99990000) +
-							(1.0 <= eta && eta <= 3.5) * (0.92135040)) }
+							(1.0 <= eta && eta <= 3.5) * (0.95795179)) }
 
-    # pi/K/proton identification, but treated merely as a 2-species problem between pi and K
+    # pi/K/proton identification, assuming 3 sigma separation between all species! (all pair-wise separations are 3 sigma)
     # Kaons must have p > 0.135 GeV/c
     # Pions must have p > 0.100 GeV/c
 
     add EfficiencyFormula {321} {321} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (0.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.135) * (
-							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.85323734) +
-							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.85323734) +
-							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.85323734) +
-							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.85323734) +
-							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.85323734) +
-							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.85323734)) }
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.95795179) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.95795179) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.95795179) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.95795179) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.95795179) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.95795179)) }
 
     add EfficiencyFormula {321} {-211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (1.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.135) * (
-							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.14676266) +
-							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.14676266) +
-							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.14676266) +
-							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.14676266) +
-							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.14676266) +
-							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.14676266)) }
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.016947427) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.016947427) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.016947427) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.016947427) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.016947427) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.016947427)) }
+
+    add EfficiencyFormula {321} {2212} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (1.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.135) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.016947427) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.016947427) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.016947427) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.016947427) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.016947427) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.016947427)) }
 
     
-    add EfficiencyFormula {-211} {321} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (0.00) +
+    add EfficiencyFormula {-211} {321} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (0.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
-							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.078649604) +
-							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.078649604) +
-							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.078649604) +
-							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.078649604) +
-							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.078649604) +
-							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.078649604)) }
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.016947427) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.016947427) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.016947427) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.016947427) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.016947427) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.016947427)) }
 
-    add EfficiencyFormula {211} {211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (1.00) +
+    add EfficiencyFormula {-211} {2212} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (0.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
-							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.92135040) +
-							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.92135040) +
-							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.92135040) +
-							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.92135040) +
-							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.92135040) +
-							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.92135040)) }
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.016947427) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.016947427) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.016947427) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.016947427) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.016947427) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.016947427)) }
+
+    add EfficiencyFormula {211} {211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (1.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.95795179) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.95795179) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.95795179) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.95795179) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.95795179) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.95795179)) }
     
+
+    add EfficiencyFormula {2212} {2212} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (1.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.95795179) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.95795179) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.95795179) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.95795179) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.95795179) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.95795179)) }
+
+
+    add EfficiencyFormula {2212} {321} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (0.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.016947427) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.016947427) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.016947427) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.016947427) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.016947427) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.016947427)) }
+
+
+    add EfficiencyFormula {2212} {-221} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (0.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.016947427) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.016947427) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.016947427) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.016947427) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.016947427) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.016947427)) }
+
+    # Everything else with no PID system coverage is 100% identified as pion
+    add EfficiencyFormula {0} {0} { 0.00 }
+
 }
 
 ##################
