@@ -65,10 +65,7 @@ set ExecutionPath {
 
   TrackCountingBTagging
 
-  mRICH
-  barrelDirc
-  dualRICH_aerogel
-  dualRICH_C2F6
+  PIDSystems
 
   TreeWriter
 }
@@ -706,16 +703,94 @@ module TrackCountingBTagging TrackCountingBTagging {
 # PID Efficiency Maps
 ##################
 
-# mRICH in backward region
-source mRICH.tcl
-# barrelDirc in barrel region
-source barrelDirc.tcl
-# mRICH (two systems) in forward region
-source dRICH_aerogel.tcl
-source dRICH_c2f6.tcl
+# These maps are built from the table in section 8.6 of the EIC Yellow Report.
+# When the table says that two species are separated by "3 sigma" we assume the 
+# following:
+#
+# 1. Each specie is Gaussian distributed in a variable x each with the same Gaussian width, s.
+# 2. The separation is defined by S. For 3 sigma, S=3.
+# 3. The separation takes into account the two widths of the individual Gaussians, S = sqrt(s^2 + s^2). 
+#    Thus, s = S/sqrt(2) for each of the presumed Gaussians for each specie.
+# 4. To compute the identification efficiency, the probability that specie A is idenfied as A, one
+#    uses the integral of the Gaussian within width s, e.g. p = 1 - ROOT::Math::gaussian_pdf(s) in ROOT.
+# 5. TO instead compute the misidentfication probability, the probability that B -> A, one instead uses
+#    the one-sided cumulative distribution function, e.g. p = 1 - ROOT::Math::normal_cdf(s) in ROOT.
+# EXAMPLE:
+#
+# Electrons need to be separable from pions at the level of 3 sigma for 1.0 <= eta <= 3.5. Thus S = 3.
+# That means s = 3/sqrt(2) = 1.414. Thus p(e->e) = 1 - ROOT::Math::gaussian_pdf(1.414) = 0.853. 
+# Conversely, p(pi -> e) = 1 - ROOT::Math::normal_cdf(1.414) = 0.079. Once can also compute from this
+# p(e->pi) = 1 - p(e->e) (assuming a 2-species model for PID) and p(pi->pi) = 1 - p(pi->e).
+#
 
+module IdentificationMap PIDSystems { 
+    set InputArray HCal/eflowTracks 
+    set OutputArray tracks 
+    
+    
+    # Electron/Pion identification, treated as a 2-species problem
+    add EfficiencyFormula {-11} {-11} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (0.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
+							(-3.5 <= eta && eta < 1.0) * (1.00) +
+							(1.0 <= eta && eta <= 3.5) * (0.85323734)) }
+    
+    add EfficiencyFormula {211} {-11} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (0.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
+							(-3.5 <= eta && eta < 1.0) * (1e-4) +
+							(1.0 <= eta && eta <= 3.5) * (0.078649604)) }
+    
+    add EfficiencyFormula {-11} {211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (1.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
+							(-3.5 <= eta && eta < 1.0) * (0.00) +
+							(1.0 <= eta && eta <= 3.5) * (0.14676266)) }
+    
+    add EfficiencyFormula {211} {211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.050) * (1.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.050) * (
+							(-3.5 <= eta && eta < 1.0) * (0.99990000) +
+							(1.0 <= eta && eta <= 3.5) * (0.92135040)) }
 
+    # pi/K/proton identification, but treated merely as a 2-species problem between pi and K
+    # Kaons must have p > 0.135 GeV/c
+    # Pions must have p > 0.100 GeV/c
 
+    add EfficiencyFormula {321} {321} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (0.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.135) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.85323734) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.85323734) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.85323734) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.85323734) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.85323734) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.85323734)) }
+
+    add EfficiencyFormula {321} {-211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (1.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.135) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.14676266) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.14676266) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.14676266) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.14676266) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.14676266) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.14676266)) }
+
+    
+    add EfficiencyFormula {-211} {321} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (0.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.078649604) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.078649604) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.078649604) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.078649604) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.078649604) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.078649604)) }
+
+    add EfficiencyFormula {211} {211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.135) * (1.00) +
+	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
+							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.92135040) +
+							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.92135040) +
+							(0.5 <= eta && eta < 1.0 && pt * cosh(eta) <= 15) * (0.92135040) +
+							(1.0 <= eta && eta < 1.5 && pt * cosh(eta) <= 30) * (0.92135040) +
+							(1.5 <= eta && eta < 2.5 && pt * cosh(eta) <= 50) * (0.92135040) +
+							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.92135040)) }
+    
+}
 
 ##################
 # ROOT tree writer
@@ -736,10 +811,7 @@ module TreeWriter TreeWriter {
   add Branch ECal/eflowPhotons EFlowPhoton Tower
   add Branch HCal/eflowNeutralHadrons EFlowNeutralHadron Tower
 
-  add Branch mRICH/tracks mRICHTrack Track
-  add Branch barrelDirc/tracks barrelDircTrack Track
-  add Branch dualRICH_aerogel/tracks dRICHagTrack Track
-  add Branch dualRICH_C2F6/tracks dRICHcfTrack Track
+  add Branch PIDSystems/tracks PIDSystemsTrack Track
 
   add Branch GenJetFinder/jets GenJet Jet
   add Branch GenMissingET/momentum GenMissingET MissingET
