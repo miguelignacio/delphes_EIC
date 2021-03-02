@@ -500,8 +500,9 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     }
 
     std::map<TString, TString> alt_samples;
-    alt_samples["CC_DIS_e10_p275_lha_21Rs2"] = "CT18ZNNLO with enhanced strangeness [R_{s}=0.863]";
-    alt_samples["CC_DIS_e10_p275_CT18ANNLO"] = "CT18ANNLO";
+    //alt_samples["CC_DIS_e10_p275_lha_21Rs2"] = "CT18ZNNLO with enhanced strangeness [R_{s}=0.863]";
+    alt_samples["CC_DIS_e10_p275_lha_21Rs2"] = "Rs-High NNLO (enhanced strange)";
+    alt_samples["CC_DIS_e10_p275_CT18ANNLO"] = "CT18A NNLO (intermediate strange)";
     //alt_samples["CC_DIS_e10_p275_lha_22Rs2"] = "CT18ZNNLO with intermediate strangeness (22Rs2)";
     //alt_samples["CC_DIS_e10_p275_lha_22Rs2ver3"] = "R_{s}^{INT}=0.594";
     //alt_samples["CC_DIS_e10_p275_MMHT2014nnlo68cl"] = "MMHT2014nnlo68cl";
@@ -565,7 +566,7 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
     error_band_100fb->SetFillColor(kGray);
     error_band_100fb->SetMarkerSize(0.0001);
     error_band_100fb->SetMarkerColor(kGray);
-    error_band_100fb->SetTitle("Stat. Uncertainty [CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]");
+    error_band_100fb->SetTitle("#splitline{Stat. Uncertainty}{[CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]}");
 
     htemplate = new TH1F("htemplate", "", 1, draw_config.xlimits[0], draw_config.xlimits[1]);
     htemplate->SetXTitle(draw_config.xtitle);
@@ -579,10 +580,12 @@ void CharmTagPlots(TString dir, TString input, TString xvar, TString filePattern
 
 
     // Legend
-    legend = smart_legend("lower left", 0.75, 0.25);
+    legend = smart_legend("lower left", 0.75, 0.28);
+    legend->SetTextSize(0.045);
     legend->SetFillStyle(0);
     legend->SetBorderSize(0);
-    legend->AddEntry(error_band_100fb, "Stat. Uncertainty [CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]", "lf");
+    //legend->AddEntry(error_band_100fb, "Stat. Uncertainty [CT18NNLO, R_{s}=2s/(#bar{u} + #bar{d})= 0.325 (suppressed)]", "lf");
+    legend->AddEntry(error_band_100fb, "#splitline{Stat. Uncertainty}{[Rs-Low NNLO, suppressed strange]}", "lf");
 
 
     // Other alternative samples

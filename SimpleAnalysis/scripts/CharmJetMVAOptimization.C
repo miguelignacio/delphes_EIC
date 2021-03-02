@@ -53,7 +53,7 @@ void CharmJetMVAOptimization(TString filename = "CharmJetClassification_Results.
   float w_light = target_lumi * eff_xsec_light / n_light_all;
   float w_charm = target_lumi * eff_xsec_charm / n_charm_all;
 
-  TH1F* h_light = new TH1F("h_light","",50,0,1.0);
+  TH1F* h_light = new TH1F("h_light","",200,0,1.0);
   h_light->Sumw2();
   auto h_charm = static_cast<TH1F*>(h_light->Clone("h_charm"));
 

@@ -20,7 +20,25 @@
 
 #include "PlotFunctions.h"
 
-void              KaonIDStudy(TString dir, TString input, TString trackname = "barrelDircTrack", TString filePattern = "*/out.root")
+void ConfigHistogram(TH1 *h, std::string which = "charm")
+{
+  if (which == "charm") {
+    h->SetLineColor(kBlue);
+    h->SetMarkerColor(kBlue);
+    h->SetMarkerStyle(kOpenSquare);
+    h->SetMarkerColor(kBlue);
+  } else if (which == "light") {
+    h->SetLineColor(kRed);
+    h->SetMarkerColor(kRed);
+    h->SetMarkerStyle(kFullCrossX);
+    h->SetMarkerColor(kRed);
+  }
+}
+
+void KaonIDStudy(TString dir,
+                 TString input,
+                 TString trackname   = "barrelDircTrack",
+                 TString filePattern = "*/out.root")
 {
   auto data = new TChain("tree");
 
@@ -48,37 +66,40 @@ void              KaonIDStudy(TString dir, TString input, TString trackname = "b
 
   if (trackname == "mRICHTrack") {
     // mRICH
-    etaMin       = -4.0;
-    etaMax       = -1.0;
-    xmax         = 12.0;
+    etaMin = -4.0;
+    etaMax = -1.0;
+    xmax   = 12.0;
   } else if (trackname == "barrelDircTrack") {
     // barrel DIRC
-    etaMin       = -1.0;
-    etaMax       = 1.0;
-    xmax         = 55.0;
+    etaMin = -1.0;
+    etaMax = 1.0;
+    xmax   = 55.0;
   } else if (trackname == "CF4RICHTrack") {
     // CF4RICH
-    etaMin       = 1.0;
-    etaMax       = 4.0;
+    etaMin = 1.0;
+    etaMax = 4.0;
   } else if (trackname == "tofBarrelTrack") {
     // TOF Barrel Detector
-    etaMin       = -2.0;
-    etaMax       = 2.0;
+    etaMin = -2.0;
+    etaMax = 2.0;
   } else if (trackname == "dRICHTrack") {
     // dualRICH, aerogel-based
-    etaMin       = 1.48;
-    etaMax       = 3.91;
-    xmax         = 75.0;
+    etaMin = 1.00;
+    etaMax = 4.00;
+
+    // etaMin       = 1.48;
+    // etaMax       = 3.91;
+    xmax = 75.0;
   }
   cut_fiducial = new TCut(Form("%0.1f < pid_track_eta && pid_track_eta < %0.1f && pid_track_pt>0.1", etaMin, etaMax));
 
   Float_t xbinsize = 0.5;
   Int_t   nbinsx   = TMath::Ceil((xmax - xmin) / xbinsize);
 
-  TCut                        cut_truekaon("((pid_track_pid & 0xffff0000) >> 16) == 321");
-  TCut                        cut_recokaon("(pid_track_pid & 0xffff) == 321");
-  TCut                        cut_truepion("((pid_track_pid & 0xffff0000) >> 16) == 211");
-  TCut                        cut_recopion("(pid_track_pid & 0xffff) == 211");
+  TCut                        cut_truekaon("pid_track_true_pid == 321");
+  TCut                        cut_recokaon("pid_track_reco_pid == 321");
+  TCut                        cut_truepion("pid_track_true_pid == 211");
+  TCut                        cut_recopion("pid_track_reco_pid == 211");
 
   plot_config draw_config;
   draw_config.htemplate = new TH1F("TrackPT",
@@ -153,4 +174,132 @@ void              KaonIDStudy(TString dir, TString input, TString trackname = "b
   legend->Draw();
 
   c1.SaveAs(Form("%s_KaonIDStudy.pdf", trackname.Data()));
+
+
+  // Plot the pT spectrum for true and reconstructed candidates from charm and
+  // light jets
+
+  // Kaon -> Kaon ID
+  TCut               true_charm_mother("pid_track_jetmother == 4");
+  TCut               true_light_mother("pid_track_jetmother > 0 && pid_track_jetmother < 4");
+
+  if (cut_fiducial != nullptr) delete cut_fiducial;
+  cut_fiducial = new TCut(Form("-4.0 < pid_track_eta && pid_track_eta < 4.0 && pid_track_pt>0.1 && pid_track_jet_pt > 10.0 && TMath::Abs(pid_track_jet_eta)<3.0"));
+
+
+  auto charm_true_kaon_pt = GeneratePlot(draw_config, data, "True Kaon PT", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_charm_mother && cut_truekaon);
+  auto light_true_kaon_pt = GeneratePlot(draw_config, data, "True Kaon PT", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_light_mother && cut_truekaon);
+
+  c1.Clear();
+
+  charm_true_kaon_pt->SetYTitle("Probability");
+
+  ConfigHistogram(charm_true_kaon_pt, "charm");
+  ConfigHistogram(light_true_kaon_pt, "light");
+
+  charm_true_kaon_pt->Rebin(2);
+  light_true_kaon_pt->Rebin(2);
+
+  TH1 *charm_true_kaon = charm_true_kaon_pt->DrawNormalized("E1");
+  TH1 *light_true_kaon = light_true_kaon_pt->DrawNormalized("E1 SAME");
+
+  charm_true_kaon->SetAxisRange(1e-5, 1.0, "Y");
+
+  c1.SetLogy();
+  c1.SaveAs(Form("True_Kaon_Momentum.pdf"));
+
+
+  auto charm_reco_kaon_pt = GeneratePlot(draw_config, data, "reco Kaon PT", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_charm_mother && cut_truekaon && cut_recokaon);
+  auto light_reco_kaon_pt = GeneratePlot(draw_config, data, "True Kaon PT", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_light_mother && cut_truekaon && cut_recokaon);
+
+  c1.Clear();
+
+  charm_reco_kaon_pt->SetYTitle("Probability");
+
+  ConfigHistogram(charm_reco_kaon_pt, "charm");
+  ConfigHistogram(light_reco_kaon_pt, "light");
+
+  charm_reco_kaon_pt->Rebin(2);
+  light_reco_kaon_pt->Rebin(2);
+
+  TH1 *charm_reco_kaon = charm_reco_kaon_pt->DrawNormalized("E1");
+  TH1 *light_reco_kaon = light_reco_kaon_pt->DrawNormalized("E1 SAME");
+
+  charm_reco_kaon->SetAxisRange(1e-5, 1.0, "Y");
+
+  c1.SetLogy();
+  c1.SaveAs(Form("Reco_Kaon_Momentum.pdf"));
+
+  //
+  // Zoom in on the low-momentum region, where most of the true kaons in CC DIS
+  // live.
+  //
+
+  plot_config kaon_low_p_config;
+  kaon_low_p_config.htemplate = new TH1F("TrackMomentum_Low",
+                                         "",
+                                         100,
+                                         0.0,
+                                         10.0);
+
+  // kaon_low_p_config.xlimits = std::vector < float > ();
+  // kaon_low_p_config.xlimits.push_back(0);
+  // kaon_low_p_config.xlimits.push_back(10);
+  kaon_low_p_config.ylimits = std::vector < float > ();
+  kaon_low_p_config.ylimits.push_back(0.0);
+  kaon_low_p_config.ylimits.push_back(1.0e6);
+  kaon_low_p_config.xtitle = "Track Momentum [GeV]";
+  kaon_low_p_config.ytitle = "Frequency";
+  kaon_low_p_config.logy   = kFALSE;
+  kaon_low_p_config.logx   = kFALSE;
+  kaon_low_p_config.cuts   = "";
+
+  // auto reco_kaon_pt = GeneratePlot(draw_config, data, "Reconstructed Kaon
+  // PT", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial &&
+  // cut_truekaon && cut_recokaon);
+
+  auto charm_true_kaon_p_low = GeneratePlot(kaon_low_p_config, data, "Charm True Kaon P", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_charm_mother && cut_truekaon);
+  auto light_true_kaon_p_low = GeneratePlot(kaon_low_p_config, data, "Light True Kaon P", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_light_mother && cut_truekaon);
+
+  std::cout << charm_true_kaon_p_low->GetNbinsX() << std::endl;
+  std::cout << light_true_kaon_p_low->GetNbinsX() << std::endl;
+
+  c1.Clear();
+  c1.SetLogy(kaon_low_p_config.logy);
+  c1.SetLogx(kaon_low_p_config.logx);
+
+  charm_true_kaon_p_low->SetYTitle("Probability");
+
+  ConfigHistogram(charm_true_kaon_p_low, "charm");
+  ConfigHistogram(light_true_kaon_p_low, "light");
+
+  charm_true_kaon = charm_true_kaon_p_low->DrawNormalized("E1");
+  light_true_kaon = light_true_kaon_p_low->DrawNormalized("E1 SAME");
+
+  charm_true_kaon->SetAxisRange(0.0, 0.04, "Y");
+
+  c1.SaveAs(Form("True_Kaon_Momentum_Low.pdf"));
+
+  // Zoomed, reconstructed momentum
+  auto charm_reco_kaon_p_low = GeneratePlot(kaon_low_p_config, data, "Charm True Kaon P", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_charm_mother && cut_truekaon && cut_recokaon);
+  auto light_reco_kaon_p_low = GeneratePlot(kaon_low_p_config, data, "Light True Kaon P", "pid_track_pt*TMath::CosH(pid_track_eta)", *cut_fiducial && true_light_mother && cut_truekaon && cut_recokaon);
+
+  std::cout << charm_reco_kaon_p_low->GetNbinsX() << std::endl;
+  std::cout << light_reco_kaon_p_low->GetNbinsX() << std::endl;
+
+  c1.Clear();
+  c1.SetLogy(kaon_low_p_config.logy);
+  c1.SetLogx(kaon_low_p_config.logx);
+
+  charm_reco_kaon_p_low->SetYTitle("Probability");
+
+  ConfigHistogram(charm_reco_kaon_p_low, "charm");
+  ConfigHistogram(light_reco_kaon_p_low, "light");
+
+  charm_reco_kaon = charm_reco_kaon_p_low->DrawNormalized("E1");
+  light_reco_kaon = light_reco_kaon_p_low->DrawNormalized("E1 SAME");
+
+  charm_reco_kaon->SetAxisRange(0.0, 0.04, "Y");
+
+  c1.SaveAs(Form("Reco_Kaon_Momentum_Low.pdf"));
 }

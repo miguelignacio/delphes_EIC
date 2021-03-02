@@ -178,12 +178,12 @@ void CharmJetClassification(TString dir, TString input, TString filePattern = "*
   // );
   factory.BookMethod(&loader_ktagger,    TMVA::Types::kMLP, "CharmKTagger",
                      "!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=1000:HiddenLayers=N+12:TestRate=5:!UseRegulator");
-  factory.BookMethod(&loader_etagger,    TMVA::Types::kMLP, "CharmETagger",
-                     "!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=1000:HiddenLayers=N+12:TestRate=5:!UseRegulator");
-  factory.BookMethod(&loader_mutagger,   TMVA::Types::kMLP, "CharmMuTagger",
-                     "!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=1000:HiddenLayers=N+12:TestRate=5:!UseRegulator");
-  factory.BookMethod(&loader_ip3dtagger, TMVA::Types::kMLP, "CharmIP3DTagger",
-                     "!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=1000:HiddenLayers=N+16:TestRate=5:!UseRegulator");
+  // factory.BookMethod(&loader_etagger,    TMVA::Types::kMLP, "CharmETagger",
+  //                    "!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=1000:HiddenLayers=N+12:TestRate=5:!UseRegulator");
+  // factory.BookMethod(&loader_mutagger,   TMVA::Types::kMLP, "CharmMuTagger",
+  //                    "!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=1000:HiddenLayers=N+12:TestRate=5:!UseRegulator");
+  // factory.BookMethod(&loader_ip3dtagger, TMVA::Types::kMLP, "CharmIP3DTagger",
+  //                    "!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=1000:HiddenLayers=N+16:TestRate=5:!UseRegulator");
 
   // factory.BookMethod(&loader, TMVA::Types::kMLP,
   // "CharmETagger","!H:!V:NeuronType=ReLU:VarTransform=Norm:NCycles=600:HiddenLayers=N+8:TestRate=5:!UseRegulator");
@@ -200,9 +200,9 @@ void CharmJetClassification(TString dir, TString input, TString filePattern = "*
   // Plot a ROC Curve
   pad->cd();
   pad = factory.GetROCCurve(&loader_ktagger);
-  pad = factory.GetROCCurve(&loader_etagger);
-  pad = factory.GetROCCurve(&loader_mutagger);
-  pad = factory.GetROCCurve(&loader_ip3dtagger);
+  // pad = factory.GetROCCurve(&loader_etagger);
+  // pad = factory.GetROCCurve(&loader_mutagger);
+  // pad = factory.GetROCCurve(&loader_ip3dtagger);
   pad->Draw();
 
   pad->SaveAs("CharmJetClassification_ROC.pdf");
