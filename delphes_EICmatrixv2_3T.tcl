@@ -811,7 +811,7 @@ module IdentificationMap PIDSystems {
 							(2.5 <= eta && eta <= 3.5 && pt * cosh(eta) <= 45) * (0.016947427)) }
 
 
-    add EfficiencyFormula {2212} {-221} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (0.00) +
+    add EfficiencyFormula {2212} {-211} { (abs(eta) > 3.5 || pt * cosh(eta) < 0.100) * (0.00) +
 	(abs(eta) <= 3.5 && pt * cosh(eta) >= 0.100) * (
 							(eta < -1.0 && pt * cosh(eta) <= 7) * (0.016947427) +
 							(-1.0 <= eta && eta < 0.5 && pt * cosh(eta) <= 10) * (0.016947427) +
