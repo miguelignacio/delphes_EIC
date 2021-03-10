@@ -1,8 +1,8 @@
 ######################################################################################################################                                
 # EIC detector model                                                                                                                                                                                     
-# based on parameters from EIC detector matrix from EIC yellow report https://physdiv.jlab.org/DetectorMatrix/
-# as well as on assumptions on calorimeter granularity and tracking efficiency (not specified in handbook).
-# email: miguel.arratia@ucr.edu
+# based on parameters from EIC detector matrix from EIC yellow report https://physdiv.jlab.org/DetectorMatrix/ (also in https://arxiv.org/abs/2103.05419). 
+# as well as on assumptions on calorimeter granularity, and efficiency.
+# email: miguel.arratia@ucr.edu, ssekula@smu.edu 
 #######################################################################################################################
 
 
@@ -10,7 +10,7 @@
 # Load any external configurations
 #######################################
 
-source customizations.tcl
+#source customizations.tcl
 
 
 #######################################
@@ -22,11 +22,11 @@ set ExecutionPath {
 
   ChargedHadronTrackingEfficiency
   ElectronTrackingEfficiency
-  MuonTrackingEfficiency
+
  
   ChargedHadronMomentumSmearing
   ElectronMomentumSmearing
-  MuonMomentumSmearing
+  
 
   TrackMerger
   TrackSmearing
@@ -79,11 +79,11 @@ module ParticlePropagator ParticlePropagator {
     set OutputArray stableParticles
     set ChargedHadronOutputArray chargedHadrons
     set ElectronOutputArray electrons
-    set MuonOutputArray muons
+   
     # radius of the magnetic field coverage, in m
-    set Radius 0.8
+    set Radius 1.5
     # half-length of the magnetic field coverage, in m
-    set HalfLength 1.00
+    set HalfLength 1.20
     # magnetic field
     set Bz 3.0
 }
@@ -142,15 +142,7 @@ module Efficiency ElectronTrackingEfficiency {
 
 }
 
-##############################
-# Muon tracking efficiency
-##############################
-module Efficiency MuonTrackingEfficiency {
-  set InputArray ParticlePropagator/muons
-  set OutputArray muons
-  set EfficiencyFormula $CommonTrackingEfficiency
 
-}
 
 ########################################
 # Momentum resolution for charged tracks
@@ -160,16 +152,6 @@ module MomentumSmearing ChargedHadronMomentumSmearing {
   set InputArray ChargedHadronTrackingEfficiency/chargedHadrons
   set OutputArray chargedHadrons
   set ResolutionFormula  $CommonTrackingResolution
-}
-
-###################################
-# Momentum resolution for muons
-###################################
-
-module MomentumSmearing MuonMomentumSmearing {
-  set InputArray MuonTrackingEfficiency/muons
-  set OutputArray muons
-  set ResolutionFormula $CommonTrackingResolution 
 }
 
 
@@ -192,7 +174,7 @@ module Merger TrackMerger {
 # add InputArray InputArray
   add InputArray ChargedHadronMomentumSmearing/chargedHadrons
   add InputArray ElectronMomentumSmearing/electrons
-  add InputArray MuonMomentumSmearing/muons
+  
   set OutputArray tracks
 }
 
@@ -562,7 +544,7 @@ module FastJetFinder GenJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR 0.50
+  set ParameterR 1.0
 
   set JetPTMin 3.0
 }
@@ -591,7 +573,7 @@ module FastJetFinder FastJetFinder {
 
   # algorithm: 1 CDFJetClu, 2 MidPoint, 3 SIScone, 4 kt, 5 Cambridge/Aachen, 6 antikt
   set JetAlgorithm 6
-  set ParameterR .50
+  set ParameterR 1.0
 
   set ComputeNsubjettiness 1
   set Beta 1.0
