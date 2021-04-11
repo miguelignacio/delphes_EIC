@@ -6,8 +6,10 @@ Welcome to the ```delphes_EIC``` project. This code aims to deliver a fast-simul
 * <b><a href="https://inspirehep.net/literature/1851396">A Delphes card for the EIC yellow-report detector</a>.</b> <a href="https://inspirehep.net/authors/1203346">Miguel Arratia</a> (<a href="https://inspirehep.net/institutions/903304">UC, Riverside</a> and <a href="https://inspirehep.net/institutions/904961">Jefferson Lab</a>), <a href="https://inspirehep.net/authors/1021142">Stephen Sekula</a> (<a href="https://inspirehep.net/institutions/905856">Southern Methodist U.</a>). e-Print: <a href="https://arxiv.org/abs/2103.06886">2103.06886</a>[physics.ins-det]. DOI: <a href="https://doi.org/10.5281/zenodo.4592887">10.5281/zenodo.4592887</a>(publication)
 * <b><a href="https://inspirehep.net/literature/1851258">Science Requirements and Detector Concepts for the Electron-Ion Collider: EIC Yellow Report</a></b>. <a href="https://inspirehep.net/authors/1706729">R. Abdul Khalek</a>, <a href="https://inspirehep.net/authors/1019006">A. Accardi</a>, J. Adam, D. Adamiak, W. Akers et al. e-Print: <a href="https://arxiv.org/abs/2103.05419"> 2103.05419 </a>[physics.ins-det]
 
-<img style="float:left; width:50%;" src="images/EICDetector_3D_CCDIS_CharmJet.png"/>
-<img style="float:left; width:50%;" src="images/EICDetector_3D_CCDIS_CharmJet_DisplacedVtx.png"/>
+<p>
+<img style="float:left; width:400px;" src="images/EICDetector_3D_CCDIS_CharmJet.png"/>
+<img style="float:right; width:400px;" src="images/EICDetector_3D_CCDIS_CharmJet_DisplacedVtx.png"/>
+</p>
 
 ## New!
 
