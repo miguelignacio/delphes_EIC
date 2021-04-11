@@ -131,7 +131,7 @@ void KaonIDStudy(TString dir,
   TH1F *h_template = static_cast < TH1F * > (reco_kaon_pt->Clone("h_template"));
   h_template->SetAxisRange(0.0, 1.12, "Y");
   if (logplot)
-    h_template->SetAxisRange(1.0e-5, 1.12, "Y");
+    h_template->SetAxisRange(1.0e-5, 10.0, "Y");
 
   h_template->GetYaxis()->SetTitle("Efficiency");
 
