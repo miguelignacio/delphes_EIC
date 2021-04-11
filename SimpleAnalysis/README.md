@@ -75,8 +75,34 @@ Defines inline global analysis functions (e.g. flavor tagging computations, DIS 
 * Modules should be configurable using the text-based config file, rather than using hard-coded values for their functions, which is the current practice.
 * A CutFlow tool should be added to streamline the process of adding, incrementing, and saving cut flows.
 
+# Particle ID Studies
 
+Particle ID efficiency maps have been introduced in the delphes_card_allsilicon_3T.tcl card. These model PID systems from eta=[-3.5,3.5], with an mRICH in the backward direction, a DIRC in the barrel, and a dualRICH in the forward direction. Below are example PID efficiency plots made using variables produced by SimpleAnalysis.
 
+![mRICH Kaon Efficiency](plots/mRICHTrack_KaonIDStudy.png)
+![Barrel DIRC Kaon Efficiency](plots/barrelDIRCTrack_KaonIDStudy.png)
+![Dual RICH Kaon Efficiency](plots/dualRICHTrack_KaonIDStudy.png)
+
+The variables produced by the SimpleAnalysis EventAnalysisModule that are relevant for studying track-level particle ID efficiency all begin with ```pid_track_*```. They are stored for every track in the angular coverage of the PID subsystems. The efficiency plots are made by projecting into two histograms the pT spectra of all tracks, or just tracks identified by a system, in the fiducial regions. To compute the ```X -> Y``` efficiency, the denominator (all tracks) histogram contains tracks that are truly of species ```X``` (```pid_track_true_pid```); the numerator histogram contains tracks reconstructed by the PID system as ```Y``` (```pid_track_reco_pid```).
+
+The plots above were made using the script ```scripts/KaonIDEfficiency.C```. If the ROOT files resulting from running SimpleAnalysis are all in a directory called ```EICatIP6_PID_AllSilicon_3T```, then here is an example of running the script to compute the Kaon ID efficiency using the Dual RICH tracks. This includes the complete workflow for generating events, processing them with SimpleAnalysis, and making the plots:
+
+```
+mkdir delphes_card_allsilicon_3T/
+DelphesPythia8 delphes_card_allsilicon_3T.tcl CC_DIS.template delphes_card_allsilicon_3T/out.root
+cd SimpleAnalysis/
+make -j2
+mkdir allsilicon_3T
+./SimpleAnalysis.exe --input_dir ../delphes_card_allsilicon_3T/out.root --output_file allsilicon_3T/out.root --module_sequence 'KaonPIDModule,ElectronPIDModule,MuonPIDModule,TaggingModule,EventSelectionModule'
+cd scripts/
+root -q -l -b ./KaonIDStudy.C'+("../","allsilicon_3T/", "mRICHTrack", "*.root")'
+root -q -l -b ./KaonIDStudy.C'+("../","allsilicon_3T/", "barrelDIRCTrack", "*.root")'
+root -q -l -b ./KaonIDStudy.C'+("../","allsilicon_3T/", "dualRICHTrack", "*.root")'
+```
+
+## Notes on the dualRICH
+
+The dualRICH has two components: aerogel (good for low-momentum) and C2F6 (good for high momentum). The transition in performance for these two subsystems occurs around 12 GeV/c of track momentum. As such, for tracks with momentum less than that threshold, the aerogel alone is used to make the PID decision. Above the threshold, C2F6 alone is used to make the decision. This results in a relatively flat performance in the efficiency plot for kaons, as expected.
 
 
 
