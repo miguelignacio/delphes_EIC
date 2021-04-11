@@ -2,6 +2,7 @@
 
 * Based on ideas from the BaBar and ATLAS Experiments, including the SimpleComposition framework (BaBar) and the CxAOD2 framework (ATLAS)
 * Intended for fast analysis of Delphes-produced ROOT TTree structures
+* Requirements: Delphes and GCC 8.X or higher to compile (utilizes C++-14)
 
 ## Author(s)
 
