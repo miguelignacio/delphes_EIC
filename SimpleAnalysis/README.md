@@ -93,7 +93,7 @@ DelphesPythia8 delphes_card_allsilicon_3T.tcl CC_DIS.template delphes_card_allsi
 cd SimpleAnalysis/
 make -j2
 mkdir allsilicon_3T
-./SimpleAnalysis.exe --input_dir ../delphes_card_allsilicon_3T/out.root --output_file allsilicon_3T/out.root --module_sequence 'KaonPIDModule,ElectronPIDModule,MuonPIDModule,TaggingModule,EventSelectionModule'
+./SimpleAnalysis.exe --input_dir ../delphes_card_allsilicon_3T/out.root --output_file allsilicon_3T/out.root --module_sequence 'ElectronPIDModule,MuonPIDModule,TaggingModule,EventSelectionModule'
 cd scripts/
 root -q -l -b ./KaonIDStudy.C'+("../","allsilicon_3T/", "mRICHTrack", "*.root")'
 root -q -l -b ./KaonIDStudy.C'+("../","allsilicon_3T/", "barrelDIRCTrack", "*.root")'
