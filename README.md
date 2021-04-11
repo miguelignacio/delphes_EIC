@@ -21,7 +21,7 @@ Welcome to the ```delphes_EIC``` project. This code aims to deliver a fast-simul
 
 
 
-## EIC@IP6 models
+## EIC Yellow-Report Detector Models
 
 The current model we recommend is ```delphes_card_allsilicon_3T.tcl```, which is based on detector studies from the EIC Yellow Report (https://arxiv.org/abs/2103.05419). This model incorporates all-silicon tracking, and EMCAL and HCAL. PID system responses are provided by efficiency maps based on EIC PID code (https://gitlab.com/preghenella/pid/). 
 
