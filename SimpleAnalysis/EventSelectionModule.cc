@@ -469,13 +469,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   auto tracks = getTracks();
 
 
-  bool use_kaons = false;
-
-  if (DataStore->find("Kaons") != DataStore->end()) {
-    // store the number of kaons in the jets
-    use_kaons = true;
-  }
-
+  bool use_kaons = true; // Kaons, for now, are constructed from PID maps in this code.
 
   bool use_electrons = false;
 
@@ -836,7 +830,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     }
 
     if (use_kaons) {
-      _jet_ktag.push_back(Tagged_Kaon(jet, std::any_cast<std::vector<Track *> >((*DataStore)["Kaons"]), 3.0, 1.0, 1));
+      _jet_ktag.push_back(Tagged_Kaon(jet, std::any_cast<std::vector<Track *> >(kaon_candidates), 3.0, 1.0, 1));
     } else {
       _jet_ktag.push_back(0.0);
     }
@@ -849,8 +843,6 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       return lhs->PT > rhs->PT;
     });
 
-    // auto kaons_list     = std::any_cast<std::vector<Track *>
-    // >((*DataStore)["Kaons"]);
     auto kaons_list     = kaon_candidates;
     auto electrons_list = std::any_cast<std::vector<Track *> >((*DataStore)["Electrons"]);
     auto muons_list     = std::any_cast<std::vector<Track *> >((*DataStore)["Muons"]);
@@ -914,7 +906,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     TVector3 K_sumpt;
 
     if (use_kaons) {
-      auto kaons = std::any_cast<std::vector<Track *> >((*DataStore)["Kaons"]);
+      auto kaons = kaon_candidates;
 
       for (auto kaon : kaons) {
         if (kaon->P4().DeltaR(jet->P4()) < 0.5) {
