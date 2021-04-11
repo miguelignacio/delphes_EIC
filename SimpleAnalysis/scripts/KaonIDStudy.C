@@ -63,13 +63,14 @@ void KaonIDStudy(TString dir,
   TCut   *cut_fiducial = nullptr;
   Float_t xmin         = 0.0;
   Float_t xmax         = 55.0;
+  Bool_t logplot = kFALSE;
 
   if (trackname == "mRICHTrack") {
     // mRICH
-    etaMin = -4.0;
+    etaMin = -3.5;
     etaMax = -1.0;
     xmax   = 12.0;
-  } else if (trackname == "barrelDircTrack") {
+  } else if (trackname == "barrelDIRCTrack") {
     // barrel DIRC
     etaMin = -1.0;
     etaMax = 1.0;
@@ -82,24 +83,26 @@ void KaonIDStudy(TString dir,
     // TOF Barrel Detector
     etaMin = -2.0;
     etaMax = 2.0;
-  } else if (trackname == "dRICHTrack") {
+  } else if (trackname == "dualRICHTrack") {
     // dualRICH, aerogel-based
     etaMin = 1.00;
-    etaMax = 4.00;
-
+    etaMax = 3.50;
+    
     // etaMin       = 1.48;
     // etaMax       = 3.91;
-    xmax = 75.0;
+    xmax = 50.0;
+    logplot = kTRUE;
+    
   }
   cut_fiducial = new TCut(Form("%0.1f < pid_track_eta && pid_track_eta < %0.1f && pid_track_pt>0.1", etaMin, etaMax));
 
   Float_t xbinsize = 0.5;
   Int_t   nbinsx   = TMath::Ceil((xmax - xmin) / xbinsize);
 
-  TCut                        cut_truekaon("pid_track_true_pid == 321");
-  TCut                        cut_recokaon("pid_track_reco_pid == 321");
-  TCut                        cut_truepion("pid_track_true_pid == 211");
-  TCut                        cut_recopion("pid_track_reco_pid == 211");
+  TCut                        cut_truekaon("TMath::Abs(pid_track_true_pid) == 321");
+  TCut                        cut_recokaon("TMath::Abs(pid_track_reco_pid) == 321");
+  TCut                        cut_truepion("TMath::Abs(pid_track_true_pid) == 211");
+  TCut                        cut_recopion("TMath::Abs(pid_track_reco_pid) == 211");
 
   plot_config draw_config;
   draw_config.htemplate = new TH1F("TrackPT",
@@ -127,6 +130,9 @@ void KaonIDStudy(TString dir,
 
   TH1F *h_template = static_cast < TH1F * > (reco_kaon_pt->Clone("h_template"));
   h_template->SetAxisRange(0.0, 1.12, "Y");
+  if (logplot)
+    h_template->SetAxisRange(1.0e-5, 10.0, "Y");
+
   h_template->GetYaxis()->SetTitle("Efficiency");
 
   auto pid_efficiency = new TEfficiency(*reco_kaon_pt,
@@ -155,6 +161,7 @@ void KaonIDStudy(TString dir,
              600);
 
   c1.cd();
+  c1.SetLogy(logplot);
 
   // true_kaon_pt->Draw("HIST");
   // reco_kaon_pt->Draw("E1 SAME");
@@ -175,6 +182,8 @@ void KaonIDStudy(TString dir,
 
   c1.SaveAs(Form("%s_KaonIDStudy.pdf", trackname.Data()));
 
+
+  return;
 
   // Plot the pT spectrum for true and reconstructed candidates from charm and
   // light jets

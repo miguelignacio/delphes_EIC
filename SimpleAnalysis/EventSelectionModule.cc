@@ -25,9 +25,9 @@ void EventSelectionModule::initialize()
 {
   // Get the pointer to the mRICH tracks
   _branch_mRICHTracks      = getData()->UseBranch("mRICHTrack");
-  _branch_barrelDircTracks = getData()->UseBranch("barrelDircTrack");
-  _branch_dRICHagTracks    = getData()->UseBranch("dRICHagTrack");
-  _branch_dRICHcfTracks    = getData()->UseBranch("dRICHcfTrack");
+  _branch_barrelDircTracks = getData()->UseBranch("barrelDIRCTrack");
+  _branch_dualRICHagTracks    = getData()->UseBranch("dualRICHagTrack");
+  _branch_dualRICHcfTracks    = getData()->UseBranch("dualRICHcfTrack");
 
 
   // Tree handler initialization
@@ -469,13 +469,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
   auto tracks = getTracks();
 
 
-  bool use_kaons = false;
-
-  if (DataStore->find("Kaons") != DataStore->end()) {
-    // store the number of kaons in the jets
-    use_kaons = true;
-  }
-
+  bool use_kaons = true; // Kaons, for now, are constructed from PID maps in this code.
 
   bool use_electrons = false;
 
@@ -508,6 +502,24 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
 
     if (track->PT < 0.1) continue;
     all_tracks.push_back(track);
+
+
+    // if (TMath::Abs(track->PID) == 321 && track->P4().Vect().Mag() > 3.5 && track->P4().Vect().Mag() < 4.50 && track->Eta < -1.0 ) {
+
+    //   std::cout << "  True Kaon" << std::endl;
+
+    //   if (_branch_mRICHTracks != nullptr) {
+    // 	for (int itrk = 0; itrk < _branch_mRICHTracks->GetEntries(); itrk++) {
+    // 	  Track *pid_track = (Track *)_branch_mRICHTracks->At(itrk);
+    // 	  if (pid_track->Particle == track->Particle) {
+    // 	    std::cout << "     ID'd as " << pid_track->PID << std::endl;
+    // 	  }
+    // 	}
+    //   }
+    // }
+
+
+
   }
 
 
@@ -587,79 +599,87 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
 
   // The mRICH and barrel DIRC are physicall distinct systems covering different
   // eta ranges
-  // The dRICH system has two components - an aerogel detector for low-momentum
+  // The dualRICH system has two components - an aerogel detector for low-momentum
   // performance
   // and a CF6 system for high-momentum performance.
 
-  for (int itrk = 0; itrk < _branch_mRICHTracks->GetEntries(); itrk++) {
-    Track *track = (Track *)_branch_mRICHTracks->At(itrk);
 
-    if ((track->Eta  < -4.0) || (-1.0 < track->Eta)) continue;
+  if (_branch_mRICHTracks != nullptr) {
+    for (int itrk = 0; itrk < _branch_mRICHTracks->GetEntries(); itrk++) {
+      Track *track = (Track *)_branch_mRICHTracks->At(itrk);
 
-    pid_candidates.push_back(*track);
+      if ((track->Eta  < -3.5) || (-1.0 < track->Eta)) continue;
+      
+      pid_candidates.push_back(*track);
+      
+      Int_t reco_pid = track->PID;
 
-    Int_t pid_flag = track->PID;
-    Int_t true_pid = (pid_flag & 0xffff0000) >> 16;
-    Int_t reco_pid = (pid_flag & 0xffff);
-
-    if (TMath::Abs(reco_pid) == 321) {
-      kaon_candidates.push_back(track);
-    }
-  }
-
-  for (int itrk = 0; itrk < _branch_barrelDircTracks->GetEntries(); itrk++) {
-    Track *track = (Track *)_branch_barrelDircTracks->At(itrk);
-
-    if ((track->Eta  < -1.0) || (1.0 < track->Eta)) continue;
-
-    pid_candidates.push_back(*track);
-
-    Int_t pid_flag = track->PID;
-    Int_t true_pid = (pid_flag & 0xffff0000) >> 16;
-    Int_t reco_pid = (pid_flag & 0xffff);
-
-    if (TMath::Abs(reco_pid) == 321) {
-      kaon_candidates.push_back(track);
-    }
-  }
-
-  for (int itrk = 0; itrk < _branch_dRICHagTracks->GetEntries(); itrk++) {
-    Track *track_ag = (Track *)_branch_dRICHagTracks->At(itrk);
-
-    if ((track_ag->Eta  < 1.0) || (4.0 < track_ag->Eta)) continue;
-
-
-    Int_t ag_pid = (track_ag->PID & 0xffff);
-
-    Int_t ag_flag = track_ag->PID;
-    Int_t true_ag = (ag_flag & 0xffff0000) >> 16;
-    Int_t reco_ag = (ag_flag & 0xffff);
-
-    for (int jtrk = 0; jtrk < _branch_dRICHcfTracks->GetEntries(); jtrk++) {
-      Track *track_cf = (Track *)_branch_dRICHcfTracks->At(jtrk);
-
-      // see if this CF6 candidate matches to the aerogel track
-      if (track_ag->P4().DeltaR(track_cf->P4()) < 0.001) {
-        Int_t cf_flag = track_cf->PID;
-        Int_t true_cf = (cf_flag & 0xffff0000) >> 16;
-        Int_t reco_cf = (cf_flag & 0xffff);
-
-        if ((TMath::Abs(reco_ag) == 321) || (TMath::Abs(reco_cf) == 321)) {
-          kaon_candidates.push_back(track_cf);
-          reco_cf == 321;
-        }
-
-
-        Track drich_track = *track_ag;
-        drich_track.PID = reco_cf + (true_cf << 16);
-        pid_candidates.push_back(drich_track);
+      if (TMath::Abs(reco_pid) == 321) {
+	kaon_candidates.push_back(track);
       }
+    }
+  }
+
+  if (_branch_barrelDircTracks != nullptr) {
+    for (int itrk = 0; itrk < _branch_barrelDircTracks->GetEntries(); itrk++) {
+      Track *track = (Track *)_branch_barrelDircTracks->At(itrk);
+      
+      if ((track->Eta  < -1.0) || (1.0 < track->Eta)) continue;
+      
+      pid_candidates.push_back(*track);
+      
+      Int_t reco_pid = track->PID;
+
+      if (TMath::Abs(reco_pid) == 321) {
+	kaon_candidates.push_back(track);
+      }
+    }
+  }
+
+
+  // Handle tracks in the forward direction (dualRICH)
+  for (auto track : all_tracks) {
+    if (1.0 <= track->Eta && track->Eta <= 3.5) {
+      Int_t final_pid = 0;
+      Double_t p_track = track->P4().Vect().Mag();
+      Double_t ag_p_threshold = 12.0;
+
+      if (p_track < ag_p_threshold) {
+	// region of sensitivity for Aerogel
+	if (_branch_dualRICHagTracks != nullptr) {
+	  for (int itrk = 0; itrk < _branch_dualRICHagTracks->GetEntries(); itrk++) {
+	    Track *track_ag = (Track *)_branch_dualRICHagTracks->At(itrk);
+	    if (track_ag->Particle == track->Particle) {
+	      final_pid = track_ag->PID;
+	      break;
+	    }
+	  }
+	}
+      } else {
+	if (_branch_dualRICHcfTracks != nullptr) {
+	  for (int itrk = 0; itrk < _branch_dualRICHcfTracks->GetEntries(); itrk++) {
+	    Track *track_cf = (Track *)_branch_dualRICHcfTracks->At(itrk);
+	    if (track_cf->Particle == track->Particle) {
+	      final_pid = track_cf->PID;
+	      break;
+	    }
+	  }
+	}
+      }
+      
+      Track drich_track = *track;
+      drich_track.PID = final_pid;
+      pid_candidates.push_back(drich_track);
+      
+      if (TMath::Abs(final_pid) == 321) 
+	kaon_candidates.push_back(track);
+
     }
   }
 
   _pid_track_n = pid_candidates.size();
 
-  for (auto pid_candidate : pid_candidates) {
+  for (auto track : all_tracks) {
     // try to identify the jet that might contain this track and save its
     // mother's identity (e.g. 1, 4, 5, etc.)
     float jet_min_dR     = 1e9;
@@ -671,7 +691,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     {
       // Take first jet
       Jet  *jet     = (Jet *)getJets()->At(ijet);
-      float this_dR = jet->P4().DeltaR(pid_candidate.P4());
+      float this_dR = jet->P4().DeltaR(track->P4());
 
       if ((this_dR < 1.0) && (this_dR < jet_min_dR)) {
         jet_min_dR     = this_dR;
@@ -683,10 +703,34 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     _pid_track_jetmother.push_back(jet_mother_id);
     _pid_track_jet_pt.push_back(jet_mother_pt);
     _pid_track_jet_eta.push_back(jet_mother_eta);
-    _pid_track_true_pid.push_back(pid_candidate.PID & 0xffff);
-    _pid_track_reco_pid.push_back((pid_candidate.PID & 0xffff0000) >> 16);
-    _pid_track_pt.push_back(pid_candidate.PT);
-    _pid_track_eta.push_back(pid_candidate.Eta);
+
+    Int_t pid_id = 0;
+    for (auto pid_track : pid_candidates) {
+      if ( pid_track.Particle == track->Particle ) {
+	pid_id = pid_track.PID;
+	break;
+      }
+    }
+
+    // if (TMath::Abs(track->PID) == 321 && track->P4().Vect().Mag() > 3.5 && track->P4().Vect().Mag() < 4.50 && track->Eta < -1.0 ) {
+
+    //   std::cout << "  > True Kaon" << std::endl;
+
+    //   if (_branch_mRICHTracks != nullptr) {
+    // 	for (int itrk = 0; itrk < _branch_mRICHTracks->GetEntries(); itrk++) {
+    // 	  Track *pid_track = (Track *)_branch_mRICHTracks->At(itrk);
+    // 	  if (pid_track->Particle == track->Particle) {
+    // 	    std::cout << "       ID'd as      " << pid_track->PID << std::endl;
+    // 	  }
+    // 	}
+    //   }
+    //   std::cout << "       Alt. ID'd as " << pid_id << std::endl;
+    // }
+
+    _pid_track_true_pid.push_back(track->PID);
+    _pid_track_reco_pid.push_back( pid_id );
+    _pid_track_pt.push_back(track->PT);
+    _pid_track_eta.push_back(track->Eta);
   }
 
 
@@ -786,7 +830,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     }
 
     if (use_kaons) {
-      _jet_ktag.push_back(Tagged_Kaon(jet, std::any_cast<std::vector<Track *> >((*DataStore)["Kaons"]), 3.0, 1.0, 1));
+      _jet_ktag.push_back(Tagged_Kaon(jet, std::any_cast<std::vector<Track *> >(kaon_candidates), 3.0, 1.0, 1));
     } else {
       _jet_ktag.push_back(0.0);
     }
@@ -799,8 +843,6 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
       return lhs->PT > rhs->PT;
     });
 
-    // auto kaons_list     = std::any_cast<std::vector<Track *>
-    // >((*DataStore)["Kaons"]);
     auto kaons_list     = kaon_candidates;
     auto electrons_list = std::any_cast<std::vector<Track *> >((*DataStore)["Electrons"]);
     auto muons_list     = std::any_cast<std::vector<Track *> >((*DataStore)["Muons"]);
@@ -864,7 +906,7 @@ bool EventSelectionModule::execute(std::map<std::string, std::any> *DataStore)
     TVector3 K_sumpt;
 
     if (use_kaons) {
-      auto kaons = std::any_cast<std::vector<Track *> >((*DataStore)["Kaons"]);
+      auto kaons = kaon_candidates;
 
       for (auto kaon : kaons) {
         if (kaon->P4().DeltaR(jet->P4()) < 0.5) {

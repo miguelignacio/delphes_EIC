@@ -204,7 +204,7 @@ else:
     WritePythiaFile(cmndfile)
 
     # Copy files to the task directory before execution
-    copy_files = ["delphes_card_EIC.tcl"]
+    copy_files = [args.template]
     for a_file in copy_files:
         subprocess.call("cp %s %s" % (a_file, taskdir), shell=True)
         #TransferTclFile(a_file, taskdir)
@@ -214,4 +214,4 @@ else:
     rndm_file.close()
 
     # Execute the study
-    subprocess.call("DelphesPythia8 {0[taskdir]}/delphes_card_EIC.tcl {0[taskdir]}/{0[commands]} {0[taskdir]}/out.root".format({'taskdir': taskdir, 'template': args.template, 'commands': args.commands}), shell=True)
+    subprocess.call("DelphesPythia8 {0[taskdir]}/{0[template]} {0[taskdir]}/{0[commands]} {0[taskdir]}/out.root".format({'taskdir': taskdir, 'template': args.template, 'commands': args.commands}), shell=True)

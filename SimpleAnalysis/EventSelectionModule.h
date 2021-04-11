@@ -119,8 +119,8 @@ private:
   // Branch pointers - only initialize once per run
   TClonesArray *_branch_mRICHTracks;
   TClonesArray *_branch_barrelDircTracks;
-  TClonesArray *_branch_dRICHagTracks;
-  TClonesArray *_branch_dRICHcfTracks;
+  TClonesArray *_branch_dualRICHagTracks;
+  TClonesArray *_branch_dualRICHcfTracks;
 
   // High-level multivariate tagging
   TMVA::Reader *_mva_reader_ip3dtagger;
